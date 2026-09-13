@@ -28,7 +28,7 @@
       })();
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mural de Vagas | Freela da Moda</title>
+    <title>Mural de Freelancers | Freela da Moda</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -51,17 +51,18 @@
         <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Alternar tema claro e escuro">
             <i class="bi bi-moon-stars" aria-hidden="true"></i>
         </button>
-        <a href="/pages/03-dashboard-freelancer.html" id="link-dashboard">Dashboard</a>
-        <a class="active" href="/pages/07-vagas.html" aria-current="page">Vagas</a>
-        <a href="/pages/20-minhas-candidaturas.html">Candidaturas/OS</a>
-        <a href="/pages/08-perfil-freelancer.html">Perfil</a>
-        <a href="/pages/11-chat.html">Chat</a>
-        <a href="/pages/10-impulsionamento.html">Impulsionamento</a>
+        <a href="/pages/04-dashboard-empresa.html" id="link-dashboard">Dashboard</a>
+        <a href="/pages/12-publicar-vaga.html">Publicar Vaga</a>
+        <a href="/pages/15-minhas-vagas.html">Minhas Vagas</a>
+        <a class="active" href="/pages/27-mural-freelancers.html" aria-current="page">Buscar Freelancers</a>
+        <a href="/pages/16-ordens-servico.html">Ordens de Serviço</a>
+        <a href="/pages/09-perfil-empresa.html">Perfil</a>
+        <a href="/pages/21-assinatura.html">Assinatura</a>
         <a href="/pages/24-suporte.html">Suporte</a>
     </aside>
     <main class="main" role="main" aria-label="Conteúdo principal">
         <div class="header">
-            <h2>Mural de Vagas</h2>
+            <h2>Mural de Freelancers</h2>
             <div class="header-actions">
                 <span id="user-greeting" style="font-size: 0.9rem; font-weight: 600; color: var(--color-primary);"></span>
                 <a href="/pages/02-login.html" class="btn btn-outline-purple" id="btn-auth">Entrar</a>
@@ -70,12 +71,12 @@
 
         <!-- CABEÇALHO COM FILTROS -->
         <section class="mural-header">
-            <span class="badge"><i class="bi bi-briefcase"></i> OPORTUNIDADES ABERTAS</span>
-            <h1>Mural de Vagas para Confecção</h1>
-            <p>Encontre trabalhos sob demanda ou contratos fixos com confecções de todo o Brasil.</p>
+            <span class="badge"><i class="bi bi-people"></i> TALENTOS DA MODA</span>
+            <h1>Encontre o profissional certo para sua confecção</h1>
+            <p>Busque por nome ou especialidade entre os freelancers cadastrados na plataforma.</p>
 
             <div class="filter-bar">
-                <input type="text" id="filtro-busca" placeholder="Buscar por título, descrição ou confecção..." />
+                <input type="text" id="filtro-busca" placeholder="Buscar por nome ou especialidade..." />
                 <select id="filtro-especialidade">
                     <option value="">Todas as especialidades</option>
                     <option value="Costura reta">Costura reta</option>
@@ -92,14 +93,14 @@
             </div>
         </section>
 
-        <!-- LISTAGEM DE CARDS DE VAGAS -->
-        <section class="jobs-layout" id="lista-vagas">
-            <!-- Vagas renderizadas dinamicamente pelo vagas.js -->
+        <!-- LISTAGEM DE CARDS DE FREELANCERS -->
+        <section class="freelancers-layout" id="lista-freelancers">
+            <!-- Freelancers renderizados dinamicamente pelo 27-mural-freelancers.js -->
         </section>
 
     </main>
     </div>
 
-    <script src="/js/07-vagas.js"></script>
+    <script src="/js/27-mural-freelancers.js"></script>
 </body>
 </html>

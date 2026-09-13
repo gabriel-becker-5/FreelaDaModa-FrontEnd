@@ -5,7 +5,21 @@ document.addEventListener('DOMContentLoaded', () => {
     verificarUsuarioLogado();
     carregarVagas();
     initFiltros();
+    initTemaToggle();
 });
+
+/* -------------------------------------------------------------------------- */
+/* 0. TEMA CLARO / ESCURO                                                     */
+/* -------------------------------------------------------------------------- */
+function initTemaToggle() {
+    const botaoTema = document.querySelector('.theme-toggle');
+    if (!botaoTema) return;
+
+    botaoTema.addEventListener('click', () => {
+        const atual = document.documentElement.getAttribute('data-theme');
+        document.documentElement.setAttribute('data-theme', atual === 'dark' ? 'light' : 'dark');
+    });
+}
 
 /* -------------------------------------------------------------------------- */
 /* 1. VERIFICAR AUTENTICAÇÃO DO USUÁRIO                                      */
@@ -50,7 +64,23 @@ async function carregarVagas() {
         if (!response.ok) throw new Error('Erro ao buscar vagas.');
 
         todasVagas = await response.json();
-        renderizarVagas(todasVagas);
+
+        // vindo da lupa da Home via ?busca=
+        const termoDaUrl = new URLSearchParams(window.location.search).get('busca');
+        if (termoDaUrl) {
+            const inputBusca = document.getElementById('filtro-busca');
+            if (inputBusca) inputBusca.value = termoDaUrl;
+            const termo = termoDaUrl.toLowerCase().trim();
+            const filtradas = todasVagas.filter(vaga =>
+                vaga.titulo.toLowerCase().includes(termo) ||
+                (vaga.descricao || '').toLowerCase().includes(termo) ||
+                (vaga.especialidade || '').toLowerCase().includes(termo) ||
+                (vaga.empresaNome && vaga.empresaNome.toLowerCase().includes(termo))
+            );
+            renderizarVagas(filtradas);
+        } else {
+            renderizarVagas(todasVagas);
+        }
     } catch (error) {
         console.error(error);
         container.innerHTML = `
@@ -137,9 +167,11 @@ function initFiltros() {
         const esp = selectEspecialidade.value;
 
         const filtradas = todasVagas.filter(vaga => {
-            const bateTermo = 
+            const bateTermo =
+                !termo ||
                 vaga.titulo.toLowerCase().includes(termo) ||
-                vaga.descricao.toLowerCase().includes(termo) ||
+                (vaga.descricao || '').toLowerCase().includes(termo) ||
+                (vaga.especialidade || '').toLowerCase().includes(termo) ||
                 (vaga.empresaNome && vaga.empresaNome.toLowerCase().includes(termo));
 
             const bateEsp = esp === '' || vaga.especialidade === esp;
