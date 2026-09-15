@@ -2,31 +2,7 @@
 <html lang="pt-BR" data-theme="light">
   <head>
     <meta charset="UTF-8" />
-    <script>
-      // Restaura o tema salvo antes da primeira renderização (evita flash) e
-      // mantém localStorage sincronizado sempre que data-theme mudar,
-      // não importa qual botão/página fez a mudança.
-      (function () {
-        var root = document.documentElement;
-        function sincronizarIcone(tema) {
-          document.querySelectorAll('.theme-toggle i').forEach(function (icone) {
-            icone.className = tema === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-stars';
-          });
-        }
-        try {
-          var salvo = localStorage.getItem('fdlm-theme');
-          if (salvo) root.setAttribute('data-theme', salvo);
-        } catch (e) {}
-        new MutationObserver(function () {
-          var atual = root.getAttribute('data-theme');
-          try { localStorage.setItem('fdlm-theme', atual); } catch (e) {}
-          sincronizarIcone(atual);
-        }).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
-        document.addEventListener('DOMContentLoaded', function () {
-          sincronizarIcone(root.getAttribute('data-theme'));
-        });
-      })();
-    </script>
+    <script src="/js/theme.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Perfil Freelancer</title>
     <link
@@ -176,6 +152,7 @@
         </div>
       </main>
     </div>
+    <script src="/js/config.js"></script>
     <script src="/js/25-perfil-freelancer-publico.js"></script>
   </body>
 </html>

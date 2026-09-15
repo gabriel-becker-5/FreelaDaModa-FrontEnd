@@ -1,19 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
-    const API_BASE = 'http://localhost:3000';
-
-    // ── 1. Alternador de Tema Claro / Escuro ──
-    const themeToggle = document.querySelector('.theme-toggle');
-    const htmlElement = document.documentElement;
-
-    if (themeToggle) {
-        themeToggle.addEventListener('click', function () {
-            const atual = htmlElement.getAttribute('data-theme');
-            htmlElement.setAttribute('data-theme', atual === 'dark' ? 'light' : 'dark');
-        });
-    }
-
     // ── 2. Menu Lateral no Celular (Hambúrguer) ──
     const sidebarToggleBtn = document.querySelector('.sidebar-toggle-btn');
     const sidebar = document.querySelector('.sidebar');
@@ -112,6 +99,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             dataFim: null
                         })
                     });
+                    if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
                     renderizarImpulsionamento(await res.json());
                 } else {
                     const res = await fetch(`${API_BASE}/impulsionamentos`, {
@@ -126,6 +114,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             dataFim: null
                         })
                     });
+                    if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
                     renderizarImpulsionamento(await res.json());
                 }
 

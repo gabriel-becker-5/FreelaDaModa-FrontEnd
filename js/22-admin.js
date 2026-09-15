@@ -1,19 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
-    const API_BASE = 'http://localhost:3000';
-
-    // ── 1. Alternador de Tema Claro / Escuro ──
-    const themeToggle = document.querySelector('.theme-toggle');
-    const htmlElement = document.documentElement;
-
-    if (themeToggle) {
-        themeToggle.addEventListener('click', function () {
-            const atual = htmlElement.getAttribute('data-theme');
-            htmlElement.setAttribute('data-theme', atual === 'dark' ? 'light' : 'dark');
-        });
-    }
-
     // ── 2. Menu Lateral no Celular (Hambúrguer) ──
     const sidebarToggleBtn = document.querySelector('.sidebar-toggle-btn');
     const sidebar = document.querySelector('.sidebar');
@@ -62,6 +49,12 @@ document.addEventListener('DOMContentLoaded', function () {
         return partes.length > 1 ? (partes[0][0] + partes[1][0]).toUpperCase() : (nome || '??').substring(0, 2).toUpperCase();
     }
 
+    function escapeHtml(str) {
+        return String(str ?? '').replace(/[&<>"']/g, function (ch) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+        });
+    }
+
     // ── 4. Aba Usuários ──
     // não existe coleção "usuários" — junta freelancers + empresas aqui
     // e guarda a origem em data-tipo pra excluir na coleção certa
@@ -69,7 +62,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const tbody = painelUsuarios.querySelector('table tbody');
         const inputBusca = painelUsuarios.querySelector('.filters .input-grow');
         const selectTipo = painelUsuarios.querySelectorAll('.filters select')[0];
-        const selectStatus = painelUsuarios.querySelectorAll('.filters select')[1];
         const btnFiltrar = painelUsuarios.querySelector('.filters .btn-primary');
         const loadingSkeleton = painelUsuarios.querySelector('.loading-skeleton');
         const emptyState = painelUsuarios.querySelector('.empty-state');
@@ -82,10 +74,10 @@ document.addEventListener('DOMContentLoaded', function () {
             tr.dataset.id = usuario.id;
             tr.dataset.tipo = usuario.tipoColecao;
             tr.innerHTML = `
-                <td data-label="Id">USR-${usuario.id}</td>
-                <td data-label="Nome">${usuario.nome}</td>
-                <td data-label="Email">${usuario.email}</td>
-                <td data-label="Tipo">${usuario.tipoExibicao}</td>
+                <td data-label="Id">USR-${escapeHtml(usuario.id)}</td>
+                <td data-label="Nome">${escapeHtml(usuario.nome)}</td>
+                <td data-label="Email">${escapeHtml(usuario.email)}</td>
+                <td data-label="Tipo">${escapeHtml(usuario.tipoExibicao)}</td>
                 <td data-label="Status"><span class="badge badge-success">Ativo</span></td>
                 <td data-label="Ações">
                     <div class="table-actions">
@@ -176,9 +168,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (e.target.closest('.btn-excluir')) {
                     if (!confirm('Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.')) return;
                     try {
-                        await fetch(`${API_BASE}/${tipo}/${id}`, { method: 'DELETE' });
+                        const res = await fetch(`${API_BASE}/${tipo}/${id}`, { method: 'DELETE' });
+                        if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
                     } catch (erro) {
                         console.error('Erro ao excluir usuário:', erro);
+                        alert('Não foi possível excluir o usuário. Verifique se o json-server está rodando.');
+                        return;
                     }
                     todosUsuarios = todosUsuarios.filter(function (u) { return !(u.id === id && u.tipoColecao === tipo); });
                     linha.remove();
@@ -205,10 +200,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const tr = document.createElement('tr');
             tr.dataset.id = vaga.id;
             tr.innerHTML = `
-                <td data-label="Id">VG-${vaga.id}</td>
-                <td data-label="Título">${vaga.titulo}</td>
-                <td data-label="Empresa">${vaga.empresaNome || '—'}</td>
-                <td data-label="Status"><span class="badge">${vaga.status || 'Aberta'}</span></td>
+                <td data-label="Id">VG-${escapeHtml(vaga.id)}</td>
+                <td data-label="Título">${escapeHtml(vaga.titulo)}</td>
+                <td data-label="Empresa">${escapeHtml(vaga.empresaNome || '—')}</td>
+                <td data-label="Status"><span class="badge">${escapeHtml(vaga.status || 'Aberta')}</span></td>
                 <td data-label="Data">—</td>
                 <td data-label="Ações">
                     <div class="table-actions">
@@ -268,13 +263,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!confirm('Encerrar esta vaga na plataforma?')) return;
 
                 try {
-                    await fetch(`${API_BASE}/vagas/${id}`, {
+                    const res = await fetch(`${API_BASE}/vagas/${id}`, {
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ status: 'Encerrada' })
                     });
+                    if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
                 } catch (erro) {
                     console.error('Erro ao encerrar vaga:', erro);
+                    alert('Não foi possível encerrar a vaga. Verifique se o json-server está rodando.');
+                    return;
                 }
                 const badge = linha.querySelector('.badge');
                 badge.textContent = 'Encerrada';
@@ -307,11 +305,11 @@ document.addEventListener('DOMContentLoaded', function () {
             const tr = document.createElement('tr');
             tr.dataset.id = os.id;
             tr.innerHTML = `
-                <td data-label="Id">OS-${os.id}</td>
-                <td data-label="Título">${os.titulo}</td>
-                <td data-label="Empresa">${os.empresaNome || '—'}</td>
-                <td data-label="Freelancer">${os.freelancerNome || '—'}</td>
-                <td data-label="Status"><span class="badge ${classeBadgeStatusOS(os.status)}">${os.status}</span></td>
+                <td data-label="Id">OS-${escapeHtml(os.id)}</td>
+                <td data-label="Título">${escapeHtml(os.titulo)}</td>
+                <td data-label="Empresa">${escapeHtml(os.empresaNome || '—')}</td>
+                <td data-label="Freelancer">${escapeHtml(os.freelancerNome || '—')}</td>
+                <td data-label="Status"><span class="badge ${classeBadgeStatusOS(os.status)}">${escapeHtml(os.status)}</span></td>
                 <td data-label="Ações">
                     <div class="table-actions">
                         <a href="/pages/19-ordem-servico-detalhe.html?id=${os.id}" class="btn">Ver</a>
@@ -370,13 +368,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!confirm('Cancelar esta ordem de serviço?')) return;
 
                 try {
-                    await fetch(`${API_BASE}/ordensServico/${id}`, {
+                    const res = await fetch(`${API_BASE}/ordensServico/${id}`, {
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ status: 'Cancelada' })
                     });
+                    if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
                 } catch (erro) {
                     console.error('Erro ao cancelar ordem de serviço:', erro);
+                    alert('Não foi possível cancelar a ordem de serviço. Verifique se o json-server está rodando.');
                     return;
                 }
 
@@ -440,19 +440,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 btnSalvar.innerHTML = '<span class="spinner"></span> Salvando...';
 
                 try {
-                    if (parametrosAtuais) {
-                        await fetch(`${API_BASE}/parametros/${parametrosAtuais.id}`, {
+                    const res = parametrosAtuais
+                        ? await fetch(`${API_BASE}/parametros/${parametrosAtuais.id}`, {
                             method: 'PATCH',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(novosParametros)
-                        });
-                    } else {
-                        await fetch(`${API_BASE}/parametros`, {
+                        })
+                        : await fetch(`${API_BASE}/parametros`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(novosParametros)
                         });
-                    }
+                    if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
                     alert('Parâmetros salvos com sucesso!');
                     await carregarParametros();
                 } catch (erro) {
@@ -488,11 +487,11 @@ document.addEventListener('DOMContentLoaded', function () {
             const tr = document.createElement('tr');
             tr.dataset.id = chamado.id;
             tr.innerHTML = `
-                <td data-label="Id">TKT-${chamado.id}</td>
-                <td data-label="Usuário">${chamado.autorNome || '—'}</td>
-                <td data-label="Assunto">${chamado.assunto}</td>
+                <td data-label="Id">TKT-${escapeHtml(chamado.id)}</td>
+                <td data-label="Usuário">${escapeHtml(chamado.autorNome || '—')}</td>
+                <td data-label="Assunto">${escapeHtml(chamado.assunto)}</td>
                 <td data-label="Data">${chamado.criadoEm ? new Date(chamado.criadoEm + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}</td>
-                <td data-label="Status"><span class="badge ${classeBadgeChamado(chamado.status)}">${chamado.status}</span></td>
+                <td data-label="Status"><span class="badge ${classeBadgeChamado(chamado.status)}">${escapeHtml(chamado.status)}</span></td>
                 <td data-label="Ações">
                     <div class="table-actions">
                         <button class="btn btn-ver">Ver</button>
@@ -557,8 +556,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 const dataFormatada = m.data ? new Date(m.data + 'T00:00:00').toLocaleDateString('pt-BR') : '';
                 return `
                     <div class="message-row${ehSuporte ? ' message-row-outgoing' : ''}" style="max-width: 100%;">
-                        <strong style="display:block; font-size:12px; margin-bottom:2px;">${m.autor || 'Usuário'}</strong>
-                        ${m.texto}
+                        <strong style="display:block; font-size:12px; margin-bottom:2px;">${escapeHtml(m.autor || 'Usuário')}</strong>
+                        ${escapeHtml(m.texto)}
                         <span class="message-timestamp">${dataFormatada}</span>
                     </div>
                 `;
@@ -623,11 +622,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 btnEnviarResposta.innerHTML = '<span class="spinner"></span> Enviando...';
 
                 try {
-                    await fetch(`${API_BASE}/chamados/${chamadoAberto.id}`, {
+                    const res = await fetch(`${API_BASE}/chamados/${chamadoAberto.id}`, {
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ status: 'Respondido', mensagens: novasMensagens })
                     });
+                    if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
 
                     chamadoAberto.status = 'Respondido';
                     chamadoAberto.mensagens = novasMensagens;
@@ -652,11 +652,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!confirm('Fechar este chamado de suporte?')) return;
 
                 try {
-                    await fetch(`${API_BASE}/chamados/${chamadoAberto.id}`, {
+                    const res = await fetch(`${API_BASE}/chamados/${chamadoAberto.id}`, {
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ status: 'Fechado' })
                     });
+                    if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
                     chamadoAberto.status = 'Fechado';
                     atualizarLinhaTabela(chamadoAberto);
                     fecharDetalheChamado();
@@ -688,13 +689,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (e.target.closest('.btn-fechar-ticket')) {
                     if (!confirm('Fechar este chamado de suporte?')) return;
                     try {
-                        await fetch(`${API_BASE}/chamados/${id}`, {
+                        const res = await fetch(`${API_BASE}/chamados/${id}`, {
                             method: 'PATCH',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ status: 'Fechado' })
                         });
+                        if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
                     } catch (erro) {
                         console.error('Erro ao fechar chamado:', erro);
+                        alert('Não foi possível fechar o chamado. Verifique se o json-server está rodando.');
                         return;
                     }
                     chamado.status = 'Fechado';
@@ -725,10 +728,10 @@ document.addEventListener('DOMContentLoaded', function () {
             tr.dataset.id = aviso.id;
             tr.className = 'animate-slide-down';
             tr.innerHTML = `
-                <td data-label="Título">${aviso.titulo}</td>
+                <td data-label="Título">${escapeHtml(aviso.titulo)}</td>
                 <td data-label="Publicado em">${formatarDataBR(aviso.publicadoEm)}</td>
                 <td data-label="Expira em">${formatarDataBR(aviso.expiraEm)}</td>
-                <td data-label="Status"><span class="badge">${aviso.status || 'Ativo'}</span></td>
+                <td data-label="Status"><span class="badge">${escapeHtml(aviso.status || 'Ativo')}</span></td>
                 <td data-label="Ações">
                     <div class="table-actions">
                         <button class="btn">Editar</button>
@@ -778,11 +781,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 };
 
                 try {
-                    await fetch(`${API_BASE}/avisos`, {
+                    const res = await fetch(`${API_BASE}/avisos`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(novoAviso)
                     });
+                    if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
                     form.reset();
                     alert('Aviso publicado com sucesso!');
                     await carregarAvisos();
@@ -805,9 +809,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 const linha = botaoRemover.closest('tr');
                 const id = linha.dataset.id;
                 try {
-                    await fetch(`${API_BASE}/avisos/${id}`, { method: 'DELETE' });
+                    const res = await fetch(`${API_BASE}/avisos/${id}`, { method: 'DELETE' });
+                    if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
                 } catch (erro) {
                     console.error('Erro ao remover aviso:', erro);
+                    alert('Não foi possível remover o aviso. Verifique se o json-server está rodando.');
                     return;
                 }
                 linha.remove();

@@ -1,19 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
-    const API_BASE = 'http://localhost:3000';
-
-    // ── 1. Alternador de Tema Claro / Escuro ──
-    const themeToggle = document.querySelector('.theme-toggle');
-    const htmlElement = document.documentElement;
-
-    if (themeToggle) {
-        themeToggle.addEventListener('click', function () {
-            const atual = htmlElement.getAttribute('data-theme');
-            htmlElement.setAttribute('data-theme', atual === 'dark' ? 'light' : 'dark');
-        });
-    }
-
     // ── 2. Menu Lateral no Celular (Hambúrguer) ──
     const sidebarToggleBtn = document.querySelector('.sidebar-toggle-btn');
     const sidebar = document.querySelector('.sidebar');
@@ -34,9 +21,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ── 3. Carregar a Ordem de Serviço ──
-    // sem ?id= na url, cai na primeira OS cadastrada
     const params = new URLSearchParams(window.location.search);
     const idOS = params.get('id');
+
+    if (!idOS) {
+        alert('Ordem de serviço não especificada.');
+        window.location.href = '/pages/16-ordens-servico.html';
+        return;
+    }
 
     function formatarDataHora(iso) {
         if (!iso) return '—';
@@ -57,6 +49,12 @@ document.addEventListener('DOMContentLoaded', function () {
         return 'badge-warning';
     }
 
+    function escapeHtml(str) {
+        return String(str ?? '').replace(/[&<>"']/g, function (ch) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+        });
+    }
+
     let osAtual = null;
 
     function renderizarOS(os) {
@@ -75,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const habilidadesEl = document.getElementById('os-habilidades-display');
         habilidadesEl.innerHTML = (os.habilidades && os.habilidades.length)
-            ? os.habilidades.map(function (h) { return `<span class="badge">${h}</span>`; }).join('')
+            ? os.habilidades.map(function (h) { return `<span class="badge">${escapeHtml(h)}</span>`; }).join('')
             : '<span class="text-muted">Nenhuma habilidade cadastrada.</span>';
 
         const badgeStatus = document.getElementById('os-status-badge');
@@ -94,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const timeline = document.getElementById('os-timeline');
         timeline.innerHTML = (os.historico && os.historico.length)
             ? os.historico.map(function (item) {
-                return `<div class="timeline-item">${formatarData(item.data)} - ${item.evento}</div>`;
+                return `<div class="timeline-item">${formatarData(item.data)} - ${escapeHtml(item.evento)}</div>`;
             }).join('')
             : '<div class="timeline-item">Nenhum evento registrado.</div>';
 
@@ -104,16 +102,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function carregarOS() {
         try {
-            if (idOS) {
-                const res = await fetch(`${API_BASE}/ordensServico/${idOS}`);
-                if (!res.ok) throw new Error('OS não encontrada.');
-                renderizarOS(await res.json());
-            } else {
-                const res = await fetch(`${API_BASE}/ordensServico`);
-                if (!res.ok) throw new Error('Falha ao carregar ordens de serviço.');
-                const todas = await res.json();
-                if (todas.length) renderizarOS(todas[0]);
-            }
+            const res = await fetch(`${API_BASE}/ordensServico/${idOS}`);
+            if (!res.ok) throw new Error(`OS não encontrada (HTTP ${res.status}).`);
+            renderizarOS(await res.json());
         } catch (erro) {
             console.error('Erro ao carregar Ordem de Serviço:', erro);
         }
@@ -138,11 +129,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     { data: new Date().toISOString().slice(0, 10), evento: 'OS finalizada pela empresa.' }
                 ]);
 
-                await fetch(`${API_BASE}/ordensServico/${osAtual.id}`, {
+                const res = await fetch(`${API_BASE}/ordensServico/${osAtual.id}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ status: 'Concluída', historico: novoHistorico })
                 });
+                if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
 
                 const badgeStatus = document.getElementById('os-status-badge');
                 badgeStatus.className = 'badge badge-success';

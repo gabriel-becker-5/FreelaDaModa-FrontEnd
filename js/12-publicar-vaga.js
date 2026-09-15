@@ -1,30 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
-    // ── 1. Alternador de Tema Claro / Escuro ──
-    const themeToggle = document.getElementById('themeToggle');
-    const htmlElement = document.documentElement;
-
-    function setTheme(theme) {
-        htmlElement.setAttribute('data-theme', theme);
-        try {
-            localStorage.setItem('fdlm-theme', theme);
-        } catch (e) { }
-        if (themeToggle) {
-            const icon = themeToggle.querySelector('i');
-            if (icon) {
-                icon.className = theme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-stars';
-            }
-        }
-    }
-
-    if (themeToggle) {
-        themeToggle.addEventListener('click', function () {
-            const current = htmlElement.getAttribute('data-theme');
-            setTheme(current === 'dark' ? 'light' : 'dark');
-        });
-    }
-
     // ── 2. Controle de Habilidades (Badges Selecionáveis) ──
     const habilidadesBadges = document.querySelectorAll('#habilidadesGroup .badge-selectable');
     habilidadesBadges.forEach(badge => {

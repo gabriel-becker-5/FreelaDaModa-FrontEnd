@@ -1,19 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
-    const API_BASE = 'http://localhost:3000';
-
-    // ── 1. Alternador de Tema Claro / Escuro ──
-    const themeToggle = document.querySelector('.theme-toggle');
-    const htmlElement = document.documentElement;
-
-    if (themeToggle) {
-        themeToggle.addEventListener('click', function () {
-            const atual = htmlElement.getAttribute('data-theme');
-            htmlElement.setAttribute('data-theme', atual === 'dark' ? 'light' : 'dark');
-        });
-    }
-
     // ── 2. Menu Lateral no Celular (Hambúrguer) ──
     const sidebarToggleBtn = document.querySelector('.sidebar-toggle-btn');
     const sidebar = document.querySelector('.sidebar');
@@ -37,6 +24,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const params = new URLSearchParams(window.location.search);
     const idOS = params.get('id');
 
+    if (!idOS) {
+        alert('Ordem de serviço não especificada.');
+        window.location.href = '/pages/16-ordens-servico.html';
+        return;
+    }
+
     let osAtual = null;
 
     function atualizarLinksVoltar() {
@@ -49,18 +42,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function carregarResumo() {
         try {
-            let os;
-            if (idOS) {
-                const res = await fetch(`${API_BASE}/ordensServico/${idOS}`);
-                if (!res.ok) throw new Error('OS não encontrada.');
-                os = await res.json();
-            } else {
-                const res = await fetch(`${API_BASE}/ordensServico`);
-                if (!res.ok) throw new Error('Falha ao carregar ordens de serviço.');
-                const todas = await res.json();
-                os = todas[0];
-            }
-            if (!os) return;
+            const res = await fetch(`${API_BASE}/ordensServico/${idOS}`);
+            if (!res.ok) throw new Error(`OS não encontrada (HTTP ${res.status}).`);
+            const os = await res.json();
 
             osAtual = os;
             document.getElementById('resumo-projeto').textContent = os.titulo;
@@ -109,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             try {
                 // assume que quem avalia aqui é sempre a empresa
-                await fetch(`${API_BASE}/avaliacoes`, {
+                const resAvaliacao = await fetch(`${API_BASE}/avaliacoes`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -119,13 +103,15 @@ document.addEventListener('DOMContentLoaded', function () {
                         autor: osAtual ? osAtual.empresaNome : 'Empresa'
                     })
                 });
+                if (!resAvaliacao.ok) throw new Error(`Erro HTTP: ${resAvaliacao.status}`);
 
                 if (osAtual) {
-                    await fetch(`${API_BASE}/ordensServico/${osAtual.id}`, {
+                    const resOS = await fetch(`${API_BASE}/ordensServico/${osAtual.id}`, {
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ avaliacaoConfeccao: 'Avaliado' })
                     });
+                    if (!resOS.ok) throw new Error(`Erro HTTP: ${resOS.status}`);
                 }
 
                 if (alertaSucesso) {

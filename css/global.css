@@ -70,14 +70,14 @@
   --hero-panel-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03));
   --hero-panel-border: rgba(255, 255, 255, 0.12);
   --card-dark-gradient: linear-gradient(135deg, #180029 0%, #0b0014 100%);
-  --cta-bg: linear-gradient(135deg, #180029 0%, #0b0014 100%);
-  --cta-text-muted: rgba(255, 255, 255, 0.82);
   --sidebar-gradient-start: #180029;
   --sidebar-gradient-end: #0b0014;
   /* fixas nos dois temas — --color-primary/--danger clareiam no dark e
      o texto branco em cima cai pra ~3:1 de contraste (ver WCAG) */
   --color-primary-solid: #7000c2;
   --danger-solid: #b42318;
+  --rating-gold: #f2bb55;
+  --badge-on-dark-text: #e2c2ff;
   --sidebar-link: rgba(255, 255, 255, 0.74);
   --sidebar-link-hover-bg: rgba(255, 255, 255, 0.1);
   --sidebar-border: rgba(255, 255, 255, 0.12);
@@ -151,8 +151,6 @@
   --hero-text-muted: rgba(255, 255, 255, 0.68);
   --hero-panel-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
   --hero-panel-border: rgba(255, 255, 255, 0.08);
-  --cta-bg: linear-gradient(135deg, #1a0a30, #6d36b0);
-  --cta-text-muted: rgba(255, 255, 255, 0.8);
   --sidebar-gradient-start: #180029;
   --sidebar-gradient-end: #0a0a14;
   --sidebar-link: rgba(255, 255, 255, 0.72);
@@ -365,14 +363,16 @@ strong {
   text-decoration: none;
   background: var(--surface-alt);
 }
-.btn-primary {
+.btn-primary,
+.btn-purple {
   /* cor fixa — no dark, --color-primary clareia e o texto branco
      perde contraste (~3:1) */
   background: var(--color-primary-solid);
   border-color: var(--color-primary-solid);
   color: var(--text-inverse);
 }
-.btn-primary:hover {
+.btn-primary:hover,
+.btn-purple:hover {
   background: var(--color-primary-600);
   color: var(--text-inverse);
   transform: translateY(-1px);
@@ -382,7 +382,8 @@ strong {
   background: transparent;
   color: var(--text-primary);
 }
-.btn-outline-primary {
+.btn-outline-primary,
+.btn-outline-purple {
   background: transparent;
   border-color: var(--color-primary);
   color: var(--color-primary);
@@ -499,6 +500,11 @@ strong {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+.stack-xs {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 .cluster {
   display: flex;
@@ -904,6 +910,7 @@ a:focus-visible {
   min-height: 320px;
   border-radius: 16px;
   background: var(--hero-panel-bg);
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
@@ -955,23 +962,6 @@ a:focus-visible {
   justify-content: center;
   margin-bottom: 12px;
 }
-.cta-panel {
-  margin-top: 60px;
-  padding: 60px;
-  border-radius: 20px;
-  background: var(--cta-bg);
-  color: var(--text-inverse);
-  text-align: center;
-}
-.cta-panel h2 {
-  font-size: 32px;
-  margin-bottom: 12px;
-}
-.cta-panel p {
-  color: var(--cta-text-muted);
-  margin-bottom: 20px;
-}
-
 /* chat e timeline */
 
 .chat-layout {
@@ -1388,11 +1378,11 @@ a:focus-visible {
 }
 .star-rating label:hover,
 .star-rating label:hover ~ label {
-  color: #f2bb55;
+  color: var(--rating-gold);
   transform: scale(1.15);
 }
 .star-rating input:checked ~ label {
-  color: #f2bb55;
+  color: var(--rating-gold);
 }
 
 /* ---------- Barras de progresso (Dashboard) ---------- */
@@ -1656,7 +1646,7 @@ a:focus-visible {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #f2bb55;
+  color: var(--rating-gold);
   font-size: 18px;
   margin-bottom: 6px;
 }
@@ -1720,7 +1710,7 @@ a:focus-visible {
 }
 .review-author strong { font-size: 12px; }
 .review-stars {
-  color: #f2bb55;
+  color: var(--rating-gold);
   font-size: 13px;
 }
 .btn-lg {
@@ -1818,9 +1808,6 @@ a:focus-visible {
   .hero-content h2 {
     font-size: 34px;
   }
-  .cta-panel {
-    padding: 40px 22px;
-  }
 }
 
 @media (max-width: 720px) {
@@ -1888,15 +1875,6 @@ html[data-theme="dark"] #logoBlack {
     background: transparent;
 }
 
-.btn-purple {
-    background: var(--color-primary-solid);
-    color: var(--text-inverse);
-}
-
-.btn-purple:hover {
-    background: var(--color-primary-600);
-}
-
 .btn-purple-bright {
     background: var(--color-primary-solid);
     color: var(--text-inverse);
@@ -1905,12 +1883,6 @@ html[data-theme="dark"] #logoBlack {
 
 .btn-purple-bright:hover {
     filter: brightness(1.1);
-}
-
-.btn-outline-purple {
-    background: transparent;
-    border: 1px solid var(--color-primary);
-    color: var(--color-primary);
 }
 
 .btn-outline-purple:hover {
@@ -1963,7 +1935,7 @@ html[data-theme="dark"] #logoBlack {
     font-weight: 700;
     letter-spacing: 1px;
     background: rgba(255, 255, 255, 0.12);
-    color: #e2c2ff;
+    color: var(--badge-on-dark-text);
     padding: 6px 14px;
     border-radius: 20px;
     margin-bottom: 24px;
@@ -2614,9 +2586,9 @@ html[data-theme="dark"] #logoBlack {
 
 .auth-message.error {
     display: block;
-    background: #ffebe9;
-    color: #d93025;
-    border: 1px solid #ffc1bc;
+    background: var(--alert-error-bg);
+    color: var(--danger);
+    border: 1px solid var(--alert-error-border);
 }
 
 .auth-message.success {
@@ -2675,7 +2647,7 @@ html[data-theme="dark"] #logoBlack {
     align-items: center;
     gap: 6px;
     background: rgba(255, 255, 255, 0.15);
-    color: #e2c2ff;
+    color: var(--badge-on-dark-text);
     padding: 4px 12px;
     border-radius: 16px;
     font-size: 0.8rem;
@@ -2794,8 +2766,8 @@ html[data-theme="dark"] #logoBlack {
 }
 
 .status-em-producao {
-    background: #fff4e5;
-    color: #b76e00;
+    background: var(--alert-warning-bg);
+    color: var(--warning);
 }
 
 .status-concluido {
@@ -2870,6 +2842,7 @@ html[data-theme="dark"] #logoBlack {
     width: 100%;
     height: 100%;
     background: var(--overlay);
+    -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
     display: none;
     align-items: center;
@@ -2978,6 +2951,7 @@ html[data-theme="dark"] #logoBlack {
     background: rgba(255, 255, 255, 0.1);
     padding: 12px;
     border-radius: var(--radius);
+    -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
 }
 
@@ -3137,7 +3111,7 @@ html[data-theme="dark"] #logoBlack {
 }
 
 .freelancer-card .freelancer-rating {
-    color: #f2bb55;
+    color: var(--rating-gold);
     font-size: 0.9rem;
     margin-bottom: 16px;
 }

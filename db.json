@@ -831,10 +831,10 @@
     {
       "id": "1",
       "empresaId": "0UEUrH8HgJE",
-      "plano": "Pro",
-      "valor": "R$ 99,90",
+      "plano": "Básico",
+      "valor": "R$ 49,90",
       "status": "ativo",
-      "proximaCobranca": "2026-10-13",
+      "proximaCobranca": "2026-10-14",
       "historico": [
         {
           "data": "2026-08-10",
@@ -846,6 +846,12 @@
           "data": "2026-09-13",
           "plano": "Pro",
           "valor": "R$ 99,90",
+          "status": "pago"
+        },
+        {
+          "data": "2026-09-14",
+          "plano": "Básico",
+          "valor": "R$ 49,90",
           "status": "pago"
         }
       ]

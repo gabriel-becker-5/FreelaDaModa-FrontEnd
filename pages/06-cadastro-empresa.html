@@ -2,31 +2,7 @@
 <html lang="pt-BR" data-theme="light">
   <head>
     <meta charset="UTF-8" />
-    <script>
-      // Restaura o tema salvo antes da primeira renderização (evita flash) e
-      // mantém localStorage sincronizado sempre que data-theme mudar,
-      // não importa qual botão/página fez a mudança.
-      (function () {
-        var root = document.documentElement;
-        function sincronizarIcone(tema) {
-          document.querySelectorAll('.theme-toggle i').forEach(function (icone) {
-            icone.className = tema === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-stars';
-          });
-        }
-        try {
-          var salvo = localStorage.getItem('fdlm-theme');
-          if (salvo) root.setAttribute('data-theme', salvo);
-        } catch (e) {}
-        new MutationObserver(function () {
-          var atual = root.getAttribute('data-theme');
-          try { localStorage.setItem('fdlm-theme', atual); } catch (e) {}
-          sincronizarIcone(atual);
-        }).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
-        document.addEventListener('DOMContentLoaded', function () {
-          sincronizarIcone(root.getAttribute('data-theme'));
-        });
-      })();
-    </script>
+    <script src="/js/theme.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cadastro Empresa</title>
     <link
@@ -191,8 +167,14 @@
                   class="password-toggle" aria-label="Exibir senha">
                   <i id="exibeSenha" class="bi bi-eye" aria-hidden="true"></i>
                 </button>
-              </div><span class="field-message">A senha deve possuir no mínimo dez caracteres.</span>
-              <span class="field-message">Deve conter obrigatoriamente: uma letra maiúscula, uma letra minúscula, um número e um caracter especial.</span>
+              </div>
+              <div id="senha-requisitos" class="stack-xs">
+                <span class="field-message field-message-error" data-requisito="tamanho" hidden><i class="bi bi-exclamation-circle-fill"></i> A senha deve ter no mínimo 10 caracteres.</span>
+                <span class="field-message field-message-error" data-requisito="maiuscula" hidden><i class="bi bi-exclamation-circle-fill"></i> A senha deve conter ao menos uma letra maiúscula.</span>
+                <span class="field-message field-message-error" data-requisito="minuscula" hidden><i class="bi bi-exclamation-circle-fill"></i> A senha deve conter ao menos uma letra minúscula.</span>
+                <span class="field-message field-message-error" data-requisito="numero" hidden><i class="bi bi-exclamation-circle-fill"></i> A senha deve conter ao menos um número.</span>
+                <span class="field-message field-message-error" data-requisito="especial" hidden><i class="bi bi-exclamation-circle-fill"></i> A senha deve conter ao menos um caractere especial.</span>
+              </div>
             </div>
             <div class="form-group">
               <label for="senha-confirmacao">Confirmação de senha</label
@@ -210,7 +192,8 @@
                 >
                   <i id="exibeConfirmaSenha" class="bi bi-eye" aria-hidden="true"></i>
                 </button>
-              </div><span class="field-message">As senhas devem coincidir.</span>
+              </div>
+              <span id="msg-senhas-diferentes" class="field-message field-message-error" hidden><i class="bi bi-exclamation-circle-fill"></i> As senhas não coincidem.</span>
             </div>
           </div>
             </div>
@@ -222,6 +205,7 @@
         </form>
       </div>
     </main>
+    <script src="/js/config.js"></script>
     <script src="/js/06-cadastro-empresa.js"></script>
   </body>
 </html>

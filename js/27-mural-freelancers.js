@@ -1,25 +1,17 @@
-const API_URL = 'http://localhost:3000/freelancers';
+const API_URL = `${API_BASE}/freelancers`;
 let todosFreelancers = [];
+
+function escapeHtml(str) {
+    return String(str ?? '').replace(/[&<>"']/g, function (ch) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+    });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     verificarUsuarioLogado();
     carregarFreelancers();
     initFiltros();
-    initTemaToggle();
 });
-
-/* -------------------------------------------------------------------------- */
-/* 0. TEMA CLARO / ESCURO                                                     */
-/* -------------------------------------------------------------------------- */
-function initTemaToggle() {
-    const botaoTema = document.querySelector('.theme-toggle');
-    if (!botaoTema) return;
-
-    botaoTema.addEventListener('click', () => {
-        const atual = document.documentElement.getAttribute('data-theme');
-        document.documentElement.setAttribute('data-theme', atual === 'dark' ? 'light' : 'dark');
-    });
-}
 
 /* -------------------------------------------------------------------------- */
 /* 1. VERIFICAR AUTENTICAÇÃO DO USUÁRIO                                      */
@@ -62,6 +54,7 @@ async function carregarFreelancers() {
         if (!response.ok) throw new Error('Erro ao buscar freelancers.');
 
         todosFreelancers = await response.json();
+        popularFiltroEspecialidades(todosFreelancers);
 
         // vindo da lupa da Home via ?busca=
         const termoDaUrl = new URLSearchParams(window.location.search).get('busca');
@@ -81,6 +74,22 @@ async function carregarFreelancers() {
             </div>
         `;
     }
+}
+
+function popularFiltroEspecialidades(freelancers) {
+    const select = document.getElementById('filtro-especialidade');
+    if (!select) return;
+
+    const especialidades = [...new Set(
+        freelancers.flatMap(f => (f.especialidades && f.especialidades.length) ? f.especialidades : [f.especialidade]).filter(Boolean)
+    )].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+    especialidades.forEach(esp => {
+        const option = document.createElement('option');
+        option.value = esp;
+        option.textContent = esp;
+        select.appendChild(option);
+    });
 }
 
 function filtrarPorTermo(freelancers, termoBruto) {
@@ -123,15 +132,15 @@ function renderizarFreelancers(freelancers) {
         ].filter(Boolean).join(' - ');
 
         card.innerHTML = `
-            <div class="profile-avatar-lg">${iniciais}</div>
-            <h3>${freela.nome}</h3>
-            <span class="badge freelancer-especialidade">${freela.especialidade || 'Freelancer'}</span>
-            ${cidadeEstado ? `<p class="freelancer-local"><i class="bi bi-geo-alt"></i> ${cidadeEstado}</p>` : ''}
+            <div class="profile-avatar-lg">${escapeHtml(iniciais)}</div>
+            <h3>${escapeHtml(freela.nome)}</h3>
+            <span class="badge freelancer-especialidade">${escapeHtml(freela.especialidade || 'Freelancer')}</span>
+            ${cidadeEstado ? `<p class="freelancer-local"><i class="bi bi-geo-alt"></i> ${escapeHtml(cidadeEstado)}</p>` : ''}
             <p class="freelancer-rating">
                 <i class="bi bi-star-fill"></i> ${(freela.mediaAvaliacoes ?? 0).toFixed(1)}
                 <span>(${freela.totalAvaliacoes || 0} avaliações)</span>
             </p>
-            <a href="/pages/25-perfil-freelancer-publico.html" class="btn btn-outline-primary w-full">Ver perfil</a>
+            <a href="/pages/25-perfil-freelancer-publico.html?id=${encodeURIComponent(freela.id)}" class="btn btn-outline-primary w-full">Ver perfil</a>
         `;
 
         container.appendChild(card);

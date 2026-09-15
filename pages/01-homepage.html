@@ -2,31 +2,7 @@
 <html lang="pt-BR" data-theme="light">
 <head>
     <meta charset="UTF-8" />
-    <script>
-      // Restaura o tema salvo antes da primeira renderização (evita flash) e
-      // mantém localStorage sincronizado sempre que data-theme mudar,
-      // não importa qual botão/página fez a mudança.
-      (function () {
-        var root = document.documentElement;
-        function sincronizarIcone(tema) {
-          document.querySelectorAll('.theme-toggle i').forEach(function (icone) {
-            icone.className = tema === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-stars';
-          });
-        }
-        try {
-          var salvo = localStorage.getItem('fdlm-theme');
-          if (salvo) root.setAttribute('data-theme', salvo);
-        } catch (e) {}
-        new MutationObserver(function () {
-          var atual = root.getAttribute('data-theme');
-          try { localStorage.setItem('fdlm-theme', atual); } catch (e) {}
-          sincronizarIcone(atual);
-        }).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
-        document.addEventListener('DOMContentLoaded', function () {
-          sincronizarIcone(root.getAttribute('data-theme'));
-        });
-      })();
-    </script>
+    <script src="/js/theme.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Freela da Moda — Contrate talentos da moda</title>
 
@@ -56,8 +32,8 @@
         </nav>
 
         <div class="header-actions">
-            <button class="btn-icon" id="theme-toggle" type="button" aria-label="Alternar tema">
-                <i class="bi bi-moon"></i>
+            <button class="btn-icon theme-toggle" id="theme-toggle" type="button" aria-label="Alternar tema">
+                <i class="bi bi-moon-stars"></i>
             </button>
             <a href="/pages/02-login.html" class="btn btn-link">Entrar</a>
             <a href="/pages/05-cadastro-freelancer.html" class="btn btn-outline-purple">Sou Freelancer</a>
@@ -298,7 +274,7 @@
                     <div class="badge-featured">Mais Popular</div>
                     <div class="pricing-name">Profissional</div>
                     <div class="pricing-price">
-                        <span class="amount">R$49</span>
+                        <span class="amount">R$14,90</span>
                         <span class="period">/mês</span>
                     </div>
                     <p class="pricing-desc">Para confecções que querem escalar</p>
@@ -316,7 +292,7 @@
                 <div class="pricing-card">
                     <div class="pricing-name">Empresarial</div>
                     <div class="pricing-price">
-                        <span class="amount">R$99</span>
+                        <span class="amount">R$79,90</span>
                         <span class="period">/mês</span>
                     </div>
                     <p class="pricing-desc">Para operações de grande volume</p>
@@ -433,6 +409,7 @@
         </div>
     </footer>
 
+    <script src="/js/config.js"></script>
     <script src="/js/01-homepage.js"></script>
 </body>
 </html>

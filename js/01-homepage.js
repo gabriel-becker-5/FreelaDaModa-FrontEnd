@@ -1,19 +1,7 @@
-// 1. Implementar alternância visual de tema claro/escuro quando o controle existir.
 // 2. Carregar indicadores reais da plataforma quando houver API.
 // 3. Validar links de cadastro e login antes da publicação final.
 // 4. Integrar ícones decorativos de forma acessível se a biblioteca visual for mantida.
 // 5. Registrar eventos de CTA apenas quando o backend/analytics for definido.
-
-// Toggle Tema Dark/Light
-const themeButton = document.querySelector("#theme-toggle");
-
-themeButton.addEventListener("click", () =>
-{
-    document.documentElement.dataset.theme =
-    document.documentElement.dataset.theme === "light"
-        ? "dark"
-        : "light";
-});
 
 /* -------------------------------------------------------------------------- */
 /* FAQ — expandir/recolher pergunta ao clicar                                 */
@@ -43,7 +31,11 @@ document.querySelectorAll('.faq-item').forEach((item) => {
 /* BUSCA (LUPA) — Empresa procurando Freelancer / Freelancer procurando Vaga  */
 /* -------------------------------------------------------------------------- */
 (function initBuscaHomepage() {
-    const API_BASE = 'http://localhost:3000';
+    function escapeHtml(str) {
+        return String(str ?? '').replace(/[&<>"']/g, function (ch) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+        });
+    }
 
     const seletor = document.getElementById('searchRoleSelector');
     const opcoes = seletor ? seletor.querySelectorAll('.role-option') : [];
@@ -157,7 +149,7 @@ document.querySelectorAll('.faq-item').forEach((item) => {
         sugestoes.forEach(function (s) {
             const item = document.createElement('div');
             item.className = 'autocomplete-item';
-            item.innerHTML = `<strong>${s.titulo}</strong> <span class="text-muted" style="font-size:12px;">— ${s.subtitulo}</span>`;
+            item.innerHTML = `<strong>${escapeHtml(s.titulo)}</strong> <span class="text-muted" style="font-size:12px;">— ${escapeHtml(s.subtitulo)}</span>`;
             item.addEventListener('click', function () {
                 input.value = s.valor;
                 fecharDropdown();

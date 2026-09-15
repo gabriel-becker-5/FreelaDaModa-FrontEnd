@@ -1,25 +1,17 @@
-const API_URL = 'http://localhost:3000/vagas';
+const API_URL = `${API_BASE}/vagas`;
 let todasVagas = [];
+
+function escapeHtml(str) {
+    return String(str ?? '').replace(/[&<>"']/g, function (ch) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+    });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     verificarUsuarioLogado();
     carregarVagas();
     initFiltros();
-    initTemaToggle();
 });
-
-/* -------------------------------------------------------------------------- */
-/* 0. TEMA CLARO / ESCURO                                                     */
-/* -------------------------------------------------------------------------- */
-function initTemaToggle() {
-    const botaoTema = document.querySelector('.theme-toggle');
-    if (!botaoTema) return;
-
-    botaoTema.addEventListener('click', () => {
-        const atual = document.documentElement.getAttribute('data-theme');
-        document.documentElement.setAttribute('data-theme', atual === 'dark' ? 'light' : 'dark');
-    });
-}
 
 /* -------------------------------------------------------------------------- */
 /* 1. VERIFICAR AUTENTICAÇÃO DO USUÁRIO                                      */
@@ -114,35 +106,37 @@ function renderizarVagas(vagas) {
         const card = document.createElement('article');
         card.className = 'job-card';
 
+        const empresaNomeSeguro = escapeHtml(vaga.empresaNome || 'Confecção Parceira');
+
         card.innerHTML = `
             <div>
                 <div class="job-card-header">
                     <div>
-                        <h2 class="job-title">${vaga.titulo}</h2>
-                        <span class="company-name">
-                            <i class="bi bi-building"></i> ${vaga.empresaNome || 'Confecção Parceira'}
-                        </span>
+                        <h2 class="job-title">${escapeHtml(vaga.titulo)}</h2>
+                        ${vaga.empresaId
+                            ? `<a class="company-name" href="/pages/26-perfil-empresa-publico.html?id=${encodeURIComponent(vaga.empresaId)}"><i class="bi bi-building"></i> ${empresaNomeSeguro}</a>`
+                            : `<span class="company-name"><i class="bi bi-building"></i> ${empresaNomeSeguro}</span>`}
                     </div>
-                    <span class="job-badge">${vaga.especialidade}</span>
+                    <span class="job-badge">${escapeHtml(vaga.especialidade)}</span>
                 </div>
 
-                <p class="job-desc">${vaga.descricao}</p>
+                <p class="job-desc">${escapeHtml(vaga.descricao)}</p>
             </div>
 
             <div class="job-meta">
                 <div class="meta-tags">
                     <div class="meta-item">
-                        <i class="bi bi-cash-stack"></i> <strong>${vaga.valor}</strong>
+                        <i class="bi bi-cash-stack"></i> <strong>${escapeHtml(vaga.valor)}</strong>
                     </div>
                     <div class="meta-item">
-                        <i class="bi bi-clock"></i> Prazo: <strong>${vaga.prazo}</strong>
+                        <i class="bi bi-clock"></i> Prazo: <strong>${escapeHtml(vaga.prazo)}</strong>
                     </div>
                     <div class="meta-item">
-                        <i class="bi bi-geo-alt"></i> <span>${vaga.local}</span>
+                        <i class="bi bi-geo-alt"></i> <span>${escapeHtml(vaga.local)}</span>
                     </div>
                 </div>
 
-                <button class="btn btn-purple btn-candidatar" data-id="${vaga.id}" data-titulo="${vaga.titulo}">
+                <button class="btn btn-purple btn-candidatar" data-id="${escapeHtml(vaga.id)}" data-titulo="${escapeHtml(vaga.titulo)}">
                     Candidatar-se <i class="bi bi-send"></i>
                 </button>
             </div>

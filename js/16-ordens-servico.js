@@ -1,19 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
-    const API_BASE = 'http://localhost:3000';
-
-    // ── 1. Alternador de Tema Claro / Escuro ──
-    const themeToggle = document.querySelector('.theme-toggle');
-    const htmlElement = document.documentElement;
-
-    if (themeToggle) {
-        themeToggle.addEventListener('click', function () {
-            const atual = htmlElement.getAttribute('data-theme');
-            htmlElement.setAttribute('data-theme', atual === 'dark' ? 'light' : 'dark');
-        });
-    }
-
     // ── 2. Menu Lateral no Celular (Hambúrguer) ──
     const sidebarToggleBtn = document.querySelector('.sidebar-toggle-btn');
     const sidebar = document.querySelector('.sidebar');
@@ -42,6 +29,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let todasOrdens = [];
 
+    function escapeHtml(str) {
+        return String(str ?? '').replace(/[&<>"']/g, function (ch) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+        });
+    }
+
     function classeBadgeStatus(status) {
         if (status === 'Concluída') return 'badge-success';
         if (status === 'Cancelada') return 'badge-danger';
@@ -52,11 +45,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const tr = document.createElement('tr');
         tr.dataset.id = os.id;
         tr.innerHTML = `
-            <td data-label="Id">OS-${os.id}</td>
-            <td data-label="Título">${os.titulo}</td>
-            <td data-label="Freelancer">${os.freelancerNome || '—'}</td>
-            <td data-label="Valor">${os.valor ? `R$ ${os.valor}` : '—'}</td>
-            <td data-label="Status"><span class="badge ${classeBadgeStatus(os.status)}">${os.status}</span></td>
+            <td data-label="Id">OS-${escapeHtml(os.id)}</td>
+            <td data-label="Título">${escapeHtml(os.titulo)}</td>
+            <td data-label="Freelancer">${escapeHtml(os.freelancerNome || '—')}</td>
+            <td data-label="Valor">${os.valor ? `R$ ${escapeHtml(os.valor)}` : '—'}</td>
+            <td data-label="Status"><span class="badge ${classeBadgeStatus(os.status)}">${escapeHtml(os.status)}</span></td>
             <td data-label="Ações">
                 <div class="table-actions">
                     <a href="/pages/19-ordem-servico-detalhe.html?id=${os.id}" class="btn btn-primary">Ver</a>
@@ -146,13 +139,15 @@ document.addEventListener('DOMContentLoaded', function () {
             if (e.target.closest('.btn-finalizar')) {
                 if (!confirm('Confirmar a finalização desta ordem de serviço?')) return;
                 try {
-                    await fetch(`${API_BASE}/ordensServico/${id}`, {
+                    const res = await fetch(`${API_BASE}/ordensServico/${id}`, {
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ status: 'Concluída' })
                     });
+                    if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
                 } catch (erro) {
                     console.error('Erro ao finalizar ordem de serviço:', erro);
+                    alert('Não foi possível finalizar a ordem de serviço. Verifique se o json-server está rodando.');
                     return;
                 }
                 const badge = linha.querySelector('.badge');
@@ -168,9 +163,12 @@ document.addEventListener('DOMContentLoaded', function () {
             if (e.target.closest('.btn-excluir')) {
                 if (!confirm('Tem certeza que deseja excluir esta ordem de serviço?')) return;
                 try {
-                    await fetch(`${API_BASE}/ordensServico/${id}`, { method: 'DELETE' });
+                    const res = await fetch(`${API_BASE}/ordensServico/${id}`, { method: 'DELETE' });
+                    if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
                 } catch (erro) {
                     console.error('Erro ao excluir ordem de serviço:', erro);
+                    alert('Não foi possível excluir a ordem de serviço. Verifique se o json-server está rodando.');
+                    return;
                 }
                 todasOrdens = todasOrdens.filter(function (os) { return String(os.id) !== String(id); });
                 linha.remove();

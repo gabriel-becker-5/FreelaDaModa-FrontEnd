@@ -1,19 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
-    const API_BASE = 'http://localhost:3000';
-
-    // ── 1. Alternador de Tema Claro / Escuro ──
-    const themeToggle = document.querySelector('.theme-toggle');
-    const htmlElement = document.documentElement;
-
-    if (themeToggle) {
-        themeToggle.addEventListener('click', function () {
-            const atual = htmlElement.getAttribute('data-theme');
-            htmlElement.setAttribute('data-theme', atual === 'dark' ? 'light' : 'dark');
-        });
-    }
-
     // ── 2. Menu Lateral no Celular (Hambúrguer) ──
     const sidebarToggleBtn = document.querySelector('.sidebar-toggle-btn');
     const sidebar = document.querySelector('.sidebar');
@@ -96,11 +83,12 @@ document.addEventListener('DOMContentLoaded', function () {
             };
 
             try {
-                await fetch(`${API_BASE}/chamados`, {
+                const res = await fetch(`${API_BASE}/chamados`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(novoChamado)
                 });
+                if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
 
                 if (alertaSucesso) {
                     alertaSucesso.textContent = 'Chamado enviado com sucesso! Nossa equipe responde em até 24h.';

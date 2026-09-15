@@ -4,9 +4,9 @@
 // 2. Token JWT
 // 3. Fetch no botão 'Convidar para Vaga'
 
-const API_URL = "http://localhost:3000/freelancers";
-const API_URL_AVALIACOES = "http://localhost:3000/avaliacoes";
-const freelancerId = "-DU9G2RSk6s";
+const API_URL = `${API_BASE}/freelancers`;
+const API_URL_AVALIACOES = `${API_BASE}/avaliacoes`;
+const freelancerId = new URLSearchParams(window.location.search).get("id") || "-DU9G2RSk6s";
 const loadingBar = document.querySelector("#perfil-loading");
 const erroBar = document.querySelector("#perfil-erro");
 const conteudoPerfil = document.querySelector("#perfil-conteudo");
@@ -59,17 +59,6 @@ sidebarToggleBtn.addEventListener("click", () =>
 });
  
 sidebarOverlay.addEventListener("click", fecharMenu);
-
-// Toggle Tema Dark/Light
-const themeButton = document.querySelector(".theme-toggle");
-
-themeButton.addEventListener("click", () => 
-{
-    document.documentElement.dataset.theme =
-    document.documentElement.dataset.theme === "light"
-        ? "dark"
-        : "light";
-});
 
 // Calcula iniciais do nome para Avatar
 function calcularIniciais(nome) 

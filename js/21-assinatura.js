@@ -1,19 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
-    const API_BASE = 'http://localhost:3000';
-
-    // ── 1. Alternador de Tema Claro / Escuro ──
-    const themeToggle = document.querySelector('.theme-toggle');
-    const htmlElement = document.documentElement;
-
-    if (themeToggle) {
-        themeToggle.addEventListener('click', function () {
-            const atual = htmlElement.getAttribute('data-theme');
-            htmlElement.setAttribute('data-theme', atual === 'dark' ? 'light' : 'dark');
-        });
-    }
-
     // ── 2. Menu Lateral no Celular (Hambúrguer) ──
     const sidebarToggleBtn = document.querySelector('.sidebar-toggle-btn');
     const sidebar = document.querySelector('.sidebar');
@@ -56,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         cardsPlanos.forEach(function (card) {
-            const btn = card.querySelector('button');
+            const btn = card.querySelector('.btn-contratar');
             const nomePlano = card.querySelector('h3');
             if (!btn || !nomePlano) return;
             const ehPlanoAtual = nomePlano.textContent.trim() === assinatura.plano;
@@ -80,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ── 4. Contratar Plano (grava via PATCH/POST) ──
     cardsPlanos.forEach(function (card) {
-        const btn = card.querySelector('button');
+        const btn = card.querySelector('.btn-contratar');
         const nomePlano = card.querySelector('h3');
         const preco = card.querySelector('p');
         if (!btn || !nomePlano) return;
@@ -116,6 +103,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             historico: novoHistorico
                         })
                     });
+                    if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
                     renderizarAssinatura(await res.json());
                 } else {
                     const res = await fetch(`${API_BASE}/assinaturas`, {
@@ -130,6 +118,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             historico: [{ data: hoje.toISOString().slice(0, 10), plano: nomePlano.textContent.trim(), valor: valorPlano, status: 'pago' }]
                         })
                     });
+                    if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
                     renderizarAssinatura(await res.json());
                 }
 
@@ -143,4 +132,64 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     });
+
+    // ── 5. Ver Detalhes do Plano (modal informativo, sem lógica de pagamento) ──
+    const modalDetalhe = document.getElementById('modal-detalhe-plano');
+    const detalheNome = document.getElementById('detalhe-plano-nome');
+    const detalhePreco = document.getElementById('detalhe-plano-preco');
+    const detalheLista = document.getElementById('detalhe-plano-lista');
+    const btnFecharDetalhe = document.getElementById('btn-fechar-detalhe-plano');
+    const btnContratarDoDetalhe = document.getElementById('btn-contratar-do-detalhe');
+
+    let cardDetalheAberto = null;
+
+    function abrirDetalhePlano(card) {
+        if (!modalDetalhe) return;
+        cardDetalheAberto = card;
+
+        const nomePlano = card.querySelector('h3');
+        const preco = card.querySelector('p');
+        const lista = card.querySelector('.pricing-features');
+        const btnContratar = card.querySelector('.btn-contratar');
+
+        if (detalheNome) detalheNome.textContent = nomePlano ? nomePlano.textContent.trim() : 'Plano';
+        if (detalhePreco) detalhePreco.innerHTML = preco ? preco.innerHTML : '';
+        if (detalheLista) detalheLista.innerHTML = lista ? lista.innerHTML : '';
+        if (btnContratarDoDetalhe) {
+            const ehPlanoAtual = btnContratar && btnContratar.textContent.trim() === 'Plano atual';
+            btnContratarDoDetalhe.textContent = ehPlanoAtual ? 'Plano atual' : 'Contratar';
+            btnContratarDoDetalhe.classList.toggle('btn-primary', !ehPlanoAtual);
+        }
+
+        modalDetalhe.style.display = 'flex';
+    }
+
+    function fecharDetalhePlano() {
+        modalDetalhe.style.display = 'none';
+        cardDetalheAberto = null;
+    }
+
+    document.querySelectorAll('.btn-ver-detalhes-plano').forEach(function (botao) {
+        botao.addEventListener('click', function () {
+            abrirDetalhePlano(botao.closest('.card'));
+        });
+    });
+
+    if (btnFecharDetalhe) btnFecharDetalhe.addEventListener('click', fecharDetalhePlano);
+    if (modalDetalhe) {
+        modalDetalhe.addEventListener('click', function (e) {
+            if (e.target === modalDetalhe) fecharDetalhePlano();
+        });
+    }
+
+    // "Contratar" dentro do modal só delega pro botão real do card — mantém
+    // uma única fonte de verdade pro fluxo de contratação (sem lógica nova aqui).
+    if (btnContratarDoDetalhe) {
+        btnContratarDoDetalhe.addEventListener('click', function () {
+            if (!cardDetalheAberto) return;
+            const btnContratarReal = cardDetalheAberto.querySelector('.btn-contratar');
+            fecharDetalhePlano();
+            if (btnContratarReal) btnContratarReal.click();
+        });
+    }
 });

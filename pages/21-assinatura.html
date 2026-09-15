@@ -2,31 +2,7 @@
 <html lang="pt-BR" data-theme="light">
   <head>
     <meta charset="UTF-8" />
-    <script>
-      // Restaura o tema salvo antes da primeira renderização (evita flash) e
-      // mantém localStorage sincronizado sempre que data-theme mudar,
-      // não importa qual botão/página fez a mudança.
-      (function () {
-        var root = document.documentElement;
-        function sincronizarIcone(tema) {
-          document.querySelectorAll('.theme-toggle i').forEach(function (icone) {
-            icone.className = tema === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-stars';
-          });
-        }
-        try {
-          var salvo = localStorage.getItem('fdlm-theme');
-          if (salvo) root.setAttribute('data-theme', salvo);
-        } catch (e) {}
-        new MutationObserver(function () {
-          var atual = root.getAttribute('data-theme');
-          try { localStorage.setItem('fdlm-theme', atual); } catch (e) {}
-          sincronizarIcone(atual);
-        }).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
-        document.addEventListener('DOMContentLoaded', function () {
-          sincronizarIcone(root.getAttribute('data-theme'));
-        });
-      })();
-    </script>
+    <script src="/js/theme.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Assinatura</title>
     <link
@@ -88,24 +64,67 @@
               <h3>Básico</h3>
               <p style="font-size: 22px; font-weight: 800; color: var(--color-primary);">R$ 49,90<span style="font-size: 14px; font-weight: 400;">/mês</span></p>
               <p>Publicação limitada de vagas.</p>
-              <button class="btn">Plano atual</button>
+              <ul class="pricing-features" hidden>
+                <li><i class="bi bi-check-circle-fill"></i> Até 5 vagas publicadas simultaneamente</li>
+                <li><i class="bi bi-check-circle-fill"></i> Busca padrão de freelancers</li>
+                <li><i class="bi bi-check-circle-fill"></i> Chat com candidatos</li>
+                <li><i class="bi bi-check-circle-fill"></i> Ordens de serviço ilimitadas</li>
+                <li><i class="bi bi-check-circle-fill"></i> Suporte por e-mail</li>
+              </ul>
+              <button class="btn btn-outline-primary btn-ver-detalhes-plano" type="button">Ver detalhes</button>
+              <button class="btn btn-contratar">Plano atual</button>
             </div>
             <div class="card stack-sm">
               <h3>Pro</h3>
-              <p style="font-size: 22px; font-weight: 800; color: var(--color-primary);">R$ 99,90<span style="font-size: 14px; font-weight: 400;">/mês</span></p>
+              <p style="font-size: 22px; font-weight: 800; color: var(--color-primary);">R$ 79,90<span style="font-size: 14px; font-weight: 400;">/mês</span></p>
               <p>Acesso completo ao banco de talentos.</p>
-              <button class="btn btn-primary">Contratar</button>
+              <ul class="pricing-features" hidden>
+                <li><i class="bi bi-check-circle-fill"></i> Vagas ilimitadas</li>
+                <li><i class="bi bi-check-circle-fill"></i> Busca avançada de freelancers (filtro por especialidade, avaliação e localização)</li>
+                <li><i class="bi bi-check-circle-fill"></i> Relatórios de desempenho das vagas</li>
+                <li><i class="bi bi-check-circle-fill"></i> Suporte prioritário</li>
+                <li><i class="bi bi-check-circle-fill"></i> Tudo do plano Básico</li>
+              </ul>
+              <button class="btn btn-outline-primary btn-ver-detalhes-plano" type="button">Ver detalhes</button>
+              <button class="btn btn-primary btn-contratar">Contratar</button>
             </div>
             <div class="card stack-sm">
               <h3>Premium</h3>
-              <p style="font-size: 22px; font-weight: 800; color: var(--color-primary);">R$ 199,90<span style="font-size: 14px; font-weight: 400;">/mês</span></p>
+              <p style="font-size: 22px; font-weight: 800; color: var(--color-primary);">R$ 99,90<span style="font-size: 14px; font-weight: 400;">/mês</span></p>
               <p>Destaque nas buscas e suporte prioritário.</p>
-              <button class="btn btn-primary">Contratar</button>
+              <ul class="pricing-features" hidden>
+                <li><i class="bi bi-check-circle-fill"></i> Destaque das vagas no mural de freelancers</li>
+                <li><i class="bi bi-check-circle-fill"></i> Múltiplos usuários da equipe com acesso ao painel</li>
+                <li><i class="bi bi-check-circle-fill"></i> Gerente de conta dedicado</li>
+                <li><i class="bi bi-check-circle-fill"></i> Relatórios avançados de desempenho</li>
+                <li><i class="bi bi-check-circle-fill"></i> Tudo do plano Pro</li>
+              </ul>
+              <button class="btn btn-outline-primary btn-ver-detalhes-plano" type="button">Ver detalhes</button>
+              <button class="btn btn-primary btn-contratar">Contratar</button>
             </div>
           </div>
         </section>
       </main>
     </div>
+
+    <!-- Modal: Detalhes do Plano -->
+    <div class="modal-overlay" id="modal-detalhe-plano">
+      <div class="modal-content" style="max-width: 480px;">
+        <div class="modal-header">
+          <h2 id="detalhe-plano-nome">Plano</h2>
+          <button class="btn-close-modal" id="btn-fechar-detalhe-plano" type="button" aria-label="Fechar">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        <p id="detalhe-plano-preco" style="font-size: 22px; font-weight: 800; color: var(--color-primary);"></p>
+        <ul id="detalhe-plano-lista" class="pricing-features"></ul>
+        <div class="form-actions">
+          <button class="btn btn-primary" id="btn-contratar-do-detalhe" type="button">Contratar</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="/js/config.js"></script>
     <script src="/js/21-assinatura.js"></script>
   </body>
 </html>

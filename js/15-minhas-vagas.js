@@ -1,19 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
-    const API_BASE = 'http://localhost:3000';
-
-    // ── 1. Alternador de Tema Claro / Escuro ──
-    const themeToggle = document.getElementById('themeToggle') || document.querySelector('.theme-toggle');
-    const htmlElement = document.documentElement;
-
-    if (themeToggle) {
-        themeToggle.addEventListener('click', function () {
-            const atual = htmlElement.getAttribute('data-theme');
-            htmlElement.setAttribute('data-theme', atual === 'dark' ? 'light' : 'dark');
-        });
-    }
-
     // ── 2. Menu Lateral no Celular (Hambúrguer) ──
     // esta página não tem o botão no HTML, então os ifs abaixo só não quebram
     const sidebarToggleBtn = document.querySelector('.sidebar-toggle-btn');
@@ -51,6 +38,12 @@ document.addEventListener('DOMContentLoaded', function () {
     let todasVagas = [];
     let paginaAtual = 1;
 
+    function escapeHtml(str) {
+        return String(str ?? '').replace(/[&<>"']/g, function (ch) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+        });
+    }
+
     function classeBadgeStatus(status) {
         const statusNormalizado = (status || '').toLowerCase();
         if (statusNormalizado.includes('aberta') || statusNormalizado === 'ativa') return 'badge-success';
@@ -63,10 +56,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const tr = document.createElement('tr');
         tr.dataset.id = vaga.id;
         tr.innerHTML = `
-            <td data-label="ID"><strong>VG-${vaga.id}</strong></td>
-            <td data-label="Título">${vaga.titulo}</td>
-            <td data-label="Valor">${vaga.valor || '—'}</td>
-            <td data-label="Status"><span class="badge ${classeBadgeStatus(vaga.status)}">${vaga.status || 'Aberta'}</span></td>
+            <td data-label="ID"><strong>VG-${escapeHtml(vaga.id)}</strong></td>
+            <td data-label="Título">${escapeHtml(vaga.titulo)}</td>
+            <td data-label="Valor">${escapeHtml(vaga.valor || '—')}</td>
+            <td data-label="Status"><span class="badge ${classeBadgeStatus(vaga.status)}">${escapeHtml(vaga.status || 'Aberta')}</span></td>
             <td data-label="Candidatos"><a href="/pages/17-candidatos-vaga.html" class="text-primary"><strong>—</strong></a></td>
             <td data-label="Ações">
                 <div class="table-actions">
@@ -191,9 +184,13 @@ document.addEventListener('DOMContentLoaded', function () {
         btnConfirmarExclusao.addEventListener('click', async function () {
             if (!idParaExcluir) return;
             try {
-                await fetch(`${API_BASE}/vagas/${idParaExcluir}`, { method: 'DELETE' });
+                const res = await fetch(`${API_BASE}/vagas/${idParaExcluir}`, { method: 'DELETE' });
+                if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
             } catch (erro) {
                 console.error('Erro ao excluir vaga:', erro);
+                alert('Não foi possível excluir a vaga. Verifique se o json-server está rodando.');
+                fecharModalExclusao();
+                return;
             }
             todasVagas = todasVagas.filter(function (v) { return String(v.id) !== String(idParaExcluir); });
             renderizarPagina();

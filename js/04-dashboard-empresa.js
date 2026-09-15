@@ -1,26 +1,10 @@
-const API_BASE = 'http://localhost:3000';
-
 document.addEventListener('DOMContentLoaded', () => {
     protegerRotaEmpresa();
     carregarDadosEmpresa();
     carregarMinhasVagas();
     initModalNovaVaga();
     initLogout();
-    initTemaToggle();
 });
-
-/* -------------------------------------------------------------------------- */
-/* 0. TEMA CLARO / ESCURO                                                     */
-/* -------------------------------------------------------------------------- */
-function initTemaToggle() {
-    const botaoTema = document.querySelector('.theme-toggle');
-    if (!botaoTema) return;
-
-    botaoTema.addEventListener('click', () => {
-        const atual = document.documentElement.getAttribute('data-theme');
-        document.documentElement.setAttribute('data-theme', atual === 'dark' ? 'light' : 'dark');
-    });
-}
 
 /* -------------------------------------------------------------------------- */
 /* 1. PROTEÇÃO DE ROTA (Exclusivo para Empresas)                             */

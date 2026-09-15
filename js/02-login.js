@@ -1,4 +1,3 @@
-const API_BASE = 'http://localhost:3000';
 let roleAtual = 'freelancers'; // 'freelancers' ou 'empresas'
 
 document.addEventListener('DOMContentLoaded', () => {

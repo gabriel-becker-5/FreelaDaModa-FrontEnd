@@ -3,7 +3,7 @@
 // 1. ID do Freelancer logado
 // 2. Token JWT
 
-const API_URL = "http://localhost:3000/freelancers";
+const API_URL = `${API_BASE}/freelancers`;
 const freelancerId = "-DU9G2RSk6s";
 const form = document.querySelector("#form-perfil");
 const inputNome = document.querySelector("#pf-nome");
@@ -75,17 +75,6 @@ sidebarToggleBtn.addEventListener("click", () =>
  
 sidebarOverlay.addEventListener("click", fecharMenu);
 
-// Toggle Tema Dark/Light
-const themeButton = document.querySelector(".theme-toggle");
-
-themeButton.addEventListener("click", () => 
-{
-    document.documentElement.dataset.theme =
-    document.documentElement.dataset.theme === "light"
-        ? "dark"
-        : "light";
-});
-
 // Especialidades & Máquinas que possui
 const badgeEspecialidades = document.querySelectorAll(".badge.badge-selectable");
 
@@ -105,7 +94,7 @@ for (let index = 0; index < badgeEspecialidades.length; index++)
         }
 })};
 
-function getSelecionados(campoMultiSelect)
+function obterSelecionados(campoMultiSelect)
 {
     let listaSelecionados = [];
 
@@ -328,7 +317,7 @@ form.addEventListener("submit", async (evento) =>
     const isCarroProprio = selectVeiculo.value === "Sim";
     const isEnderecoComercialIgualResidencial = checkEnderecoComercialIgualResidencial.checked;
 
-    var especialidadesSelecionadas = getSelecionados(inputEspecialidades);
+    var especialidadesSelecionadas = obterSelecionados(inputEspecialidades);
 
     if(especialidadesSelecionadas.length < 1)
     {
@@ -336,7 +325,7 @@ form.addEventListener("submit", async (evento) =>
         return;
     }
 
-    var maquinasSelecionadas = getSelecionados(inputMaquinas);
+    var maquinasSelecionadas = obterSelecionados(inputMaquinas);
 
     if(maquinasSelecionadas.length < 1)
     {

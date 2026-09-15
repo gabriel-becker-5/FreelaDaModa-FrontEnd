@@ -5,7 +5,7 @@
 // 3. Requisição Cancelamento da Candidatura + UI Cancelamento
 // 4. Paginar resultados
 
-const API_URL = "http://localhost:3000/candidaturas";
+const API_URL = `${API_BASE}/candidaturas`;
 const freelancerId = "-DU9G2RSk6s";
 let token;
 const loadingBar = document.querySelector("#perfil-loading");
@@ -48,17 +48,6 @@ sidebarToggleBtn.addEventListener("click", () =>
 });
  
 sidebarOverlay.addEventListener("click", fecharMenu);
-
-// Toggle Tema Dark/Light
-const themeButton = document.querySelector(".theme-toggle");
-
-themeButton.addEventListener("click", () => 
-{
-    document.documentElement.dataset.theme =
-    document.documentElement.dataset.theme === "light"
-        ? "dark"
-        : "light";
-});
 
 // Carregar as candidaturas e ordens de serviço do Freelancer via API
 async function carregarDadosFreelancer() 

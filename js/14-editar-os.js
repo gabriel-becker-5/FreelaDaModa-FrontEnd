@@ -1,19 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
-    const API_BASE = 'http://localhost:3000';
-
-    // ── 1. Alternador de Tema Claro / Escuro ──
-    const themeToggle = document.querySelector('.theme-toggle');
-    const htmlElement = document.documentElement;
-
-    if (themeToggle) {
-        themeToggle.addEventListener('click', function () {
-            const atual = htmlElement.getAttribute('data-theme');
-            htmlElement.setAttribute('data-theme', atual === 'dark' ? 'light' : 'dark');
-        });
-    }
-
     // ── 2. Menu Lateral no Celular (Hambúrguer) ──
     const sidebarToggleBtn = document.querySelector('.sidebar-toggle-btn');
     const sidebar = document.querySelector('.sidebar');
@@ -75,6 +62,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const idOS = params.get('id');
     let osAtual = null;
 
+    if (!idOS) {
+        alert('Ordem de serviço não especificada.');
+        window.location.href = '/pages/16-ordens-servico.html';
+        return;
+    }
+
     function preencherFormulario(os) {
         osAtual = os;
         document.getElementById('os-id').value = `OS-${os.id}`;
@@ -98,18 +91,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function carregarOS() {
         try {
-            let os;
-            if (idOS) {
-                const res = await fetch(`${API_BASE}/ordensServico/${idOS}`);
-                if (!res.ok) throw new Error('OS não encontrada.');
-                os = await res.json();
-            } else {
-                const res = await fetch(`${API_BASE}/ordensServico`);
-                if (!res.ok) throw new Error('Falha ao carregar ordens de serviço.');
-                const todas = await res.json();
-                os = todas[0];
-            }
-            if (os) preencherFormulario(os);
+            const res = await fetch(`${API_BASE}/ordensServico/${idOS}`);
+            if (!res.ok) throw new Error(`OS não encontrada (HTTP ${res.status}).`);
+            preencherFormulario(await res.json());
         } catch (erro) {
             console.error('Erro ao carregar OS para edição:', erro);
         }
@@ -164,11 +148,12 @@ document.addEventListener('DOMContentLoaded', function () {
             try {
                 const idParaSalvar = osAtual ? osAtual.id : idOS;
                 if (idParaSalvar) {
-                    await fetch(`${API_BASE}/ordensServico/${idParaSalvar}`, {
+                    const res = await fetch(`${API_BASE}/ordensServico/${idParaSalvar}`, {
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(alteracoes)
                     });
+                    if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
                 }
 
                 if (alertaSucesso) {

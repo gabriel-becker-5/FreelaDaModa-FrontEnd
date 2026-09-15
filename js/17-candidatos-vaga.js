@@ -1,32 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
-    const API_BASE = 'http://localhost:3000';
-
-    // ── 1. Tema Claro / Escuro ──
-    const themeToggle = document.getElementById('themeToggle');
-    const htmlElement = document.documentElement;
-
-    function setTheme(theme) {
-        htmlElement.setAttribute('data-theme', theme);
-        try {
-            localStorage.setItem('fdlm-theme', theme);
-        } catch (e) { }
-        if (themeToggle) {
-            const icon = themeToggle.querySelector('i');
-            if (icon) {
-                icon.className = theme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-stars';
-            }
-        }
-    }
-
-    if (themeToggle) {
-        themeToggle.addEventListener('click', function () {
-            const current = htmlElement.getAttribute('data-theme');
-            setTheme(current === 'dark' ? 'light' : 'dark');
-        });
-    }
-
     // ── 2. Lógica de Rejeitar Candidato ──
     const botoesRejeitar = document.querySelectorAll('.btnRejeitar');
     botoesRejeitar.forEach(botao => {
@@ -76,11 +50,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const statusBadge = document.getElementById(`status-${candidatoSelecionadoId}`);
             const linhaCandidato = document.getElementById(`candidato-${candidatoSelecionadoId}`);
             const nomeCandidato = linhaCandidato ? linhaCandidato.querySelector('strong').textContent.trim() : 'Freelancer';
-
-            if (statusBadge) {
-                statusBadge.className = 'badge badge-success';
-                statusBadge.textContent = 'Selecionado';
-            }
+            const freelancerId = linhaCandidato ? linhaCandidato.dataset.freelancerId : null;
 
             const sessao = JSON.parse(sessionStorage.getItem('usuarioLogado') || 'null');
             const empresaId = sessao && sessao.tipo === 'empresas' ? sessao.id : '0UEUrH8HgJE';
@@ -95,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 modalidade: 'Presencial',
                 empresaId: empresaId,
                 empresaNome: empresaNome,
-                freelancerId: '-DU9G2RSk6s',
+                freelancerId: freelancerId,
                 freelancerNome: nomeCandidato,
                 cidade: '',
                 estado: '',
@@ -117,29 +87,31 @@ document.addEventListener('DOMContentLoaded', function () {
                 ]
             };
 
-            let idNovaOS = null;
             try {
                 const res = await fetch(`${API_BASE}/ordensServico`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(novaOS)
                 });
-                if (res.ok) {
-                    const criada = await res.json();
-                    idNovaOS = criada.id;
+                if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
+
+                const criada = await res.json();
+
+                if (statusBadge) {
+                    statusBadge.className = 'badge badge-success';
+                    statusBadge.textContent = 'Selecionado';
                 }
+
+                feedbackAlert.style.display = 'block';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                setTimeout(() => {
+                    window.location.href = `/pages/19-ordem-servico-detalhe.html?id=${criada.id}`;
+                }, 2000);
             } catch (erro) {
                 console.error('Erro ao criar Ordem de Serviço:', erro);
+                alert('Não foi possível registrar a contratação. Verifique se o json-server está rodando e tente novamente.');
             }
-
-            feedbackAlert.style.display = 'block';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-
-            setTimeout(() => {
-                window.location.href = idNovaOS
-                    ? `/pages/19-ordem-servico-detalhe.html?id=${idNovaOS}`
-                    : '/pages/19-ordem-servico-detalhe.html';
-            }, 2000);
         });
     }
 });

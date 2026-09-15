@@ -1,19 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
-    const API_BASE = 'http://localhost:3000';
-
-    // ── 1. Alternador de Tema Claro / Escuro ──
-    const themeToggle = document.querySelector('.theme-toggle');
-    const htmlElement = document.documentElement;
-
-    if (themeToggle) {
-        themeToggle.addEventListener('click', function () {
-            const atual = htmlElement.getAttribute('data-theme');
-            htmlElement.setAttribute('data-theme', atual === 'dark' ? 'light' : 'dark');
-        });
-    }
-
     // ── 2. Menu Lateral no Celular (Hambúrguer) ──
     const sidebarToggleBtn = document.querySelector('.sidebar-toggle-btn');
     const sidebar = document.querySelector('.sidebar');
@@ -49,6 +36,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let conversaAtual = null;
 
+    function escapeHtml(str) {
+        return String(str ?? '').replace(/[&<>"']/g, function (ch) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+        });
+    }
+
     function renderizarIniciais(nome) {
         const partes = (nome || '').trim().split(' ');
         return partes.length > 1 ? (partes[0][0] + partes[1][0]).toUpperCase() : (nome || '??').substring(0, 2).toUpperCase();
@@ -66,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (String(msg.remetenteId) === String(meuId)) {
                 const bolha = document.createElement('div');
                 bolha.className = 'message-row message-row-outgoing';
-                bolha.innerHTML = `${msg.conteudo}<span class="message-timestamp">${hora}</span>`;
+                bolha.innerHTML = `${escapeHtml(msg.conteudo)}<span class="message-timestamp">${hora}</span>`;
                 chatThread.appendChild(bolha);
             } else {
                 const linha = document.createElement('div');
@@ -74,8 +67,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 linha.style.gap = '8px';
                 linha.style.alignItems = 'flex-end';
                 linha.innerHTML = `
-                    <span class="chat-avatar">${renderizarIniciais(msg.remetenteNome)}</span>
-                    <div class="message-row">${msg.conteudo}<span class="message-timestamp">${hora}</span></div>
+                    <span class="chat-avatar">${escapeHtml(renderizarIniciais(msg.remetenteNome))}</span>
+                    <div class="message-row">${escapeHtml(msg.conteudo)}<span class="message-timestamp">${hora}</span></div>
                 `;
                 chatThread.appendChild(linha);
             }
@@ -141,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const bolha = document.createElement('div');
         bolha.className = 'message-row message-row-outgoing animate-slide-up';
-        bolha.innerHTML = `${texto}<span class="message-timestamp">agora</span>`;
+        bolha.innerHTML = `${escapeHtml(texto)}<span class="message-timestamp">agora</span>`;
         chatThread.appendChild(bolha);
         chatThread.scrollTop = chatThread.scrollHeight;
 
