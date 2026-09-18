@@ -4,10 +4,10 @@
 // 2. Token JWT
 // 3. Fetch no botão 'Entrar em contato'
 
-const API_URL = "http://localhost:3000/empresas";
-const API_URL_VAGAS = "http://localhost:3000/vagas";
-const API_URL_AVALIACOES = "http://localhost:3000/avaliacoes";
-const empresaId = "0UEUrH8HgJE";
+const API_URL = `${API_BASE}/empresas`;
+const API_URL_VAGAS = `${API_BASE}/vagas`;
+const API_URL_AVALIACOES = `${API_BASE}/avaliacoes`;
+const empresaId = new URLSearchParams(window.location.search).get("id") || "0UEUrH8HgJE";
 const form = document.querySelector("form");
 const loadingBar = document.querySelector("#perfil-loading");
 const erroBar = document.querySelector("#perfil-erro");
@@ -53,17 +53,6 @@ sidebarToggleBtn.addEventListener("click", () =>
 });
  
 sidebarOverlay.addEventListener("click", fecharMenu);
-
-// Toggle Tema Dark/Light
-const themeButton = document.querySelector(".theme-toggle");
-
-themeButton.addEventListener("click", () => 
-{
-    document.documentElement.dataset.theme =
-    document.documentElement.dataset.theme === "light"
-        ? "dark"
-        : "light";
-});
 
 // Calcula iniciais do nome para Avatar
 function calcularIniciais(nome) 

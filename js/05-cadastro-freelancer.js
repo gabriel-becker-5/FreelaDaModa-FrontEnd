@@ -1,5 +1,5 @@
 // npx json-server --watch db.json --port 3000
-const API_URL = "http://localhost:3000/freelancers";
+const API_URL = `${API_BASE}/freelancers`;
 const form = document.querySelector("form");
 const inputNome = document.querySelector("#nome");
 const inputDataNascimento = document.querySelector("#nascimento");
@@ -51,17 +51,6 @@ exibeConfirmaSenha.addEventListener("click", () =>
     inputConfirmaSenha.type === "password" ? inputConfirmaSenha.type = "text" : inputConfirmaSenha.type = "password";
 })
 
-// Toggle Tema Dark/Light
-const themeButton = document.querySelector(".theme-toggle");
-
-themeButton.addEventListener("click", () => 
-{
-    document.documentElement.dataset.theme =
-    document.documentElement.dataset.theme === "light"
-        ? "dark"
-        : "light";
-});
-
 // Especialidades & Máquinas que possui
 const badgeEspecialidades = document.querySelectorAll(".badge.badge-selectable");
 
@@ -83,7 +72,7 @@ for (let index = 0; index < badgeEspecialidades.length; index++)
     }
 )};
 
-function getSelecionados(campoMultiSelect) 
+function obterSelecionados(campoMultiSelect) 
 {
     let listaSelecionados = [];
 
@@ -117,43 +106,72 @@ function desmarcarSelecionados(campoMultiSelect, valoresSelecionados)
     }
 }
 
-// Verifica Validade da Senha
-// Possuir mínimo de 10 caracteres, uma letra maiúscula, uma letra minúscula, um número e um caracter especial
-// Senha e Confirmação devem ser iguais
-function senhaEhValida(senha, confirmacaoSenha) 
+// Validação de senha em tempo real — mensagens inline (mesmo padrão do Suporte),
+// sem alert(). Requisitos batem com o texto que já existia no formulário.
+const REQUISITOS_SENHA = [
+    { chave: "tamanho", testar: (s) => s.length >= 10 },
+    { chave: "maiuscula", testar: (s) => /[A-Z]/.test(s) },
+    { chave: "minuscula", testar: (s) => /[a-z]/.test(s) },
+    { chave: "numero", testar: (s) => /[0-9]/.test(s) },
+    { chave: "especial", testar: (s) => /[^A-Za-z0-9]/.test(s) }
+];
+const msgSenhasDiferentes = document.querySelector("#msg-senhas-diferentes");
+
+function validarRequisitosSenha()
 {
-    const regexMaiusculas = /^[A-Z]+$/;
-    const regexMinusculas = /^[a-z]+$/;
-    const regexNumeros = /^[0-9]+$/;
-    const regexEspecial = /[\W_]/;
-    let temUmCaractereMaiusculo = false;
-    let temUmCaractereMinusculo = false;
-    let temUmCaractereEspecial = false;
-    let temUmNumero = false;
-    const minimumSenhaLength = 10;
+    const senha = inputSenha.value;
+    let todosAtendidos = true;
 
-    for (let index = 0; index < senha.length; index++) 
+    REQUISITOS_SENHA.forEach((requisito) =>
     {
-        if(regexMaiusculas.test(senha[index])) {temUmCaractereMaiusculo = true;}     
-        if(regexMinusculas.test(senha[index])) {temUmCaractereMinusculo = true;}
-        if(regexNumeros.test(senha[index])) {temUmNumero = true;}
-        if(regexEspecial.test(senha[index])) {temUmCaractereEspecial = true;}
-    };
-    
-    if(!temUmCaractereMaiusculo || !temUmCaractereMinusculo ||
-       !temUmNumero || !temUmCaractereEspecial || senha.length < minimumSenhaLength) 
+        const atendido = requisito.testar(senha);
+        const mensagem = document.querySelector(`#senha-requisitos [data-requisito="${requisito.chave}"]`);
+        if (mensagem) mensagem.hidden = atendido;
+        if (!atendido) todosAtendidos = false;
+    });
+
+    inputSenha.classList.toggle("input-error", senha.length > 0 && !todosAtendidos);
+    inputSenha.classList.toggle("input-success", senha.length > 0 && todosAtendidos);
+
+    return todosAtendidos;
+}
+
+function validarConfirmacaoSenha()
+{
+    const temConfirmacao = inputConfirmaSenha.value.length > 0;
+    const coincide = inputSenha.value === inputConfirmaSenha.value;
+
+    if (msgSenhasDiferentes) msgSenhasDiferentes.hidden = !temConfirmacao || coincide;
+    inputConfirmaSenha.classList.toggle("input-error", temConfirmacao && !coincide);
+    inputConfirmaSenha.classList.toggle("input-success", temConfirmacao && coincide);
+
+    return coincide;
+}
+
+function senhaEhValida()
+{
+    const requisitosOk = validarRequisitosSenha();
+    const confirmacaoOk = validarConfirmacaoSenha();
+
+    if (!requisitosOk)
     {
-        alert("A senha deve ter no mínimo 10 caracteres e incluir obrigatoriamente uma letra maiúscula, uma letra minúscula, um número e um caractere especial.");
+        inputSenha.focus();
         return false;
     }
-
-    if(senha != confirmacaoSenha) {
-        alert("As senhas digitadas não correspondem.");
+    if (!confirmacaoOk)
+    {
+        inputConfirmaSenha.focus();
         return false;
     }
-
     return true;
 }
+
+inputSenha.addEventListener("input", () =>
+{
+    validarRequisitosSenha();
+    validarConfirmacaoSenha();
+});
+inputConfirmaSenha.addEventListener("input", validarConfirmacaoSenha);
 
 // Campo condicional Produtor fixo
 function ExibeOcultaCampoProdutorFixo() 
@@ -276,8 +294,13 @@ function limparFormulario()
     inputNomeProdutor.value = "",
     isCarroProprio = "",
     inputFaturamentoMedio.value = "",
-    desmarcarSelecionados(inputEspecialidades, getSelecionados(inputEspecialidades));
-    desmarcarSelecionados(inputMaquinas, getSelecionados(inputMaquinas));
+    desmarcarSelecionados(inputEspecialidades, obterSelecionados(inputEspecialidades));
+    desmarcarSelecionados(inputMaquinas, obterSelecionados(inputMaquinas));
+
+    document.querySelectorAll("#senha-requisitos [data-requisito]").forEach((mensagem) => { mensagem.hidden = true; });
+    if (msgSenhasDiferentes) msgSenhasDiferentes.hidden = true;
+    inputSenha.classList.remove("input-error", "input-success");
+    inputConfirmaSenha.classList.remove("input-error", "input-success");
 }
 
 // Cadastrar novo Freelancer
@@ -296,8 +319,8 @@ form.addEventListener("submit", async (evento) =>
         return;
     }
 
-    if(!senhaEhValida(inputSenha.value, inputConfirmaSenha.value) || 
-       !preenchimentoProdutorFixo()) 
+    if(!senhaEhValida() ||
+       !preenchimentoProdutorFixo())
     {
         return;
     }
@@ -306,7 +329,7 @@ form.addEventListener("submit", async (evento) =>
     const isCarroProprio = selectVeiculo.value === "Sim";
     const isEnderecoComercialIgualResidencial = checkEnderecoComercialIgualResidencial.checked;
     
-    var especialidadesSelecionadas = getSelecionados(inputEspecialidades);
+    var especialidadesSelecionadas = obterSelecionados(inputEspecialidades);
 
     if(especialidadesSelecionadas.length < 1)
     {
@@ -314,7 +337,7 @@ form.addEventListener("submit", async (evento) =>
         return;
     }
 
-    var maquinasSelecionadas = getSelecionados(inputMaquinas);
+    var maquinasSelecionadas = obterSelecionados(inputMaquinas);
 
     if(maquinasSelecionadas.length < 1)
     {

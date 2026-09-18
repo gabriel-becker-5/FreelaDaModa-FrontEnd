@@ -3,7 +3,7 @@
 // 1. ID da Empresa logado
 // 2. Token JWT
 
-const API_URL = "http://localhost:3000/empresas";
+const API_URL = `${API_BASE}/empresas`;
 const empresaId = "0UEUrH8HgJE";
 const form = document.querySelector("form");
 const inputNomeResponsavel = document.querySelector("#pe-resp");
@@ -57,17 +57,6 @@ sidebarToggleBtn.addEventListener("click", () =>
 });
  
 sidebarOverlay.addEventListener("click", fecharMenu);
-
-// Toggle Tema Dark/Light
-const themeButton = document.querySelector(".theme-toggle");
-
-themeButton.addEventListener("click", () => 
-{
-    document.documentElement.dataset.theme =
-    document.documentElement.dataset.theme === "light"
-        ? "dark"
-        : "light";
-});
 
 // Busca endereço via API
 async function consultaCEP(campoCEP, campoEndereco, campoNumero, campoBairro, campoCidade, campoEstado, campoComplemento) {

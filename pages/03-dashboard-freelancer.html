@@ -2,6 +2,7 @@
 <html lang="pt-BR" data-theme="light">
 <head>
     <meta charset="UTF-8" />
+    <script src="/js/theme.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Painel do Freelancer | Freela da Moda</title>
 
@@ -9,267 +10,40 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-    <link rel="stylesheet" href="/css/style.css" />
-    <style>
-        /* Estilos específicos do Dashboard */
-        .dash-container {
-            padding: 30px 20px 60px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .dash-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--card-dark-gradient);
-            padding: 32px 40px;
-            border-radius: var(--radius-lg);
-            color: var(--text-light);
-            box-shadow: var(--shadow-card);
-            margin-bottom: 30px;
-        }
-
-        .dash-user-info h1 {
-            font-size: 1.8rem;
-            margin-bottom: 6px;
-        }
-
-        .dash-user-info p {
-            color: rgba(255, 255, 255, 0.75);
-            font-size: 0.95rem;
-        }
-
-        .user-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(255, 255, 255, 0.15);
-            color: #e2c2ff;
-            padding: 4px 12px;
-            border-radius: 16px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            margin-top: 8px;
-        }
-
-        /* Grade de Métricas */
-        .dash-metrics {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .metric-card {
-            background: #ffffff;
-            border-radius: var(--radius-md);
-            padding: 24px;
-            box-shadow: var(--shadow-soft);
-            border: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .metric-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            background: var(--primary-light);
-            color: var(--primary-bright);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-        }
-
-        .metric-info strong {
-            display: block;
-            font-size: 1.6rem;
-            color: var(--text-dark);
-            font-weight: 800;
-        }
-
-        .metric-info span {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        /* Layout em 2 Colunas */
-        .dash-layout {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 24px;
-        }
-
-        .section-box {
-            background: #ffffff;
-            border-radius: var(--radius-md);
-            padding: 28px;
-            box-shadow: var(--shadow-soft);
-            border: 1px solid var(--border-color);
-            margin-bottom: 24px;
-        }
-
-        .box-title {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .box-title h2 {
-            font-size: 1.25rem;
-            color: var(--text-dark);
-        }
-
-        /* Lista de Serviços Ativos */
-        .service-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .service-item:last-child {
-            border-bottom: none;
-        }
-
-        .service-info h3 {
-            font-size: 1rem;
-            color: var(--text-dark);
-            margin-bottom: 4px;
-        }
-
-        .service-info span {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        .status-badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 700;
-        }
-
-        .status-em-producao {
-            background: #fff4e5;
-            color: #b76e00;
-        }
-
-        .status-concluido {
-            background: #e6f4ea;
-            color: #137333;
-        }
-
-        .status-pendente {
-            background: #f1f3f4;
-            color: #5f6368;
-        }
-
-        /* Perfil Rápido Lateral */
-        .profile-quick-view {
-            text-align: center;
-        }
-
-        .profile-avatar-big {
-            width: 72px;
-            height: 72px;
-            border-radius: 50%;
-            background: var(--primary-light);
-            color: var(--primary-bright);
-            font-size: 1.8rem;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 12px;
-        }
-
-        .profile-quick-view h3 {
-            font-size: 1.2rem;
-            margin-bottom: 4px;
-        }
-
-        .profile-quick-view p {
-            color: var(--text-muted);
-            font-size: 0.88rem;
-            margin-bottom: 16px;
-        }
-
-        .quick-info-list {
-            text-align: left;
-            margin: 20px 0;
-        }
-
-        .quick-info-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            font-size: 0.88rem;
-            border-bottom: 1px dashed var(--border-color);
-        }
-
-        .quick-info-row span {
-            color: var(--text-muted);
-        }
-
-        .quick-info-row strong {
-            color: var(--text-dark);
-        }
-
-        @media (max-width: 900px) {
-            .dash-metrics {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .dash-layout {
-                grid-template-columns: 1fr;
-            }
-            .dash-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 16px;
-            }
-        }
-
-        @media (max-width: 600px) {
-            .dash-metrics {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="/css/global.css" />
 </head>
 <body>
 
-    <!-- NAVBAR -->
-    <header class="header container">
-        <a href="/pages/01-homepage.html" class="logo-area">
-            <img src="/assets/logo-icone-roxo-2048.png" alt="Logo Freela da Moda" class="logo-img" />
-            <div class="logo-text">
-                <span>FREELA</span>
-                <span>DA MODA</span>
-            </div>
+    <div class="app">
+    <button class="sidebar-toggle-btn" type="button" aria-label="Abrir menu" aria-expanded="false">
+        <span class="hamburger-line"></span>
+    </button>
+    <div class="sidebar-overlay"></div>
+    <aside class="sidebar" role="navigation" aria-label="Menu principal">
+        <a href="/pages/01-homepage.html" class="brand">
+            <img src="/assets/logo-icone-branco-2048.png" alt="Logo Freela" class="brand-logo" />
+            <span class="brand-text">FREELA<span class="brand-sub">DA MODA</span></span>
         </a>
-
-        <nav class="nav-menu">
-            <a href="/pages/01-homepage.html">Início</a>
-            <a href="/pages/07-vagas.html">Mural de Vagas</a>
-            <a href="/pages/03-dashboard-freelancer.html" style="color: var(--primary-bright); font-weight: 700;">Meu Painel</a>
-        </nav>
-
-        <div class="header-actions">
-            <button class="btn btn-outline-purple" id="btn-logout">
-                <i class="bi bi-box-arrow-right"></i> Sair
-            </button>
+        <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Alternar tema claro e escuro">
+            <i class="bi bi-moon-stars" aria-hidden="true"></i>
+        </button>
+        <a class="active" href="/pages/03-dashboard-freelancer.html" aria-current="page">Dashboard</a>
+        <a href="/pages/07-vagas.html">Vagas</a>
+        <a href="/pages/20-minhas-candidaturas.html">Candidaturas/OS</a>
+        <a href="/pages/08-perfil-freelancer.html">Perfil</a>
+        <a href="/pages/11-chat.html">Chat</a>
+        <a href="/pages/10-impulsionamento.html">Impulsionamento</a>
+        <a href="/pages/24-suporte.html">Suporte</a>
+    </aside>
+    <main class="main" role="main" aria-label="Conteúdo principal">
+        <div class="header">
+            <h2>Meu Painel</h2>
+            <div class="header-actions">
+                <button class="btn btn-outline" id="btn-logout">
+                    <i class="bi bi-box-arrow-right"></i> Sair
+                </button>
+            </div>
         </div>
-    </header>
-
-    <main class="dash-container">
 
         <!-- CABEÇALHO DO PAINEL -->
         <section class="dash-header">
@@ -330,7 +104,7 @@
                 <div class="section-box">
                     <div class="box-title">
                         <h2><i class="bi bi-scissors"></i> Minhas Produções Atuais</h2>
-                        <span style="font-size: 0.85rem; color: var(--primary-bright); font-weight: 600;">2 ativas</span>
+                        <span style="font-size: 0.85rem; color: var(--color-primary); font-weight: 600;">2 ativas</span>
                     </div>
 
                     <div class="services-list" id="lista-servicos">
@@ -356,7 +130,7 @@
                 <div class="section-box">
                     <div class="box-title">
                         <h2><i class="bi bi-stars"></i> Vagas Recomendadas Para Você</h2>
-                        <a href="/pages/07-vagas.html" style="font-size: 0.88rem; color: var(--primary-bright); text-decoration: none; font-weight: 600;">Ver todas <i class="bi bi-arrow-right"></i></a>
+                        <a href="/pages/07-vagas.html" style="font-size: 0.88rem; color: var(--color-primary); text-decoration: none; font-weight: 600;">Ver todas <i class="bi bi-arrow-right"></i></a>
                     </div>
 
                     <div id="vagas-recomendadas">
@@ -401,14 +175,9 @@
         </div>
 
     </main>
+    </div>
 
-    <!-- FOOTER -->
-    <footer class="footer">
-        <div class="container" style="text-align: center;">
-            <p>Freela da Moda © 2026 — Painel de Gestão do Freelancer</p>
-        </div>
-    </footer>
-
+    <script src="/js/config.js"></script>
     <script src="/js/03-dashboard-freelancer.js"></script>
 </body>
 </html>

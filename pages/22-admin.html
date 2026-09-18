@@ -2,32 +2,18 @@
 <html lang="pt-BR" data-theme="light">
   <head>
     <meta charset="UTF-8" />
+    <script src="/js/theme.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,700&display=swap"
       rel="stylesheet"
     />
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
     />
-    <link rel="stylesheet" href="/css/base.css" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              primary: { DEFAULT: '#820ad1', '600': '#6d08b5', '700': '#4f0087', '100': '#f0e2ff' },
-              surface: { DEFAULT: '#ffffff', alt: '#f3efff' }
-            },
-            fontFamily: { sans: ['Plus Jakarta Sans', 'Arial', 'sans-serif'] },
-            borderRadius: { DEFAULT: '12px' }
-          }
-        }
-      }
-    </script>
+    <link rel="stylesheet" href="/css/global.css" />
   </head>
   <body>
     <div class="app">
@@ -36,13 +22,13 @@
 </button>
 <div class="sidebar-overlay"></div>
 <aside class="sidebar" role="navigation" aria-label="Menu principal">
-        <div class="brand">
+        <a href="/pages/01-homepage.html" class="brand">
           <img
             src="/assets/logo-icone-branco-2048.png"
             alt="Logo Freela"
             class="brand-logo"
           /><span class="brand-text">FREELA<span class="brand-sub">DA MODA</span></span>
-        </div>
+        </a>
         <button
           class="theme-toggle"
           type="button"
@@ -444,7 +430,7 @@
               <label>Cor de destaque da plataforma</label>
               <div class="color-input-wrapper">
                 <div class="color-input-preview" aria-label="Pré-visualização da cor selecionada"></div>
-                <input id="param-cor" type="color" class="input" value="#820ad1" />
+                <input id="param-cor" type="color" class="input" value="#7000c2" />
               </div>
               <span class="field-message">Define a cor primária dos elementos da plataforma.</span>
             </div>
@@ -542,6 +528,44 @@
           </section>
         </div>
 
+        <!-- Modal: Detalhe do Chamado de Suporte -->
+        <div class="modal-overlay" id="modal-chamado-detalhe">
+          <div class="modal-content" style="max-width: 620px;">
+            <div class="modal-header">
+              <h2 id="chamado-detalhe-titulo">Chamado</h2>
+              <button class="btn-close-modal" id="btn-fechar-chamado-detalhe" type="button" aria-label="Fechar">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </div>
+
+            <div class="grid grid-2 mb-md">
+              <p><strong>Usuário:</strong> <span id="chamado-detalhe-usuario"></span></p>
+              <p><strong>Assunto:</strong> <span id="chamado-detalhe-assunto"></span></p>
+              <p><strong>Data:</strong> <span id="chamado-detalhe-data"></span></p>
+              <p><strong>Status:</strong> <span id="chamado-detalhe-status" class="badge"></span></p>
+            </div>
+
+            <div class="section-title">Conversa</div>
+            <div id="chamado-detalhe-mensagens" class="stack-sm" style="max-height: 280px; overflow-y: auto; margin-bottom: 16px; padding-right: 4px;">
+              <!-- Mensagens (pergunta original + respostas) renderizadas via 22-admin.js -->
+            </div>
+
+            <div class="form-group">
+              <label for="chamado-detalhe-resposta">Responder</label>
+              <textarea id="chamado-detalhe-resposta" class="input" rows="3" placeholder="Digite sua resposta para o usuário..."></textarea>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn btn-danger" id="btn-fechar-chamado-modal" type="button">
+                <i class="bi bi-x-circle"></i> Fechar chamado
+              </button>
+              <button class="btn btn-primary" id="btn-enviar-resposta-chamado" type="button">
+                <i class="bi bi-send"></i> Enviar resposta
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- Tab: Avisos -->
         <div class="tab-content">
           <section class="card mb-md">
@@ -614,6 +638,7 @@
         </div>
       </main>
     </div>
+    <script src="/js/config.js"></script>
     <script src="/js/22-admin.js"></script>
   </body>
 </html>

@@ -10,6 +10,7 @@
       "tipoNegocio": "MEI",
       "experiencia": "5 a 10 anos",
       "oficina": "Só eu",
+      "especialidade": "Costura reta",
       "especialidades": [
         "Costura reta",
         "Overloque",
@@ -36,6 +37,133 @@
       },
       "mediaAvaliacoes": 4.45,
       "totalAvaliacoes": 33
+    },
+    {
+      "id": "joana-costa-01",
+      "nome": "Joana Costa",
+      "email": "joana.costa@email.com",
+      "telefone": "(11) 98123-4567",
+      "nascimento": "1990-02-18",
+      "senha": "12345678",
+      "tipoNegocio": "Autônomo",
+      "experiencia": "3 a 5 anos",
+      "oficina": "Só eu",
+      "especialidade": "Modelagem",
+      "especialidades": [
+        "Modelagem",
+        "Acabamento"
+      ],
+      "maquinas": [
+        "Reta"
+      ],
+      "fechamento": "Indicação",
+      "disponibilidade": "Fins de semana",
+      "produtorFixo": "nao",
+      "nomeProdutor": "",
+      "veiculo": "nao",
+      "faturamento": "R$ 1.000 a R$ 3.000",
+      "enderecoResidencial": {
+        "cidade": "São Paulo",
+        "estado": "SP"
+      },
+      "mediaAvaliacoes": 4.9,
+      "totalAvaliacoes": 34
+    },
+    {
+      "id": "maria-silva-02",
+      "nome": "Maria Silva",
+      "email": "maria.silva@email.com",
+      "telefone": "(21) 97654-3210",
+      "nascimento": "1988-09-05",
+      "senha": "12345678",
+      "tipoNegocio": "MEI",
+      "experiencia": "5 a 10 anos",
+      "oficina": "2 a 3 pessoas",
+      "especialidade": "Bordado",
+      "especialidades": [
+        "Bordado",
+        "Estamparia"
+      ],
+      "maquinas": [
+        "Overloque",
+        "Galoneira"
+      ],
+      "fechamento": "Plataformas online",
+      "disponibilidade": "Período integral",
+      "produtorFixo": "nao",
+      "nomeProdutor": "",
+      "veiculo": "sim",
+      "faturamento": "R$ 3.000 a R$ 6.000",
+      "enderecoResidencial": {
+        "cidade": "Rio de Janeiro",
+        "estado": "RJ"
+      },
+      "mediaAvaliacoes": 4.7,
+      "totalAvaliacoes": 12
+    },
+    {
+      "id": "ana-ferreira-03",
+      "nome": "Ana Ferreira",
+      "email": "ana.ferreira@email.com",
+      "telefone": "(47) 98888-1122",
+      "nascimento": "1996-11-22",
+      "senha": "12345678",
+      "tipoNegocio": "Sem CNPJ",
+      "experiencia": "1 a 3 anos",
+      "oficina": "Só eu",
+      "especialidade": "Estamparia",
+      "especialidades": [
+        "Estamparia",
+        "Costura reta"
+      ],
+      "maquinas": [
+        "Reta"
+      ],
+      "fechamento": "Redes sociais",
+      "disponibilidade": "Sob demanda",
+      "produtorFixo": "nao",
+      "nomeProdutor": "",
+      "veiculo": "nao",
+      "faturamento": "Até R$ 1.000",
+      "enderecoResidencial": {
+        "cidade": "Blumenau",
+        "estado": "SC"
+      },
+      "mediaAvaliacoes": 4.3,
+      "totalAvaliacoes": 6
+    },
+    {
+      "id": "carlos-souza-04",
+      "nome": "Carlos Souza",
+      "email": "carlos.souza@email.com",
+      "telefone": "(41) 99222-3344",
+      "nascimento": "1985-06-30",
+      "senha": "12345678",
+      "tipoNegocio": "ME",
+      "experiencia": "Mais de 10 anos",
+      "oficina": "4 a 6 pessoas",
+      "especialidade": "Acabamento",
+      "especialidades": [
+        "Acabamento",
+        "Costura reta"
+      ],
+      "maquinas": [
+        "Reta",
+        "Overloque",
+        "Travete"
+      ],
+      "fechamento": "Indicação",
+      "disponibilidade": "Período integral",
+      "produtorFixo": "sim",
+      "nomeProdutor": "Confecção própria",
+      "veiculo": "sim",
+      "faturamento": "De R$ 3000 a R$ 6000",
+      "enderecoResidencial": {
+        "cidade": "Curitiba",
+        "estado": "PR"
+      },
+      "mediaAvaliacoes": 4.6,
+      "totalAvaliacoes": 21
     }
   ],
   "empresas": [
@@ -53,6 +181,28 @@
       "estado": "SP",
       "mediaAvaliacoes": 4.45,
       "totalAvaliacoes": 33
+    },
+    {
+      "id": "LZwRUc8wAso",
+      "nomeResponsavel": "Karina Claro",
+      "cpfResponsavel": "043.215.678-90",
+      "razaoSocial": "kC",
+      "nomeFantasia": "kkkk",
+      "cnpjEmpresa": "07.338.788/0001-23",
+      "ramoAtuacao": "confecção",
+      "email": "kc@gmail.com",
+      "telefone": "(47) 99776-4532",
+      "descricaoPerfil": "",
+      "cep": "89026-680",
+      "enderecoComercial": "Rua José João Libório",
+      "numeroComercial": "90",
+      "bairroComercial": "Progresso",
+      "cidadeComercial": "Blumenau",
+      "estadoComercial": "Santa Catarina",
+      "complementoComercial": "",
+      "senha": "qakxo2-midboF-gacxoh",
+      "mediaAvaliacoes": 0,
+      "totalAvaliacoes": 0
     }
   ],
   "vagas": [
@@ -92,35 +242,45 @@
       "status": "Aberta",
       "id": "ZlDvpb1"
     },
-
-      {
-        "id": "1",
-        "empresaId": "0UEUrH8HgJE",
-        "titulo": "Costureira Pilotista",
-        "valor": "1.200",
-        "modalidade": "Presencial",
-        "status": "ativa",
-        "link": "18-vaga-detalhe.html"
-      },
-      {
-        "id": "2",
-        "empresaId": "0UEUrH8HgJE",
-        "titulo": "Costureira Industrial",
-        "valor": "2.800",
-        "modalidade": "Presencial",
-        "status": "ativa",
-        "link": "18-vaga-detalhe.html"
-      },
-      {
-        "id": "3",
-        "empresaId": "0UEUrH8HgJE",
-        "titulo": "Técnico(a) em Controle de Qualidade Têxtil",
-        "valor": "3.500",
-        "modalidade": "Híbrido",
-        "status": "ativa",
-        "link": "18-vaga-detalhe.html"
-      }
-      
+    {
+      "id": "1",
+      "empresaId": "0UEUrH8HgJE",
+      "empresaNome": "Confecção X",
+      "titulo": "Costureira Pilotista",
+      "descricao": "Confecção de peças piloto para aprovação de novas coleções.",
+      "especialidade": "Peça piloto",
+      "valor": "1.200",
+      "local": "São Paulo, SP",
+      "modalidade": "Presencial",
+      "status": "ativa",
+      "link": "18-vaga-detalhe.html"
+    },
+    {
+      "id": "2",
+      "empresaId": "0UEUrH8HgJE",
+      "empresaNome": "Confecção X",
+      "titulo": "Costureira Industrial",
+      "descricao": "Produção em série em máquina industrial reta e overloque.",
+      "especialidade": "Costura reta",
+      "valor": "2.800",
+      "local": "São Paulo, SP",
+      "modalidade": "Presencial",
+      "status": "ativa",
+      "link": "18-vaga-detalhe.html"
+    },
+    {
+      "id": "3",
+      "empresaId": "0UEUrH8HgJE",
+      "empresaNome": "Confecção X",
+      "titulo": "Técnico(a) em Controle de Qualidade Têxtil",
+      "descricao": "Inspeção de acabamento e conformidade de peças antes do envio.",
+      "especialidade": "Acabamento",
+      "valor": "3.500",
+      "local": "São Paulo, SP",
+      "modalidade": "Híbrido",
+      "status": "ativa",
+      "link": "18-vaga-detalhe.html"
+    }
   ],
   "avaliacoes": [
     {
@@ -164,8 +324,14 @@
       "nota": 4,
       "comentario": "Empresa séria, com processos bem organizados e bons projetos.",
       "autor": "Marcos"
-    }    
-
+    },
+    {
+      "freelancerId": "-DU9G2RSk6s",
+      "nota": 3,
+      "comentario": "SENSASIONAL",
+      "autor": "Confecção X",
+      "id": "Wuu4J-7hgkE"
+    }
   ],
   "candidaturas": [
     {
@@ -186,7 +352,7 @@
       "link": "18-vaga-detalhe.html",
       "freelancerId": "-DU9G2RSk6s"
     },
-      {
+    {
       "id": "3",
       "titulo": "Costura de amostras",
       "nomeEmpresa": "VestiLar Confecções",
@@ -204,97 +370,96 @@
       "link": "18-vaga-detalhe.html",
       "freelancerId": "-DU9G2RSk6s"
     },
-    { 
-  "id": "5", 
-  "titulo": "Ajuste de modelagem de peças", 
-  "nomeEmpresa": "Fio & Forma Confecções", 
-  "status": "Em andamento", 
-  "tipo": "OS", 
-  "link": "18-vaga-detalhe.html", 
-  "freelancerId": "-DU9G2RSk6s" 
-},
-{ 
-  "id": "6", 
-  "titulo": "Costura de peças piloto", 
-  "nomeEmpresa": "Bella Linha Têxtil", 
-  "status": "Em análise", 
-  "tipo": "Vaga", 
-  "link": "18-vaga-detalhe.html", 
-  "freelancerId": "-DU9G2RSk6s" 
-},
-{ 
-  "id": "7", 
-  "titulo": "Produção de camisetas básicas", 
-  "nomeEmpresa": "Sulvest Confecções", 
-  "status": "Concluída", 
-  "tipo": "OS", 
-  "link": "18-vaga-detalhe.html", 
-  "freelancerId": "-DU9G2RSk6s" 
-},
-{ 
-  "id": "8", 
-  "titulo": "Costureira para linha fitness", 
-  "nomeEmpresa": "MoveFit Moda Esportiva", 
-  "status": "Em andamento", 
-  "tipo": "Vaga", 
-  "link": "18-vaga-detalhe.html", 
-  "freelancerId": "-DU9G2RSk6s" 
-},
-{ 
-  "id": "9", 
-  "titulo": "Acabamento de peças em malha", 
-  "nomeEmpresa": "TramaSul Indústria Têxtil", 
-  "status": "Em análise", 
-  "tipo": "OS", 
-  "link": "18-vaga-detalhe.html", 
-  "freelancerId": "-DU9G2RSk6s" 
-},
-{ 
-  "id": "10", 
-  "titulo": "Costureira para produção em série", 
-  "nomeEmpresa": "Estilo Norte Confecções", 
-  "status": "Em andamento", 
-  "tipo": "Vaga", 
-  "link": "18-vaga-detalhe.html", 
-  "freelancerId": "-DU9G2RSk6s" 
-},
-{ 
-  "id": "11", 
-  "titulo": "Montagem de peças de alfaiataria", 
-  "nomeEmpresa": "Corte & Linha Moda", 
-  "status": "Concluída", 
-  "tipo": "OS", 
-  "link": "18-vaga-detalhe.html", 
-  "freelancerId": "-DU9G2RSk6s" 
-},
-{ 
-  "id": "12", 
-  "titulo": "Costureira para coleção primavera", 
-  "nomeEmpresa": "Essenza Moda Feminina", 
-  "status": "Em análise", 
-  "tipo": "Vaga", 
-  "link": "18-vaga-detalhe.html", 
-  "freelancerId": "-DU9G2RSk6s" 
-},
-{ 
-  "id": "13", 
-  "titulo": "Produção de uniformes profissionais", 
-  "nomeEmpresa": "ProUniforme Têxtil", 
-  "status": "Em andamento", 
-  "tipo": "OS", 
-  "link": "18-vaga-detalhe.html", 
-  "freelancerId": "-DU9G2RSk6s" 
-},
-{ 
-  "id": "14", 
-  "titulo": "Costureira para peças de moda feminina", 
-  "nomeEmpresa": "Ateliê Nova Estação", 
-  "status": "Concluída", 
-  "tipo": "Vaga", 
-  "link": "18-vaga-detalhe.html", 
-  "freelancerId": "-DU9G2RSk6s" 
-},
-
+    {
+      "id": "5",
+      "titulo": "Ajuste de modelagem de peças",
+      "nomeEmpresa": "Fio & Forma Confecções",
+      "status": "Em andamento",
+      "tipo": "OS",
+      "link": "18-vaga-detalhe.html",
+      "freelancerId": "-DU9G2RSk6s"
+    },
+    {
+      "id": "6",
+      "titulo": "Costura de peças piloto",
+      "nomeEmpresa": "Bella Linha Têxtil",
+      "status": "Em análise",
+      "tipo": "Vaga",
+      "link": "18-vaga-detalhe.html",
+      "freelancerId": "-DU9G2RSk6s"
+    },
+    {
+      "id": "7",
+      "titulo": "Produção de camisetas básicas",
+      "nomeEmpresa": "Sulvest Confecções",
+      "status": "Concluída",
+      "tipo": "OS",
+      "link": "18-vaga-detalhe.html",
+      "freelancerId": "-DU9G2RSk6s"
+    },
+    {
+      "id": "8",
+      "titulo": "Costureira para linha fitness",
+      "nomeEmpresa": "MoveFit Moda Esportiva",
+      "status": "Em andamento",
+      "tipo": "Vaga",
+      "link": "18-vaga-detalhe.html",
+      "freelancerId": "-DU9G2RSk6s"
+    },
+    {
+      "id": "9",
+      "titulo": "Acabamento de peças em malha",
+      "nomeEmpresa": "TramaSul Indústria Têxtil",
+      "status": "Em análise",
+      "tipo": "OS",
+      "link": "18-vaga-detalhe.html",
+      "freelancerId": "-DU9G2RSk6s"
+    },
+    {
+      "id": "10",
+      "titulo": "Costureira para produção em série",
+      "nomeEmpresa": "Estilo Norte Confecções",
+      "status": "Em andamento",
+      "tipo": "Vaga",
+      "link": "18-vaga-detalhe.html",
+      "freelancerId": "-DU9G2RSk6s"
+    },
+    {
+      "id": "11",
+      "titulo": "Montagem de peças de alfaiataria",
+      "nomeEmpresa": "Corte & Linha Moda",
+      "status": "Concluída",
+      "tipo": "OS",
+      "link": "18-vaga-detalhe.html",
+      "freelancerId": "-DU9G2RSk6s"
+    },
+    {
+      "id": "12",
+      "titulo": "Costureira para coleção primavera",
+      "nomeEmpresa": "Essenza Moda Feminina",
+      "status": "Em análise",
+      "tipo": "Vaga",
+      "link": "18-vaga-detalhe.html",
+      "freelancerId": "-DU9G2RSk6s"
+    },
+    {
+      "id": "13",
+      "titulo": "Produção de uniformes profissionais",
+      "nomeEmpresa": "ProUniforme Têxtil",
+      "status": "Em andamento",
+      "tipo": "OS",
+      "link": "18-vaga-detalhe.html",
+      "freelancerId": "-DU9G2RSk6s"
+    },
+    {
+      "id": "14",
+      "titulo": "Costureira para peças de moda feminina",
+      "nomeEmpresa": "Ateliê Nova Estação",
+      "status": "Concluída",
+      "tipo": "Vaga",
+      "link": "18-vaga-detalhe.html",
+      "freelancerId": "-DU9G2RSk6s"
+    },
     {
       "id": "1",
       "titulo": "Produção Lote de verão",
@@ -313,7 +478,7 @@
       "link": "18-vaga-detalhe.html",
       "freelancerId": "-DU9G2RSk6s"
     },
-      {
+    {
       "id": "3",
       "titulo": "Costura de amostras",
       "nomeEmpresa": "VestiLar Confecções",
@@ -331,87 +496,406 @@
       "link": "18-vaga-detalhe.html",
       "freelancerId": "-DU9G2RSk6s"
     },
-    { 
-  "id": "5", 
-  "titulo": "Ajuste de modelagem de peças", 
-  "nomeEmpresa": "Fio & Forma Confecções", 
-  "status": "Em andamento", 
-  "tipo": "OS", 
-  "link": "18-vaga-detalhe.html", 
-  "freelancerId": "-DU9G2RSk6s" 
-},
-{ 
-  "id": "6", 
-  "titulo": "Costura de peças piloto", 
-  "nomeEmpresa": "Bella Linha Têxtil", 
-  "status": "Em análise", 
-  "tipo": "Vaga", 
-  "link": "18-vaga-detalhe.html", 
-  "freelancerId": "-DU9G2RSk6s" 
-},
-{ 
-  "id": "7", 
-  "titulo": "Produção de camisetas básicas", 
-  "nomeEmpresa": "Sulvest Confecções", 
-  "status": "Concluída", 
-  "tipo": "OS", 
-  "link": "18-vaga-detalhe.html", 
-  "freelancerId": "-DU9G2RSk6s" 
-},
-{ 
-  "id": "8", 
-  "titulo": "Costureira para linha fitness", 
-  "nomeEmpresa": "MoveFit Moda Esportiva", 
-  "status": "Em andamento", 
-  "tipo": "Vaga", 
-  "link": "18-vaga-detalhe.html", 
-  "freelancerId": "-DU9G2RSk6s" 
-},
-{ 
-  "id": "9", 
-  "titulo": "Acabamento de peças em malha", 
-  "nomeEmpresa": "TramaSul Indústria Têxtil", 
-  "status": "Em análise", 
-  "tipo": "OS", 
-  "link": "18-vaga-detalhe.html", 
-  "freelancerId": "-DU9G2RSk6s" 
-},
-{ 
-  "id": "10", 
-  "titulo": "Costureira para produção em série", 
-  "nomeEmpresa": "Estilo Norte Confecções", 
-  "status": "Em andamento", 
-  "tipo": "Vaga", 
-  "link": "18-vaga-detalhe.html", 
-  "freelancerId": "-DU9G2RSk6s" 
-},
-{ 
-  "id": "11", 
-  "titulo": "Montagem de peças de alfaiataria", 
-  "nomeEmpresa": "Corte & Linha Moda", 
-  "status": "Concluída", 
-  "tipo": "OS", 
-  "link": "18-vaga-detalhe.html", 
-  "freelancerId": "-DU9G2RSk6s" 
-},
-{ 
-  "id": "13", 
-  "titulo": "Produção de uniformes profissionais", 
-  "nomeEmpresa": "ProUniforme Têxtil", 
-  "status": "Em andamento", 
-  "tipo": "OS", 
-  "link": "18-vaga-detalhe.html", 
-  "freelancerId": "-DU9G2RSk6s" 
-},
-{ 
-  "id": "14", 
-  "titulo": "Costureira para peças de moda feminina", 
-  "nomeEmpresa": "Ateliê Nova Estação", 
-  "status": "Concluída", 
-  "tipo": "Vaga", 
-  "link": "18-vaga-detalhe.html", 
-  "freelancerId": "-DU9G2RSk6s" 
-}
-
-  ]
+    {
+      "id": "5",
+      "titulo": "Ajuste de modelagem de peças",
+      "nomeEmpresa": "Fio & Forma Confecções",
+      "status": "Em andamento",
+      "tipo": "OS",
+      "link": "18-vaga-detalhe.html",
+      "freelancerId": "-DU9G2RSk6s"
+    },
+    {
+      "id": "6",
+      "titulo": "Costura de peças piloto",
+      "nomeEmpresa": "Bella Linha Têxtil",
+      "status": "Em análise",
+      "tipo": "Vaga",
+      "link": "18-vaga-detalhe.html",
+      "freelancerId": "-DU9G2RSk6s"
+    },
+    {
+      "id": "7",
+      "titulo": "Produção de camisetas básicas",
+      "nomeEmpresa": "Sulvest Confecções",
+      "status": "Concluída",
+      "tipo": "OS",
+      "link": "18-vaga-detalhe.html",
+      "freelancerId": "-DU9G2RSk6s"
+    },
+    {
+      "id": "8",
+      "titulo": "Costureira para linha fitness",
+      "nomeEmpresa": "MoveFit Moda Esportiva",
+      "status": "Em andamento",
+      "tipo": "Vaga",
+      "link": "18-vaga-detalhe.html",
+      "freelancerId": "-DU9G2RSk6s"
+    },
+    {
+      "id": "9",
+      "titulo": "Acabamento de peças em malha",
+      "nomeEmpresa": "TramaSul Indústria Têxtil",
+      "status": "Em análise",
+      "tipo": "OS",
+      "link": "18-vaga-detalhe.html",
+      "freelancerId": "-DU9G2RSk6s"
+    },
+    {
+      "id": "10",
+      "titulo": "Costureira para produção em série",
+      "nomeEmpresa": "Estilo Norte Confecções",
+      "status": "Em andamento",
+      "tipo": "Vaga",
+      "link": "18-vaga-detalhe.html",
+      "freelancerId": "-DU9G2RSk6s"
+    },
+    {
+      "id": "11",
+      "titulo": "Montagem de peças de alfaiataria",
+      "nomeEmpresa": "Corte & Linha Moda",
+      "status": "Concluída",
+      "tipo": "OS",
+      "link": "18-vaga-detalhe.html",
+      "freelancerId": "-DU9G2RSk6s"
+    },
+    {
+      "id": "13",
+      "titulo": "Produção de uniformes profissionais",
+      "nomeEmpresa": "ProUniforme Têxtil",
+      "status": "Em andamento",
+      "tipo": "OS",
+      "link": "18-vaga-detalhe.html",
+      "freelancerId": "-DU9G2RSk6s"
+    },
+    {
+      "id": "14",
+      "titulo": "Costureira para peças de moda feminina",
+      "nomeEmpresa": "Ateliê Nova Estação",
+      "status": "Concluída",
+      "tipo": "Vaga",
+      "link": "18-vaga-detalhe.html",
+      "freelancerId": "-DU9G2RSk6s"
+    }
+  ],
+  "ordensServico": [
+    {
+      "id": "1",
+      "titulo": "Produção lote verão",
+      "categoria": "Costura",
+      "modalidade": "Presencial",
+      "empresaId": "0UEUrH8HgJE",
+      "empresaNome": "Confecção X",
+      "freelancerId": "-DU9G2RSk6s",
+      "freelancerNome": "Maria Silva",
+      "cidade": "São Paulo",
+      "estado": "SP",
+      "valor": "5000",
+      "descricao": "Produção de peças em escala.",
+      "requisitos": "Experiência com produção em lote.",
+      "habilidades": [
+        "Produção em lote",
+        "Acabamento"
+      ],
+      "status": "Em andamento",
+      "dataPublicacao": "2026-07-01T09:30",
+      "prazo": "2026-12-20",
+      "previsaoConclusao": "2026-12-22",
+      "avaliacaoFreelancer": "Pendente",
+      "avaliacaoConfeccao": "Avaliado",
+      "observacoes": "Primeira entrega em validação.",
+      "referenciaBriefing": "briefing-producao-lote.jpg",
+      "referenciaEntrega": "entrega-final.jpg",
+      "historico": [
+        {
+          "data": "2026-07-01",
+          "evento": "OS criada."
+        },
+        {
+          "data": "2026-07-05",
+          "evento": "Freelancer atribuído."
+        },
+        {
+          "data": "2026-07-20",
+          "evento": "Entrega parcial enviada."
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "titulo": "Costura de amostras",
+      "categoria": "Costura",
+      "modalidade": "Remota",
+      "empresaId": "0UEUrH8HgJE",
+      "empresaNome": "VestiLar Confecções",
+      "freelancerId": "-DU9G2RSk6s",
+      "freelancerNome": "Karina Vicente",
+      "cidade": "Blumenau",
+      "estado": "SC",
+      "valor": "1200",
+      "descricao": "Costura de peças de amostra para aprovação de coleção.",
+      "requisitos": "Atenção a detalhes de acabamento.",
+      "habilidades": [
+        "Amostras",
+        "Acabamento"
+      ],
+      "status": "Concluída",
+      "dataPublicacao": "2026-06-10T09:00",
+      "prazo": "2026-06-20",
+      "previsaoConclusao": "2026-06-19",
+      "avaliacaoFreelancer": "Avaliado",
+      "avaliacaoConfeccao": "Avaliado",
+      "observacoes": "Entrega aprovada sem ressalvas.",
+      "referenciaBriefing": "",
+      "referenciaEntrega": "",
+      "historico": [
+        {
+          "data": "2026-06-10",
+          "evento": "OS criada."
+        },
+        {
+          "data": "2026-06-12",
+          "evento": "Freelancer atribuído."
+        },
+        {
+          "data": "2026-06-19",
+          "evento": "Entrega final enviada."
+        },
+        {
+          "data": "2026-06-20",
+          "evento": "OS finalizada."
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "titulo": "Ajuste de modelagem de peças",
+      "categoria": "Modelagem",
+      "modalidade": "Híbrida",
+      "empresaId": "0UEUrH8HgJE",
+      "empresaNome": "Fio & Forma Confecções",
+      "freelancerId": "-DU9G2RSk6s",
+      "freelancerNome": "Karina Vicente",
+      "cidade": "São Paulo",
+      "estado": "SP",
+      "valor": "700",
+      "descricao": "Ajuste de moldes para nova numeração da coleção.",
+      "requisitos": "Experiência com graduação de moldes.",
+      "habilidades": [
+        "Modelagem"
+      ],
+      "status": "Cancelada",
+      "dataPublicacao": "2026-05-02T14:00",
+      "prazo": "2026-05-10",
+      "previsaoConclusao": "2026-05-09",
+      "avaliacaoFreelancer": "Não aplicável",
+      "avaliacaoConfeccao": "Não aplicável",
+      "observacoes": "Cancelada a pedido da confecção antes do início da produção.",
+      "referenciaBriefing": "",
+      "referenciaEntrega": "",
+      "historico": [
+        {
+          "data": "2026-05-02",
+          "evento": "OS criada."
+        },
+        {
+          "data": "2026-05-04",
+          "evento": "OS cancelada pela empresa."
+        }
+      ]
+    }
+  ],
+  "mensagens": [
+    {
+      "id": "1",
+      "conversaId": "conv-1",
+      "remetenteId": "0UEUrH8HgJE",
+      "remetenteNome": "Confecção X",
+      "destinatarioId": "-DU9G2RSk6s",
+      "destinatarioNome": "Karina Vicente",
+      "conteudo": "Olá, tudo bem?",
+      "timestamp": "2026-08-01T10:30:00"
+    },
+    {
+      "id": "2",
+      "conversaId": "conv-1",
+      "remetenteId": "-DU9G2RSk6s",
+      "remetenteNome": "Karina Vicente",
+      "destinatarioId": "0UEUrH8HgJE",
+      "destinatarioNome": "Confecção X",
+      "conteudo": "Sim, podemos iniciar.",
+      "timestamp": "2026-08-01T10:32:00"
+    },
+    {
+      "id": "3",
+      "conversaId": "conv-1",
+      "remetenteId": "0UEUrH8HgJE",
+      "remetenteNome": "Confecção X",
+      "destinatarioId": "-DU9G2RSk6s",
+      "destinatarioNome": "Karina Vicente",
+      "conteudo": "Enviei as referências visuais.",
+      "timestamp": "2026-08-01T10:35:00"
+    },
+    {
+      "id": "4",
+      "conversaId": "conv-2",
+      "remetenteId": "outro-1",
+      "remetenteNome": "Confecção Y",
+      "destinatarioId": "-DU9G2RSk6s",
+      "destinatarioNome": "Karina Vicente",
+      "conteudo": "Bom dia! O lote de blusas já está pronto para envio.",
+      "timestamp": "2026-08-02T09:10:00"
+    },
+    {
+      "id": "5",
+      "conversaId": "conv-2",
+      "remetenteId": "-DU9G2RSk6s",
+      "remetenteNome": "Karina Vicente",
+      "destinatarioId": "outro-1",
+      "destinatarioNome": "Confecção Y",
+      "conteudo": "Perfeito, pode enviar as fotos finais.",
+      "timestamp": "2026-08-02T09:15:00"
+    },
+    {
+      "id": "6",
+      "conversaId": "conv-3",
+      "remetenteId": "outro-2",
+      "remetenteNome": "Freelancer Maria",
+      "destinatarioId": "-DU9G2RSk6s",
+      "destinatarioNome": "Karina Vicente",
+      "conteudo": "Consigo entregar a modelagem até sexta-feira.",
+      "timestamp": "2026-08-03T14:02:00"
+    }
+  ],
+  "chamados": [
+    {
+      "id": "1",
+      "assunto": "Dúvida",
+      "descricao": "Como funciona a plataforma?",
+      "status": "Aberto",
+      "autorId": "-DU9G2RSk6s",
+      "autorNome": "Maria Silva",
+      "criadoEm": "2026-07-10",
+      "mensagens": [
+        {
+          "autor": "Maria Silva",
+          "texto": "Como funciona a plataforma?",
+          "data": "2026-07-10"
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "assunto": "Pagamento",
+      "descricao": "Dúvida sobre cobrança da assinatura.",
+      "status": "Respondido",
+      "autorId": "0UEUrH8HgJE",
+      "autorNome": "Confecção X",
+      "criadoEm": "2026-07-12",
+      "mensagens": [
+        {
+          "autor": "Confecção X",
+          "texto": "Dúvida sobre cobrança da assinatura.",
+          "data": "2026-07-12"
+        },
+        {
+          "autor": "Suporte Freela da Moda",
+          "texto": "Olá! A cobrança é mensal e renova automaticamente. Posso ajudar em algo mais?",
+          "data": "2026-07-12"
+        }
+      ]
+    },
+    {
+      "assunto": "Dúvida",
+      "descricao": "ola estou com duvida",
+      "status": "Fechado",
+      "autorId": null,
+      "autorNome": "Visitante",
+      "criadoEm": "2026-09-13",
+      "mensagens": [
+        {
+          "autor": "Visitante",
+          "texto": "ola estou com duvida",
+          "data": "2026-09-13"
+        },
+        {
+          "autor": "Suporte Freela da Moda",
+          "texto": "ok",
+          "data": "2026-09-13"
+        }
+      ],
+      "id": "TJNm37eKX8k"
+    }
+  ],
+  "assinaturas": [
+    {
+      "id": "1",
+      "empresaId": "0UEUrH8HgJE",
+      "plano": "Básico",
+      "valor": "R$ 49,90",
+      "status": "ativo",
+      "proximaCobranca": "2026-10-14",
+      "historico": [
+        {
+          "data": "2026-08-10",
+          "plano": "Básico",
+          "valor": "R$ 49,90",
+          "status": "pago"
+        },
+        {
+          "data": "2026-09-13",
+          "plano": "Pro",
+          "valor": "R$ 99,90",
+          "status": "pago"
+        },
+        {
+          "data": "2026-09-14",
+          "plano": "Básico",
+          "valor": "R$ 49,90",
+          "status": "pago"
+        }
+      ]
+    }
+  ],
+  "impulsionamentos": [
+    {
+      "id": "1",
+      "freelancerId": "-DU9G2RSk6s",
+      "plano": "Free",
+      "valor": "R$ 0,00",
+      "status": "ativo",
+      "dataInicio": "2026-01-01",
+      "dataFim": null
+    }
+  ],
+  "parametros": [
+    {
+      "id": "1",
+      "taxa": 10,
+      "limite": 5,
+      "aviso": "",
+      "cor": "#7000c2"
+    }
+  ],
+  "avisos": [
+    {
+      "id": "1",
+      "titulo": "Manutenção programada",
+      "texto": "A plataforma ficará indisponível das 2h às 4h para manutenção.",
+      "autor": "Administração",
+      "publicadoEm": "2026-07-01",
+      "expiraEm": "2026-07-15",
+      "status": "Ativo"
+    },
+    {
+      "id": "2",
+      "titulo": "Atualização de termos de uso",
+      "texto": "Os termos de uso foram atualizados. Confira as novidades na sua conta.",
+      "autor": "Administração",
+      "publicadoEm": "2026-06-20",
+      "expiraEm": "2026-08-20",
+      "status": "Programado"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
 }

@@ -1,51 +1,25 @@
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
-    // 1. Tema Claro / Escuro
-    const themeToggle = document.getElementById('themeToggle');
-    const htmlElement = document.documentElement;
-
-    function setTheme(theme) {
-        htmlElement.setAttribute('data-theme', theme);
-        try {
-            localStorage.setItem('fdlm-theme', theme);
-        } catch (e) { }
-        if (themeToggle) {
-            const icon = themeToggle.querySelector('i');
-            if (icon) {
-                icon.className = theme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-stars';
-            }
-        }
-    }
-
-    if (themeToggle) {
-        themeToggle.addEventListener('click', function () {
-            const current = htmlElement.getAttribute('data-theme');
-            setTheme(current === 'dark' ? 'light' : 'dark');
-        });
-    }
-
-    // 2. Lógica de Rejeitar Candidato
+    // ── 2. Lógica de Rejeitar Candidato ──
     const botoesRejeitar = document.querySelectorAll('.btnRejeitar');
     botoesRejeitar.forEach(botao => {
         botao.addEventListener('click', function () {
             const id = this.getAttribute('data-id');
             const statusBadge = document.getElementById(`status-${id}`);
 
-            // Muda visualmente para rejeitado
             if (statusBadge) {
                 statusBadge.className = 'badge badge-danger';
                 statusBadge.textContent = 'Rejeitado';
             }
 
-            // Desabilita os botões de ação para essa linha
             this.style.display = 'none';
             const btnSelecionar = this.parentElement.querySelector('.btnSelecionar');
             if (btnSelecionar) btnSelecionar.style.display = 'none';
         });
     });
 
-    // 3. Lógica de Selecionar Candidato (Modal)
+    // ── 3. Lógica de Selecionar Candidato (Modal) ──
     const modalSelecionar = document.getElementById('modalSelecionar');
     const botoesSelecionar = document.querySelectorAll('.btnSelecionar');
     const btnCancelarSelecao = document.getElementById('btnCancelarSelecao');
@@ -53,7 +27,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const feedbackAlert = document.getElementById('feedbackAlert');
     let candidatoSelecionadoId = null;
 
-    // Abrir modal ao clicar no botão verde de check
     botoesSelecionar.forEach(botao => {
         botao.addEventListener('click', function () {
             candidatoSelecionadoId = this.getAttribute('data-id');
@@ -61,7 +34,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Fechar modal no Cancelar
     if (btnCancelarSelecao) {
         btnCancelarSelecao.addEventListener('click', function () {
             modalSelecionar.style.display = 'none';
@@ -69,26 +41,77 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Confirmar contratação
+    // ── 4. Confirmar Contratação (cria a OS) ──
+    // POST em "ordensServico" e redireciona pro detalhe via ?id=
     if (btnConfirmarSelecao) {
-        btnConfirmarSelecao.addEventListener('click', function () {
+        btnConfirmarSelecao.addEventListener('click', async function () {
             modalSelecionar.style.display = 'none';
 
-            // Muda o status visualmente para Selecionado
             const statusBadge = document.getElementById(`status-${candidatoSelecionadoId}`);
-            if (statusBadge) {
-                statusBadge.className = 'badge badge-success';
-                statusBadge.textContent = 'Selecionado';
+            const linhaCandidato = document.getElementById(`candidato-${candidatoSelecionadoId}`);
+            const nomeCandidato = linhaCandidato ? linhaCandidato.querySelector('strong').textContent.trim() : 'Freelancer';
+            const freelancerId = linhaCandidato ? linhaCandidato.dataset.freelancerId : null;
+
+            const sessao = JSON.parse(sessionStorage.getItem('usuarioLogado') || 'null');
+            const empresaId = sessao && sessao.tipo === 'empresas' ? sessao.id : '0UEUrH8HgJE';
+            const empresaNome = sessao && sessao.tipo === 'empresas' ? sessao.nome : 'Confecção X';
+
+            const tituloVagaEl = document.querySelector('.header p strong');
+            const tituloVaga = tituloVagaEl ? tituloVagaEl.textContent.replace(/\s*\(VG-\d+\)/, '').trim() : 'Nova Ordem de Serviço';
+
+            const novaOS = {
+                titulo: tituloVaga,
+                categoria: 'A definir',
+                modalidade: 'Presencial',
+                empresaId: empresaId,
+                empresaNome: empresaNome,
+                freelancerId: freelancerId,
+                freelancerNome: nomeCandidato,
+                cidade: '',
+                estado: '',
+                valor: '',
+                descricao: `Ordem de serviço gerada a partir da candidatura de ${nomeCandidato}.`,
+                requisitos: '',
+                habilidades: [],
+                status: 'Em andamento',
+                dataPublicacao: new Date().toISOString(),
+                prazo: '',
+                previsaoConclusao: '',
+                avaliacaoFreelancer: 'Pendente',
+                avaliacaoConfeccao: 'Pendente',
+                observacoes: '',
+                referenciaBriefing: '',
+                referenciaEntrega: '',
+                historico: [
+                    { data: new Date().toISOString().slice(0, 10), evento: 'OS criada a partir da seleção do candidato.' }
+                ]
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/ordensServico`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(novaOS)
+                });
+                if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
+
+                const criada = await res.json();
+
+                if (statusBadge) {
+                    statusBadge.className = 'badge badge-success';
+                    statusBadge.textContent = 'Selecionado';
+                }
+
+                feedbackAlert.style.display = 'block';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                setTimeout(() => {
+                    window.location.href = `/pages/19-ordem-servico-detalhe.html?id=${criada.id}`;
+                }, 2000);
+            } catch (erro) {
+                console.error('Erro ao criar Ordem de Serviço:', erro);
+                alert('Não foi possível registrar a contratação. Verifique se o json-server está rodando e tente novamente.');
             }
-
-            // Exibe a notificação de sucesso e redireciona para a Ordem de Serviço
-            feedbackAlert.style.display = 'block';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-
-            // Simula o tempo de API e redireciona (a tela 19 é o detalhe da OS)
-            setTimeout(() => {
-                window.location.href = '/pages/19-ordem-servico-detalhe.html';
-            }, 2000);
         });
     }
 });
