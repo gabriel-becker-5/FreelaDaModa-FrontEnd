@@ -1,7 +1,15 @@
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
-    // ── 2. Menu Lateral no Celular (Hambúrguer) ──
+    const sessao = exigirTipo('freelancers');
+    if (!sessao) return;
+    const freelancerId = sessao.id;
+
+    renderizarSidebar(document.querySelector('.sidebar'), 'freelancers', '10-impulsionamento');
+    renderizarTopbar(document.querySelector('#header-acoes'), sessao);
+    renderizarBannerValidacao(document.querySelector('.main'), sessao);
+
+    // ── Menu Lateral no Celular (Hambúrguer) ──
     const sidebarToggleBtn = document.querySelector('.sidebar-toggle-btn');
     const sidebar = document.querySelector('.sidebar');
     const sidebarOverlay = document.querySelector('.sidebar-overlay');
@@ -20,11 +28,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ── 3. Carregar o Impulsionamento do Freelancer ──
-    // sem sessão, cai no freelancer de exemplo pra não ficar vazio
-    const sessao = JSON.parse(sessionStorage.getItem('usuarioLogado') || 'null');
-    const freelancerId = sessao && sessao.tipo === 'freelancers' ? sessao.id : '-DU9G2RSk6s';
-
     const cardPlanoAtual = document.querySelector('.grid-2 .card:first-child');
     const tituloPlanoAtual = cardPlanoAtual ? cardPlanoAtual.querySelectorAll('p')[0] : null;
     const cardProximaCobranca = document.querySelectorAll('.grid-2 .card')[1];
@@ -35,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function mostrarMensagem(texto, tipo) {
         const el = document.getElementById('mensagemStatus');
         if (!el) return;
-        el.className = `alert alert-${tipo}`; // tipo: 'success' | 'error'
+        el.className = `alert alert-${tipo}`;
         el.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
         el.hidden = false;
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -64,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function carregarImpulsionamento() {
         try {
-            const res = await fetch(`${API_BASE}/impulsionamentos?freelancerId=${freelancerId}`);
+            const res = await fetch(`${API_BASE}/impulsionamentos?freelancerId=${encodeURIComponent(freelancerId)}`);
             if (!res.ok) throw new Error('Falha ao carregar impulsionamento.');
             const registros = await res.json();
             if (registros.length) renderizarImpulsionamento(registros[0]);
@@ -75,7 +78,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     carregarImpulsionamento();
 
-    // ── 4. Assinar Plano de Impulsionamento (grava via PATCH/POST) ──
+    // ── Assinar Plano de Impulsionamento (grava via PATCH/POST) ──
     botoesAssinar.forEach(function (btn) {
         const card = btn.closest('.card');
         const nomePlano = card.querySelector('h3');
@@ -85,7 +88,14 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.addEventListener('click', async function () {
             if (btn.textContent.trim() === 'Plano atual') return;
 
-            const confirmou = confirm(`Confirmar assinatura do plano ${nomePlano.textContent.trim()}?`);
+            const planoNome = nomePlano.textContent.trim();
+
+            const confirmou = await modalConfirmar({
+                titulo: 'Confirmar assinatura',
+                mensagem: `Deseja assinar o plano ${planoNome}?`,
+                textoConfirmar: 'Assinar',
+                textoCancelar: 'Cancelar'
+            });
             if (!confirmou) return;
 
             const textoOriginal = btn.innerHTML;
@@ -93,7 +103,8 @@ document.addEventListener('DOMContentLoaded', function () {
             btn.innerHTML = '<span class="spinner"></span> Processando...';
 
             const hoje = new Date().toISOString().slice(0, 10);
-            const valorPlano = preco ? preco.textContent.trim() : '';
+            // Guarda somente o valor ("R$ 14,90"), sem o sufixo "/mês"
+            const valorPlano = preco ? preco.textContent.trim().split('/')[0].trim() : '';
 
             try {
                 if (impulsionamentoAtual) {
@@ -101,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            plano: nomePlano.textContent.trim(),
+                            plano: planoNome,
                             valor: valorPlano,
                             status: 'ativo',
                             dataInicio: hoje,
@@ -116,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             freelancerId: freelancerId,
-                            plano: nomePlano.textContent.trim(),
+                            plano: planoNome,
                             valor: valorPlano,
                             status: 'ativo',
                             dataInicio: hoje,
@@ -127,10 +138,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     renderizarImpulsionamento(await res.json());
                 }
 
-                mostrarMensagem(`Plano ${nomePlano.textContent.trim()} ativado! Sua vaga agora tem mais destaque no mural.`, 'success');
+                mostrarMensagem(`Plano ${planoNome} ativado! Seu perfil agora tem mais destaque no mural.`, 'success');
             } catch (erro) {
                 console.error('Erro ao assinar impulsionamento:', erro);
-                mostrarMensagem('Não foi possível ativar o plano. Verifique se o json-server está rodando.', 'error');
+                mostrarMensagem('Não foi possível ativar o plano. Tente novamente.', 'error');
                 btn.innerHTML = textoOriginal;
             } finally {
                 btn.disabled = false;

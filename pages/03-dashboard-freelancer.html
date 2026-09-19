@@ -19,43 +19,11 @@
         <span class="hamburger-line"></span>
     </button>
     <div class="sidebar-overlay"></div>
-    <aside class="sidebar" role="navigation" aria-label="Menu principal">
-        <a href="/pages/01-homepage.html" class="brand">
-            <img src="/assets/logo-icone-branco-2048.png" alt="Logo Freela" class="brand-logo" />
-            <span class="brand-text">FREELA<span class="brand-sub">DA MODA</span></span>
-        </a>
-        <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Alternar tema claro e escuro">
-            <i class="bi bi-moon-stars" aria-hidden="true"></i>
-        </button>
-        <a class="active" href="/pages/03-dashboard-freelancer.html" aria-current="page">Dashboard</a>
-        <a href="/pages/07-vagas.html">Vagas</a>
-        <a href="/pages/20-minhas-candidaturas.html">Candidaturas/OS</a>
-        <a href="/pages/08-perfil-freelancer.html">Perfil</a>
-        <a href="/pages/11-chat.html">Chat</a>
-        <a href="/pages/10-impulsionamento.html">Impulsionamento</a>
-        <a href="/pages/24-suporte.html">Suporte</a>
-    </aside>
+    <aside class="sidebar" role="navigation" aria-label="Menu principal"></aside>
     <main class="main" role="main" aria-label="Conteúdo principal">
         <div class="header">
             <h2>Meu Painel</h2>
-            <div class="header-actions">
-                <div class="notif-bell-wrapper">
-                    <button class="btn btn-outline" id="btn-notificacoes" aria-label="Notificações" aria-haspopup="true" aria-expanded="false">
-                        <i class="bi bi-bell"></i>
-                        <span class="notif-badge" id="notif-badge" hidden>0</span>
-                    </button>
-                    <div class="notif-dropdown" id="notif-dropdown" hidden>
-                        <div class="notif-dropdown-header">
-                            <strong>Notificações</strong>
-                            <button type="button" id="btn-marcar-todas-lidas" class="btn btn-ghost" style="font-size: 12px; padding: 2px 6px;">Marcar todas como lidas</button>
-                        </div>
-                        <div id="notif-lista"></div>
-                    </div>
-                </div>
-                <button class="btn btn-outline" id="btn-logout">
-                    <i class="bi bi-box-arrow-right"></i> Sair
-                </button>
-            </div>
+            <div class="header-actions" id="header-acoes"></div>
         </div>
 
         <!-- CABEÇALHO DO PAINEL -->
@@ -63,7 +31,6 @@
             <div class="dash-user-info">
                 <h1 id="welcome-name">Bem-vindo(a)!</h1>
                 <p>Aqui está o resumo da sua produção e novas oportunidades disponíveis.</p>
-                <span class="user-tag" id="user-badge"><i class="bi bi-patch-check"></i> Freelancer Verificado</span>
             </div>
             <div>
                 <a href="/pages/07-vagas.html" class="btn btn-purple-bright">
@@ -150,35 +117,6 @@
                         <p class="text-muted" style="font-size: 0.85rem;">Carregando...</p>
                     </div>
                 </div>
-
-                <div class="section-box profile-quick-view">
-                    <div class="profile-avatar-big" id="avatar-iniciais">KV</div>
-                    <h3 id="profile-nome">Karina Vicente</h3>
-                    <p id="profile-email">karinavicente06@gmail.com</p>
-
-                    <div class="quick-info-list">
-                        <div class="quick-info-row">
-                            <span>Tipo de Negócio:</span>
-                            <strong id="profile-tipo">MEI</strong>
-                        </div>
-                        <div class="quick-info-row">
-                            <span>Experiência:</span>
-                            <strong id="profile-exp">5 a 10 anos</strong>
-                        </div>
-                        <div class="quick-info-row">
-                            <span>Disponibilidade:</span>
-                            <strong id="profile-disp">Período Integral</strong>
-                        </div>
-                        <div class="quick-info-row">
-                            <span>Cidade / UF:</span>
-                            <strong id="profile-local">Blumenau / SC</strong>
-                        </div>
-                    </div>
-
-                    <a href="/pages/08-perfil-freelancer.html" class="btn btn-outline-purple w-full">
-                        <i class="bi bi-pencil-square"></i> Editar Meu Cadastro
-                    </a>
-                </div>
             </div>
 
         </div>
@@ -187,6 +125,8 @@
     </div>
 
     <script src="/js/config.js"></script>
+    <script src="/js/ui.js"></script>
+    <script src="/js/nav.js"></script>
     <script src="/js/03-dashboard-freelancer.js"></script>
 </body>
 </html>

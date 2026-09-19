@@ -18,315 +18,189 @@
   <body>
     <div class="app">
       <button class="sidebar-toggle-btn" type="button" aria-label="Abrir menu" aria-expanded="false">
-  <span class="hamburger-line"></span>
-</button>
-<div class="sidebar-overlay"></div>
-<aside class="sidebar" role="navigation" aria-label="Menu principal">
-        <a href="/pages/01-homepage.html" class="brand">
-          <img
-            src="/assets/logo-icone-branco-2048.png"
-            alt="Logo Freela"
-            class="brand-logo"
-          /><span class="brand-text">FREELA<span class="brand-sub">DA MODA</span></span>
-        </a>
-        <button
-          class="theme-toggle"
-          type="button"
-          aria-label="Alternar tema claro e escuro"
-        ><i class="bi bi-moon-stars" aria-hidden="true"></i></button>
-        <a href="/pages/03-dashboard-freelancer.html">Dashboard</a
-        ><a href="/pages/07-vagas.html">Vagas</a
-        ><a href="/pages/20-minhas-candidaturas.html">Candidaturas/OS</a
-        ><a class="active" href="/pages/08-perfil-freelancer.html" aria-current="page">Perfil</a
-        ><a href="/pages/11-chat.html">Chat</a
-        ><a href="/pages/10-impulsionamento.html">Impulsionamento</a
-        ><a href="/pages/24-suporte.html">Suporte</a>
-      </aside>
+        <span class="hamburger-line"></span>
+      </button>
+      <div class="sidebar-overlay"></div>
+      <aside class="sidebar" role="navigation" aria-label="Menu principal"></aside>
       <main class="main" role="main" aria-label="Conteúdo principal">
-                
-        <!-- Estado de carregamento -->
+
         <div id="perfil-loading" class="text-center">
           <p>Carregando perfil...</p>
         </div>
 
-        <!-- Estado de erro -->
         <div id="perfil-erro" class="alert" role="alert" aria-live="polite" hidden>
           Não foi possível carregar este perfil. Tente novamente mais tarde.
         </div>
 
-        <!-- Conteúdo do perfil -->
         <div id="perfil-conteudo" hidden>
-        
-        <div class="header">
-          <h2>Meu Perfil</h2>
-          <div class="header-actions">
-            <a href="/pages/03-dashboard-freelancer.html" class="btn">Cancelar/Voltar</a
-            ><button class="btn btn-primary" type="submit" form="form-perfil">Salvar alterações</button>
+
+          <div class="header">
+            <h2>Meu Perfil</h2>
+            <div class="header-actions" id="header-acoes"></div>
           </div>
-        </div>
-        <form class="card" id="form-perfil">
-          <div class="alert alert-success" role="alert" aria-live="polite" hidden></div>
-          <div class="form-group"></div>
-          <div class="card">
-          <div class="section-title">Dados pessoais</div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="pf-nome">Nome completo</label
-              ><input id="pf-nome" class="input" required />
-            </div>
-            <div class="form-group">
-              <label for="pf-nascimento">Data de nascimento</label
-              ><input id="pf-nascimento" type="date" class="input" required />
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="pf-email">E-mail</label
-              ><input
-                id="pf-email"
-                type="email"
-                class="input"
-                placeholder="seu@email.com"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label for="pf-telefone">Telefone/Whatsapp</label
-              ><input
-                id="pf-telefone"
-                type="tel"
-                class="input"
-                placeholder="(47) 99999-9999"
-                required
-              />
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="pf-descricao">Descrição do perfil</label>
-            <textarea id="pf-descricao" class="input" maxlength="500"></textarea>
-            <span class="field-message">Opcional. Resuma sua experiência e habilidades em até 500 caracteres.</span>
-          </div>
-          </div>
-          <div class="section-title">Endereços</div>
-          <div class="grid grid-2">
-            <div class="card">
-              <h5 class="section-title" >Residencial</h5>
-              <div class="form-row">
+
+          <form class="card" id="form-perfil" novalidate>
+            <div class="alert alert-success" role="alert" aria-live="polite" id="alert-perfil" hidden></div>
+
+            <div class="section-title">Dados pessoais</div>
+            <div class="form-row">
               <div class="form-group">
-                <label for="pf-res-cep">CEP</label
-                ><input id="pf-res-cep" class="input" />
+                <label for="pf-nome">Nome completo *</label>
+                <input id="pf-nome" class="input" required />
               </div>
-                <div class="form-group">
-                  <label for="pf-res-endereco">Endereço</label
-                  ><input id="pf-res-endereco" class="input" />
-                </div>
-                </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="pf-res-numero">Número</label
-                  ><input id="pf-res-numero" class="input" />
-                </div>
-                  <div class="form-group">
-                  <label for="pf-res-bairro">Bairro</label
-                  ><input id="pf-res-bairro" class="input" />
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="pf-res-cidade">Cidade</label
-                  ><input id="pf-res-cidade" class="input" />
-                </div>
-                <div class="form-group">
-                  <label for="pf-res-estado">Estado</label
-                  ><input id="pf-res-estado" class="input" />
-                </div>
-              </div>
-                <div class="form-group">
-                  <label for="pf-res-complemento">Complemento</label
-                  ><input id="pf-res-complemento" class="input" />
+              <div class="form-group">
+                <label for="pf-nascimento">Data de nascimento *</label>
+                <input id="pf-nascimento" type="date" class="input" required />
               </div>
             </div>
-            
-            <div class="card">
-              <div class="form-row">
-              <h5 class="section-title">Comercial</h5>
-              <label class="checkbox-label" for="pf-igual">
-                <input id="pf-igual" type="checkbox" /> Endereço comercial igual ao residencial</label>
-                </div>
-              <div class="form-row">
-              <div class="form-group mt-sm">
-                <label for="pf-com-cep">CEP</label
-                ><input id="pf-com-cep" class="input" />
+            <div class="form-row">
+              <div class="form-group">
+                <label for="pf-cpf">CPF *</label>
+                <input id="pf-cpf" class="input" placeholder="000.000.000-00" inputmode="numeric" required />
               </div>
-                              <div class="form-group">
-                  <label for="pf-com-endereco">Endereço</label
-                  ><input id="pf-com-endereco" class="input" />
-                </div>
-</div>
-              <div class="form-row">
+              <div class="form-group">
+                <label for="pf-email">E-mail *</label>
+                <input id="pf-email" type="email" class="input" placeholder="seu@email.com" required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="pf-telefone">Telefone/Whatsapp *</label>
+              <input id="pf-telefone" type="tel" class="input" placeholder="(47) 99999-9999" required />
+            </div>
+            <div class="form-group">
+              <label for="pf-descricao">Descrição do perfil *</label>
+              <textarea id="pf-descricao" class="input" maxlength="500" required></textarea>
+              <span class="field-message">Resuma sua experiência e habilidades em até 500 caracteres.</span>
+            </div>
 
-                <div class="form-group">
-                  <label for="pf-com-numero">Número</label
-                  ><input id="pf-com-numero" class="input" />
-                </div>
-                                <div class="form-group">
-                  <label for="pf-com-bairro">Bairro</label
-                  ><input id="pf-com-bairro" class="input" />
-                </div>
+            <div class="section-title">Endereço</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="pf-res-cep">CEP *</label>
+                <input id="pf-res-cep" class="input" required />
               </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="pf-com-cidade">Cidade</label
-                  ><input id="pf-com-cidade" class="input" />
-                </div>
-                <div class="form-group">
-                  <label for="pf-com-estado">Estado</label
-                  ><input id="pf-com-estado" class="input" />
-                </div>
-              </div>
-                <div class="form-group">
-                  <label for="pf-com-complemento">Complemento</label>
-                  <input id="pf-com-complemento" class="input"/>
+              <div class="form-group">
+                <label for="pf-res-endereco">Endereço *</label>
+                <input id="pf-res-endereco" class="input" readonly required />
               </div>
             </div>
-          </div>
-          <div class="form-group"></div>
-          <div class="card">
-          <div class="section-title">Perfil profissional</div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="pf-tipo">Tipo de negócio</label
-              ><select id="pf-tipo" class="input">
-                <option>MEI</option>
-                <option>ME</option>
-                <option>Sem CNPJ</option>
-              </select>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="pf-res-numero">Número *</label>
+                <input id="pf-res-numero" class="input" type="number" min="0" required />
+              </div>
+              <div class="form-group">
+                <label for="pf-res-bairro">Bairro *</label>
+                <input id="pf-res-bairro" class="input" readonly required />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="pf-res-cidade">Cidade *</label>
+                <input id="pf-res-cidade" class="input" readonly required />
+              </div>
+              <div class="form-group">
+                <label for="pf-res-estado">Estado *</label>
+                <input id="pf-res-estado" class="input" readonly required />
+              </div>
             </div>
             <div class="form-group">
-              <label for="pf-exp">Tempo de experiência total</label
-              ><select id="pf-exp" class="input">
-                <option>Menos de 1 ano</option>
-                <option>1 a 3 anos</option>
-                <option>3 a 5 anos</option>
-                <option>5 a 10 anos</option>
-                <option>Mais de 10 anos</option>
-              </select>
+              <label for="pf-res-complemento">Complemento</label>
+              <input id="pf-res-complemento" class="input" />
             </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="pf-oficina">Tamanho da oficina</label
-              ><select id="pf-oficina" class="input">
-                <option>Só eu</option>
-                <option>2 a 3 pessoas</option>
-                <option>4 a 6 pessoas</option>
-                <option>Mais de 6 pessoas</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="pf-fecha">Como costuma fechar serviço</label
-              ><select id="pf-fecha" class="input">
-                <option>Indicação</option>
-                <option>Grupos de whatsapp</option>
-                <option>Redes sociais</option>
-                <option>Plataformas online</option>
-                <option>Outro</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Especialidades</label>
-            <div class="multi-select" id="multi-select-especialidades">
-              <span class="badge badge-selectable selected">Costura reta</span
-              ><span class="badge badge-selectable selected">Overloque</span
-              ><span class="badge badge-selectable selected">Modelagem</span
-              ><span class="badge badge-selectable">Peça piloto</span
-              ><span class="badge badge-selectable">Amostras</span
-              ><span class="badge badge-selectable selected">Acabamento</span
-              ><span class="badge badge-selectable">Bordado</span
-              ><span class="badge badge-selectable">Estamparia</span>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Máquinas que possui</label>
-            <div class="multi-select" id="multi-select-maquinas">
-              <span class="badge badge-selectable selected">Reta</span><span class="badge badge-selectable selected">Overloque</span
-              ><span class="badge badge-selectable selected">Galoneira</span
-              ><span class="badge badge-selectable selected">Interlock</span
-              ><span class="badge badge-selectable">Travete</span
-              ><span class="badge badge-selectable">Máquina de corte</span>
-            </div>
-          </div>
-          <div class="form-row">
 
+            <div class="section-title">Perfil profissional</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="pf-exp">Tempo de experiência total *</label>
+                <select id="pf-exp" class="input" required>
+                  <option value="" selected disabled>Selecione...</option>
+                  <option>Menos de 1 ano</option>
+                  <option>1 a 3 anos</option>
+                  <option>3 a 5 anos</option>
+                  <option>5 a 10 anos</option>
+                  <option>Mais de 10 anos</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="pf-disponibilidade">Disponibilidade de tempo *</label>
+                <select id="pf-disponibilidade" class="input" required>
+                  <option value="" selected disabled>Selecione...</option>
+                  <option>Período integral</option>
+                  <option>Meio período</option>
+                  <option>Fins de semana</option>
+                  <option>Sob demanda</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Especialidades *</label>
+              <div class="multi-select" id="multi-select-especialidades">
+                <span class="badge badge-selectable">Costura reta</span>
+                <span class="badge badge-selectable">Overloque</span>
+                <span class="badge badge-selectable">Modelagem</span>
+                <span class="badge badge-selectable">Peça piloto</span>
+                <span class="badge badge-selectable">Amostras</span>
+                <span class="badge badge-selectable">Acabamento</span>
+                <span class="badge badge-selectable">Bordado</span>
+                <span class="badge badge-selectable">Estamparia</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Máquinas que possui *</label>
+              <div class="multi-select" id="multi-select-maquinas">
+                <span class="badge badge-selectable">Reta</span>
+                <span class="badge badge-selectable">Overloque</span>
+                <span class="badge badge-selectable">Galoneira</span>
+                <span class="badge badge-selectable">Travete</span>
+                <span class="badge badge-selectable">Interlock</span>
+                <span class="badge badge-selectable">Máquina de corte</span>
+              </div>
+            </div>
 
+            <div class="section-title">Foto e portfólio</div>
+            <div class="form-group">
+              <label for="pf-foto">Foto de perfil</label>
+              <div class="upload-row">
+                <label class="btn btn-outline" for="pf-foto">
+                  <i class="bi bi-image"></i> Escolher foto
+                </label>
+                <input type="file" id="pf-foto" accept="image/*" hidden />
+                <button type="button" class="btn btn-outline" id="pf-foto-remover" hidden>
+                  <i class="bi bi-trash"></i> Remover
+                </button>
+              </div>
+              <div class="foto-preview" id="pf-foto-preview"></div>
+              <span class="field-message">Imagem PNG ou JPG de até 5MB.</span>
+            </div>
+            <div class="form-group">
+              <label for="pf-referencias">Fotos de referência do seu trabalho (máximo 10)</label>
+              <div class="upload-row">
+                <label class="btn btn-outline" for="pf-referencias">
+                  <i class="bi bi-images"></i> Adicionar fotos
+                </label>
+                <input type="file" id="pf-referencias" accept="image/*" multiple hidden />
+              </div>
+              <div class="referencias-grid" id="pf-referencias-preview"></div>
+              <span class="field-message">Cada imagem deve ter até 5MB.</span>
+            </div>
 
+            <div class="section-title">Selo de verificação</div>
+            <div class="alert alert-warning" id="selo-status" role="status"></div>
 
+            <div class="form-actions">
+              <a href="/pages/03-dashboard-freelancer.html" class="btn">Cancelar/Voltar</a>
+              <button class="btn btn-primary" type="submit">Salvar alterações</button>
+            </div>
+          </form>
 
-            <div class="form-group">
-              <label for="pf-disponibilidade">Disponibilidade de tempo</label
-              ><select id="pf-disponibilidade" class="input">
-                <option>Período integral</option>
-                <option>Meio período</option>
-                <option>Fins de semana</option>
-                <option>Sob demanda</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="pf-preferencias">Preferências do Freela</label
-              ><select id="pf-preferencias" class="input">
-                <option>Serviços pontuais</option>
-                <option>Contrato fixo</option>
-                <option>Grandes lotes</option>
-                <option>Peças exclusivas/autorais</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="pf-produtor">Já tem produtor fixo?</label
-              ><select id="pf-produtor" class="input">
-                <option>Sim</option>
-                <option>Não</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="pf-nome-produtor">Nome do produtor fixo</label
-              ><input id="pf-nome-produtor" class="input" />
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="pf-veiculo"
-                >Tem veículo para levar e buscar as peças?</label
-              ><select id="pf-veiculo" class="input">
-                <option>Sim</option>
-                <option>Não</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="pf-faturamento">Faturamento médio atual</label
-              ><select id="pf-faturamento" class="input">
-                <option>Até R$ 1000</option>
-                <option>De R$ 1000 a R$ 3000</option>
-                <option>De R$ 3000 a R$ 6000</option>
-                <option>Acima de R$ 6000</option>
-                <option>Prefiro não informar</option>
-              </select>
-            </div>
-          </div>
-          </div>
-          <div class="form-actions">
-            <a href="/pages/03-dashboard-freelancer.html" class="btn">Cancelar/Voltar</a
-            ><button class="btn btn-primary" type="submit">
-              Salvar alterações
-            </button>
-          </div>
-        </form>
+        </div>
       </main>
     </div>
-    </div>
+
     <script src="/js/config.js"></script>
+    <script src="/js/ui.js"></script>
+    <script src="/js/nav.js"></script>
     <script src="/js/08-perfil-freelancer.js"></script>
   </body>
 </html>

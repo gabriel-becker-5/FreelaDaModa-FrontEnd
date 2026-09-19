@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <script src="/js/theme.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
     <title>Cadastro Freelancer</title>
 
     <link
@@ -18,184 +17,104 @@
     <link rel="stylesheet" href="/css/global.css" />
   </head>
   <body>
-    
-        <header class="site-header container">
-        <a href="/pages/01-homepage.html" class="logo-area">
-            <img src="/assets/logo-icone-roxo-2048.png" alt="Logo Freela da Moda" class="logo-img" id="logoWhite"/>
-            <img src="/assets/logo-icone-branco-2048.png" alt="Logo Freela da Moda" class="logo-img" id="logoBlack"/>
-            <div class="logo-text">
-                <span>FREELA</span>
-                <span>DA MODA</span>
-            </div>
-        </a>
 
-        <h2>Cadastro Freelancer</h2>
-
-        <div class="header-actions">
-            <button
-              class="theme-toggle"
-              type="button"
-              aria-label="Alternar tema claro e escuro"
-            ><i class="bi bi-moon-stars" aria-hidden="true"></i></button>
-            <a href="/pages/01-homepage.html" class="btn">Voltar</a>
-          </div>
+    <header class="site-header container">
+      <a href="/pages/01-homepage.html" class="logo-area">
+        <img src="/assets/logo-icone-roxo-2048.png" alt="Logo Freela da Moda" class="logo-img" id="logoWhite" />
+        <img src="/assets/logo-icone-branco-2048.png" alt="Logo Freela da Moda" class="logo-img" id="logoBlack" />
+        <div class="logo-text">
+          <span>FREELA</span>
+          <span>DA MODA</span>
         </div>
-    </header>
+      </a>
 
+      <h2>Cadastro Freelancer</h2>
+
+      <div class="header-actions">
+        <button class="theme-toggle" type="button" aria-label="Alternar tema claro e escuro">
+          <i class="bi bi-moon-stars" aria-hidden="true"></i>
+        </button>
+        <a href="/pages/01-homepage.html" class="btn">Voltar</a>
+      </div>
+    </header>
 
     <main class="main pt-3">
       <div class="page-container-md">
-        <form class="card">
-          <div class="alert alert-success" role="alert" aria-live="polite" hidden>
-            Cadastro realizado com sucesso! Você será redirecionado em 5 segundos.
-          </div>
-          <div class="form-group"></div>
-          <div class="card">
+        <form class="card" id="form-cadastro" novalidate>
+          <div class="alert alert-success" role="alert" aria-live="polite" id="alert-cadastro" hidden></div>
+
           <div class="section-title">Dados pessoais</div>
           <div class="form-row">
             <div class="form-group">
-              <label for="nome">Nome completo</label
-              ><input id="nome" class="input" required /><span
-                class="field-message"
-                >Obrigatório.</span
-              >
+              <label for="nome">Nome completo *</label>
+              <input id="nome" class="input" required />
             </div>
             <div class="form-group">
-              <label for="nascimento">Data de nascimento</label
-              ><input id="nascimento" type="date" class="input" required /><span
-                class="field-message"
-                >Obrigatório.</span
-              >
+              <label for="nascimento">Data de nascimento *</label>
+              <input id="nascimento" type="date" class="input" required />
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label for="email">E-mail</label>
-              <input id="email" type="email" class="input input" required />
-                <span class="field-message">Obrigatório.</span>
+              <label for="cpf">CPF *</label>
+              <input id="cpf" class="input" placeholder="000.000.000-00" inputmode="numeric" required />
             </div>
             <div class="form-group">
-              <label for="telefone">Telefone/Whatsapp</label
-              ><input
-                id="telefone"
-                type="tel"
-                class="input"
-                placeholder="(00) 00000-0000"
-                required
-              /><span class="field-message">Obrigatório.</span>
+              <label for="email">E-mail *</label>
+              <input id="email" type="email" class="input" required />
             </div>
           </div>
           <div class="form-group">
-            <label for="descricao">Descrição do perfil</label
-            ><textarea id="descricao" class="input" maxlength="500"></textarea
-            ><span class="field-message">Opcional. Resuma sua experiência e habilidades em até 500 caracteres.</span>
+            <label for="telefone">Telefone/Whatsapp *</label>
+            <input id="telefone" type="tel" class="input" placeholder="(00) 00000-0000" required />
           </div>
-          </div>
-          <div class="form-group"></div>
-          <div class="card">
-          <div class="section-title">Endereço residencial</div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="res-cep">CEP</label
-              ><input id="res-cep" class="input" required />
-            </div>
-            <div class="form-group">
-              <label for="res-endereco">Endereço</label
-              ><input id="res-endereco" class="input" readonly required />
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-
-              <label for="res-numero">Número</label
-              ><input id="res-numero" class="input" type="number" required />
-            </div>
-            <div class="form-group">
-              <label for="res-bairro">Bairro</label
-              ><input id="res-bairro" class="input" readonly required />
-            </div>
-          </div>
-          <div class="form-row">
-
-            <div class="form-group">
-              <label for="res-cidade">Cidade</label
-              ><input id="res-cidade" class="input" readonly required />
-            </div>
-          
           <div class="form-group">
-            <label for="res-estado">Estado</label
-            ><input id="res-estado" class="input" readonly required />
+            <label for="descricao">Descrição do perfil *</label>
+            <textarea id="descricao" class="input" maxlength="500" required></textarea>
+            <span class="field-message">Resuma sua experiência e habilidades em até 500 caracteres.</span>
           </div>
+
+          <div class="section-title">Endereço</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="res-cep">CEP *</label>
+              <input id="res-cep" class="input" required />
+            </div>
+            <div class="form-group">
+              <label for="res-endereco">Endereço *</label>
+              <input id="res-endereco" class="input" readonly required />
+            </div>
           </div>
-                      <div class="form-group">
-              <label for="res-complemento">Complemento</label
-              ><input id="res-complemento" class="input" />
+          <div class="form-row">
+            <div class="form-group">
+              <label for="res-numero">Número *</label>
+              <input id="res-numero" class="input" type="number" min="0" required />
             </div>
+            <div class="form-group">
+              <label for="res-bairro">Bairro *</label>
+              <input id="res-bairro" class="input" readonly required />
             </div>
-
-
-
-            <div class="form-group"></div>
-            <div class="card">
-          <div class="section-title">Endereço comercial</div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="res-cidade">Cidade *</label>
+              <input id="res-cidade" class="input" readonly required />
+            </div>
+            <div class="form-group">
+              <label for="res-estado">Estado *</label>
+              <input id="res-estado" class="input" readonly required />
+            </div>
+          </div>
           <div class="form-group">
-            <label class="checkbox-label" for="endereco-igual"
-              ><input id="endereco-igual" type="checkbox" /> Endereço comercial
-              igual ao residencial</label>
+            <label for="res-complemento">Complemento</label>
+            <input id="res-complemento" class="input" />
           </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="com-cep">CEP</label
-              ><input id="com-cep" class="input" required />
-            </div>
-            <div class="form-group">
-              <label for="com-endereco">Endereço</label
-              ><input id="com-endereco" class="input" readonly required />
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="com-numero">Número</label
-              ><input id="com-numero" class="input" type="number" required />
-            </div>
-            <div class="form-group">
-              <label for="com-bairro">Bairro</label
-              ><input id="com-bairro" class="input" readonly required />
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="com-cidade">Cidade</label
-              ><input id="com-cidade" class="input" readonly required />
-            </div>
-          <div class="form-group">
-            <label for="com-estado">Estado</label
-            ><input id="com-estado" class="input" readonly required />
-          </div>
-          </div>
-            <div class="form-group">
-              <label for="com-complemento">Complemento</label
-              ><input id="com-complemento" class="input" />
-            </div>
-            </div>
 
-
-            <div class="form-group"></div>
-            <div class="card page-container-md">
           <div class="section-title">Perfil profissional</div>
           <div class="form-row">
             <div class="form-group">
-              <label for="tipo-negocio">Tipo de negócio</label
-              ><select id="tipo-negocio" class="input" required>
-                <option value="" selected disabled>Selecione...</option>
-                <option>MEI</option>
-                <option>ME</option>
-                <option>Sem CNPJ</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="experiencia">Tempo de experiência total</label
-              ><select id="experiencia" class="input" required>
+              <label for="experiencia">Tempo de experiência total *</label>
+              <select id="experiencia" class="input" required>
                 <option value="" selected disabled>Selecione...</option>
                 <option>Menos de 1 ano</option>
                 <option>1 a 3 anos</option>
@@ -204,58 +123,9 @@
                 <option>Mais de 10 anos</option>
               </select>
             </div>
-          </div>
-          <div class="form-row">
             <div class="form-group">
-              <label for="oficina">Tamanho da oficina</label
-              ><select id="oficina" class="input" required>
-                <option value="" selected disabled>Selecione...</option>
-                <option>Só eu</option>
-                <option>2 a 3 pessoas</option>
-                <option>4 a 6 pessoas</option>
-                <option>Mais de 6 pessoas</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="fechamento">Como costuma fechar serviço</label
-              ><select id="fechamento" class="input" required>
-                <option value="" selected disabled>Selecione...</option>
-                <option>Grupos de whatsapp</option>
-                <option>Indicação</option>
-                <option>Redes sociais</option>
-                <option>Plataformas online</option>
-                <option>Outro</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Especialidades</label>
-            <div class="multi-select" id="multi-select-especialidades">
-              <span class="badge badge-selectable">Costura reta</span
-              ><span class="badge badge-selectable">Overloque</span
-              ><span class="badge badge-selectable">Modelagem</span
-              ><span class="badge badge-selectable">Peça piloto</span
-              ><span class="badge badge-selectable">Amostras</span
-              ><span class="badge badge-selectable">Acabamento</span
-              ><span class="badge badge-selectable">Bordado</span
-              ><span class="badge badge-selectable">Estamparia</span>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Máquinas que possui</label>
-            <div class="multi-select" id="multi-select-maquinas" required>
-              <span class="badge badge-selectable">Reta</span>
-              <span class="badge badge-selectable">Overloque</span
-              ><span class="badge badge-selectable">Galoneira</span
-              ><span class="badge badge-selectable">Travete</span
-              ><span class="badge badge-selectable">Interlock</span
-              ><span class="badge badge-selectable">Máquina de corte</span>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="disponibilidade">Disponibilidade de tempo</label
-              ><select id="disponibilidade" class="input" required>
+              <label for="disponibilidade">Disponibilidade de tempo *</label>
+              <select id="disponibilidade" class="input" required>
                 <option value="" selected disabled>Selecione...</option>
                 <option>Período integral</option>
                 <option>Meio período</option>
@@ -263,70 +133,43 @@
                 <option>Sob demanda</option>
               </select>
             </div>
-            <div class="form-group">
-              <label for="preferencias">Preferências do Freela</label
-              ><select id="preferencias" class="input" required>
-                <option value="" selected disabled>Selecione...</option>
-                <option>Serviços pontuais</option>
-                <option>Contrato fixo</option>
-                <option>Grandes lotes</option>
-                <option>Peças exclusivas/autorais</option>
-              </select>
+          </div>
+          <div class="form-group">
+            <label>Especialidades *</label>
+            <div class="multi-select" id="multi-select-especialidades">
+              <span class="badge badge-selectable">Costura reta</span>
+              <span class="badge badge-selectable">Overloque</span>
+              <span class="badge badge-selectable">Modelagem</span>
+              <span class="badge badge-selectable">Peça piloto</span>
+              <span class="badge badge-selectable">Amostras</span>
+              <span class="badge badge-selectable">Acabamento</span>
+              <span class="badge badge-selectable">Bordado</span>
+              <span class="badge badge-selectable">Estamparia</span>
             </div>
           </div>
+          <div class="form-group">
+            <label>Máquinas que possui *</label>
+            <div class="multi-select" id="multi-select-maquinas">
+              <span class="badge badge-selectable">Reta</span>
+              <span class="badge badge-selectable">Overloque</span>
+              <span class="badge badge-selectable">Galoneira</span>
+              <span class="badge badge-selectable">Travete</span>
+              <span class="badge badge-selectable">Interlock</span>
+              <span class="badge badge-selectable">Máquina de corte</span>
+            </div>
+          </div>
+
+          <div class="section-title">Segurança</div>
           <div class="form-row">
             <div class="form-group">
-              <label for="produtor-fixo">Já tem produtor fixo?</label
-              ><select id="produtor-fixo" class="input" required>
-                <option value="" selected disabled>Selecione...</option>
-                <option>Sim</option>
-                <option>Não</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="nome-produtor">Nome do produtor fixo</label
-              ><input id="nome-produtor" class="input" required/>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="veiculo"
-                >Tem veículo para levar e buscar as peças?</label
-              ><select id="veiculo" class="input" required>
-                <option value="" selected disabled>Selecione...</option>
-                <option>Sim</option>
-                <option>Não</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="faturamento">Faturamento médio atual</label
-              ><select id="faturamento" class="input" required>
-                <option value="" selected disabled>Selecione...</option>
-                <option>Até R$ 1000</option>
-                <option>De R$ 1000 a R$ 3000</option>
-                <option>De R$ 3000 a R$ 6000</option>
-                <option>Acima de R$ 6000</option>
-                <option>Prefiro não informar</option>
-              </select>
-            </div>
-          </div>
-          </div>
-          <div class="form-group"></div>
-          <div class="card page-container-md">
-                    <div class="section-title">Segurança</div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="senha">Senha</label
-              ><div class="password-field">
+              <label for="senha">Senha *</label>
+              <div class="password-field">
                 <input id="senha" type="password" class="input password-input" required />
-                <button
-                  type="button"
-                  class="password-toggle"
-                  aria-label="Exibir senha">
+                <button type="button" class="password-toggle" aria-label="Exibir senha">
                   <i id="exibeSenha" class="bi bi-eye" aria-hidden="true"></i>
                 </button>
               </div>
-              <div id="senha-requisitos" class="stack-xs">
+              <div id="senha-requisitos" class="stack-xs" hidden>
                 <span class="field-message field-message-error" data-requisito="tamanho" hidden><i class="bi bi-exclamation-circle-fill"></i> A senha deve ter no mínimo 10 caracteres.</span>
                 <span class="field-message field-message-error" data-requisito="maiuscula" hidden><i class="bi bi-exclamation-circle-fill"></i> A senha deve conter ao menos uma letra maiúscula.</span>
                 <span class="field-message field-message-error" data-requisito="minuscula" hidden><i class="bi bi-exclamation-circle-fill"></i> A senha deve conter ao menos uma letra minúscula.</span>
@@ -335,34 +178,27 @@
               </div>
             </div>
             <div class="form-group">
-              <label for="senha-confirmacao">Confirmação de senha</label
-              ><div class="password-field">
-                <input
-                  id="senha-confirmacao"
-                  type="password"
-                  class="input password-input"
-                  required
-                />
-                <button
-                  type="button"
-                  class="password-toggle"
-                  aria-label="Exibir confirmação de senha"
-                >
+              <label for="senha-confirmacao">Confirmação de senha *</label>
+              <div class="password-field">
+                <input id="senha-confirmacao" type="password" class="input password-input" required />
+                <button type="button" class="password-toggle" aria-label="Exibir confirmação de senha">
                   <i id="exibeConfirmaSenha" class="bi bi-eye" aria-hidden="true"></i>
                 </button>
               </div>
               <span id="msg-senhas-diferentes" class="field-message field-message-error" hidden><i class="bi bi-exclamation-circle-fill"></i> As senhas não coincidem.</span>
             </div>
           </div>
-</div>
-          <div class="form-actions page-container-md">
+
+          <div class="form-actions">
             <a href="/pages/01-homepage.html" class="btn">Voltar</a>
             <button class="btn btn-primary" id="btn-cadastrar" type="submit">Cadastrar</button>
           </div>
         </form>
       </div>
     </main>
+
     <script src="/js/config.js"></script>
+    <script src="/js/ui.js"></script>
     <script src="/js/05-cadastro-freelancer.js"></script>
   </body>
 </html>
