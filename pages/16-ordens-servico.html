@@ -38,6 +38,7 @@
         ><a href="/pages/12-publicar-vaga.html">Publicar Vaga</a
         ><a href="/pages/15-minhas-vagas.html">Minhas Vagas</a
         ><a href="/pages/27-mural-freelancers.html">Buscar Freelancers</a
+        ><a href="/pages/11-chat.html">Chat</a
         ><a class="active" href="/pages/16-ordens-servico.html" aria-current="page">Ordens de Serviço</a
         ><a href="/pages/09-perfil-empresa.html">Perfil</a
         ><a href="/pages/21-assinatura.html">Assinatura</a
@@ -45,6 +46,7 @@
       </aside>
       <main class="main" role="main" aria-label="Conteúdo principal">
         <div class="header"><h2>Ordens de Serviço</h2></div>
+        <div id="mensagemStatus" class="alert" role="alert" aria-live="polite" hidden></div>
         <section class="card mb-md">
           <div class="filters">
             <input class="input input-grow" placeholder="Buscar OS..." /><select
@@ -118,22 +120,22 @@
               ><span class="page-btn">2</span>
             </div>
           </div>
-          <div class="modal-static" role="alert" aria-live="polite">
-            <div class="modal-static-title">Confirmação de exclusão</div>
-            <p>
-              Antes de excluir ou encerrar um registro, o sistema deve exibir
-              esta confirmação visual e informar que a ação não poderá ser
-              desfeita.
-            </p>
-            <div class="cluster mt-sm">
-              <button class="btn btn-danger" type="button">
-                Confirmar exclusão</button
-              ><button class="btn" type="button">Cancelar</button>
-            </div>
-          </div>
         </section>
       </main>
     </div>
+
+    <!-- Modal de Confirmação de Exclusão -->
+    <div id="modalExcluir" class="sidebar-overlay" style="display: none; align-items: center; justify-content: center; z-index: 1000;">
+        <div class="card animate-scale-in" style="max-width: 400px; width: 90%; background: var(--surface);">
+            <h3 style="color: var(--danger);"><i class="bi bi-exclamation-triangle-fill"></i> Confirmar exclusão</h3>
+            <p class="mt-sm">Tem certeza que deseja excluir esta ordem de serviço? Esta ação não poderá ser desfeita.</p>
+            <div class="form-actions mt-lg">
+                <button id="btnCancelarExclusao" class="btn btn-outline">Cancelar</button>
+                <button id="btnConfirmarExclusao" class="btn btn-danger">Sim, Excluir</button>
+            </div>
+        </div>
+    </div>
+
     <script src="/js/config.js"></script>
     <script src="/js/16-ordens-servico.js"></script>
   </body>

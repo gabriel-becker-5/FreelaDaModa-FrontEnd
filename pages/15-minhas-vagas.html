@@ -29,6 +29,7 @@
         <a href="/pages/12-publicar-vaga.html">Publicar Vaga</a>
         <a class="active" href="/pages/15-minhas-vagas.html" aria-current="page">Minhas Vagas</a>
         <a href="/pages/27-mural-freelancers.html">Buscar Freelancers</a>
+        <a href="/pages/11-chat.html">Chat</a>
         <a href="/pages/16-ordens-servico.html">Ordens de Serviço</a>
         <a href="/pages/09-perfil-empresa.html">Perfil</a>
         <a href="/pages/21-assinatura.html">Assinatura</a>
@@ -50,6 +51,8 @@
                         </a>
                     </div>
                 </header>
+
+                <div id="mensagemStatus" class="alert" role="alert" aria-live="polite" hidden></div>
 
                 <!-- Filtros -->
                 <div class="card mb-md">
@@ -95,39 +98,8 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Linha 1 -->
                             <tr>
-                                <td><strong>VG-001</strong></td>
-                                <td>Costureira Pilotista</td>
-                                <td>R$ 1.200,00</td>
-                                <td><span class="badge badge-success">Aberta</span></td>
-                                <td>
-                                    <a href="/pages/17-candidatos-vaga.html" class="text-primary"><strong>8 candidatos</strong></a>
-                                </td>
-                                <td>
-                                    <div class="table-actions">
-                                        <a href="/pages/18-vaga-detalhe.html" class="btn btn-ghost" title="Ver Detalhes"><i class="bi bi-eye"></i></a>
-                                        <a href="/pages/13-editar-vaga.html" class="btn btn-ghost" title="Editar"><i class="bi bi-pencil"></i></a>
-                                        <button class="btn btn-ghost btnExcluir" title="Excluir"><i class="bi bi-trash" style="color: var(--danger);"></i></button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <!-- Linha 2 -->
-                            <tr>
-                                <td><strong>VG-002</strong></td>
-                                <td>Modelista Sênior</td>
-                                <td>R$ 2.800,00</td>
-                                <td><span class="badge badge-warning">Pausada</span></td>
-                                <td>
-                                    <a href="/pages/17-candidatos-vaga.html" class="text-primary"><strong>3 candidatos</strong></a>
-                                </td>
-                                <td>
-                                    <div class="table-actions">
-                                        <a href="/pages/18-vaga-detalhe.html" class="btn btn-ghost" title="Ver Detalhes"><i class="bi bi-eye"></i></a>
-                                        <a href="/pages/13-editar-vaga.html" class="btn btn-ghost" title="Editar"><i class="bi bi-pencil"></i></a>
-                                        <button class="btn btn-ghost btnExcluir" title="Excluir"><i class="bi bi-trash" style="color: var(--danger);"></i></button>
-                                    </div>
-                                </td>
+                                <td colspan="6" class="text-center text-muted">Carregando vagas...</td>
                             </tr>
                         </tbody>
                     </table>

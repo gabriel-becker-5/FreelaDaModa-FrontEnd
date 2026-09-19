@@ -1,10 +1,15 @@
 // npx json-server --watch db.json --port 3000
 // Pendências
-// 1. ID da Empresa logado
-// 2. Token JWT
+// 1. Token JWT
 
 const API_URL = `${API_BASE}/empresas`;
-const empresaId = "0UEUrH8HgJE";
+
+// Sempre edita o perfil de quem está realmente logado — nunca um ID fixo.
+const sessao = JSON.parse(sessionStorage.getItem("usuarioLogado") || "null");
+if (!sessao || sessao.tipo !== "empresas") {
+    window.location.href = "/pages/02-login.html";
+}
+const empresaId = sessao ? sessao.id : null;
 const form = document.querySelector("form");
 const inputNomeResponsavel = document.querySelector("#pe-resp");
 const inputCPFResponsavel = document.querySelector("#pe-cpf");
@@ -23,6 +28,14 @@ const inputComplementoComercial = document.querySelector("#pe-complemento");
 const inputCidadeComercial = document.querySelector("#pe-cidade");
 const inputEstadoComercial = document.querySelector("#pe-estado");
 const alertBar = document.querySelector(".alert.alert-success");
+
+function mostrarMensagem(texto, tipo) {
+    if (!alertBar) return;
+    alertBar.className = `alert alert-${tipo}`; // tipo: 'success' | 'error'
+    alertBar.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
+    alertBar.removeAttribute("hidden");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
 let mediaEmpresa;
 let totalAvaliacao;
 let token;
@@ -79,7 +92,7 @@ async function consultaCEP(campoCEP, campoEndereco, campoNumero, campoBairro, ca
             campoComplemento.value = "";
             campoBairro.value = "";
             campoCEP.value = "";
-            alert("Verifique o CEP informado, endereço incorreto ou não localizado.");
+            mostrarMensagem("Verifique o CEP informado, endereço incorreto ou não localizado.", "error");
             return;
         }
         else 
@@ -197,7 +210,7 @@ async function consultaCEP(campoCEP, campoEndereco, campoNumero, campoBairro, ca
             campoComplemento.value = "";
             campoBairro.value = "";
             campoCEP.value = "";
-            alert("Verifique o CEP informado, endereço incorreto ou não localizado.");
+            mostrarMensagem("Verifique o CEP informado, endereço incorreto ou não localizado.", "error");
             return;
         }
         else 
@@ -289,7 +302,7 @@ function preencherPerfil(dados)
     inputEstadoComercial.value = dados.estadoComercial;
 }
 
-carregarDadosEmpresa();
+if (empresaId) carregarDadosEmpresa();
 
 // Salvar alterações
 form.addEventListener("submit", async (evento) => 
@@ -344,8 +357,7 @@ try {
         throw new Error(`Erro HTTP: ${resposta.status}`);
     }
 
-    alertBar.removeAttribute("hidden");
-    window.scrollTo({top: 0, behavior: "smooth"});
+    mostrarMensagem("Alterações salvas com sucesso.", "success");
 
     loadingBar.setAttribute("hidden", "");
     conteudoPerfil.removeAttribute("hidden");

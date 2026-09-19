@@ -20,7 +20,14 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ── 3. Carregar Ordens de Serviço ──
+    // ── 3. Proteção de rota (só empresa logada; só vê as próprias OS) ──
+    const sessao = JSON.parse(sessionStorage.getItem('usuarioLogado') || 'null');
+    if (!sessao || sessao.tipo !== 'empresas') {
+        window.location.href = '/pages/02-login.html';
+        return;
+    }
+
+    // ── 4. Carregar Ordens de Serviço ──
     const loadingSkeleton = document.querySelector('.loading-skeleton');
     const emptyState = document.querySelector('.empty-state');
     const alertaErro = document.querySelector('.alert-error');
@@ -28,6 +35,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const tbody = tabela ? tabela.querySelector('tbody') : null;
 
     let todasOrdens = [];
+
+    function mostrarMensagem(texto, tipo) {
+        const el = document.getElementById('mensagemStatus');
+        if (!el) return;
+        el.className = `alert alert-${tipo}`;
+        el.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
+        el.hidden = false;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 
     function escapeHtml(str) {
         return String(str ?? '').replace(/[&<>"']/g, function (ch) {
@@ -54,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="table-actions">
                     <a href="/pages/19-ordem-servico-detalhe.html?id=${os.id}" class="btn btn-primary">Ver</a>
                     <a href="/pages/14-editar-os.html?id=${os.id}" class="btn">Editar</a>
-                    <button class="btn btn-finalizar" type="button">Finalizar</button>
+                    ${os.status === 'Em andamento' ? '<button class="btn btn-finalizar" type="button">Finalizar</button>' : ''}
                     <button class="btn btn-danger btn-excluir" type="button">Excluir</button>
                 </div>
             </td>
@@ -83,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (alertaErro) alertaErro.style.display = 'none';
 
         try {
-            const res = await fetch(`${API_BASE}/ordensServico`);
+            const res = await fetch(`${API_BASE}/ordensServico?empresaId=${sessao.id}`);
             if (!res.ok) throw new Error('Falha ao buscar ordens de serviço.');
 
             todasOrdens = await res.json();
@@ -147,7 +163,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
                 } catch (erro) {
                     console.error('Erro ao finalizar ordem de serviço:', erro);
-                    alert('Não foi possível finalizar a ordem de serviço. Verifique se o json-server está rodando.');
+                    mostrarMensagem('Não foi possível finalizar a ordem de serviço. Verifique se o json-server está rodando.', 'error');
                     return;
                 }
                 const badge = linha.querySelector('.badge');
@@ -161,19 +177,46 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             if (e.target.closest('.btn-excluir')) {
-                if (!confirm('Tem certeza que deseja excluir esta ordem de serviço?')) return;
-                try {
-                    const res = await fetch(`${API_BASE}/ordensServico/${id}`, { method: 'DELETE' });
-                    if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
-                } catch (erro) {
-                    console.error('Erro ao excluir ordem de serviço:', erro);
-                    alert('Não foi possível excluir a ordem de serviço. Verifique se o json-server está rodando.');
-                    return;
-                }
-                todasOrdens = todasOrdens.filter(function (os) { return String(os.id) !== String(id); });
-                linha.remove();
-                if (todasOrdens.length === 0 && emptyState) emptyState.style.display = 'block';
+                abrirModalExclusao(id);
             }
+        });
+    }
+
+    // ── 6. Excluir Ordem de Serviço (modal de confirmação) ──
+    const modalExcluir = document.getElementById('modalExcluir');
+    const btnCancelarExclusao = document.getElementById('btnCancelarExclusao');
+    const btnConfirmarExclusao = document.getElementById('btnConfirmarExclusao');
+    let idParaExcluir = null;
+
+    function abrirModalExclusao(id) {
+        idParaExcluir = id;
+        if (modalExcluir) modalExcluir.style.display = 'flex';
+    }
+
+    function fecharModalExclusao() {
+        idParaExcluir = null;
+        if (modalExcluir) modalExcluir.style.display = 'none';
+    }
+
+    if (btnCancelarExclusao) btnCancelarExclusao.addEventListener('click', fecharModalExclusao);
+
+    if (btnConfirmarExclusao) {
+        btnConfirmarExclusao.addEventListener('click', async function () {
+            if (!idParaExcluir) return;
+            try {
+                const res = await fetch(`${API_BASE}/ordensServico/${idParaExcluir}`, { method: 'DELETE' });
+                if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
+            } catch (erro) {
+                console.error('Erro ao excluir ordem de serviço:', erro);
+                mostrarMensagem('Não foi possível excluir a ordem de serviço. Verifique se o json-server está rodando.', 'error');
+                fecharModalExclusao();
+                return;
+            }
+            todasOrdens = todasOrdens.filter(function (os) { return String(os.id) !== String(idParaExcluir); });
+            const linha = tbody ? tbody.querySelector(`tr[data-id="${idParaExcluir}"]`) : null;
+            if (linha) linha.remove();
+            if (todasOrdens.length === 0 && emptyState) emptyState.style.display = 'block';
+            fecharModalExclusao();
         });
     }
 

@@ -32,6 +32,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let impulsionamentoAtual = null;
 
+    function mostrarMensagem(texto, tipo) {
+        const el = document.getElementById('mensagemStatus');
+        if (!el) return;
+        el.className = `alert alert-${tipo}`; // tipo: 'success' | 'error'
+        el.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
+        el.hidden = false;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
     function renderizarImpulsionamento(registro) {
         impulsionamentoAtual = registro;
         if (tituloPlanoAtual) tituloPlanoAtual.textContent = registro.plano;
@@ -118,10 +127,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     renderizarImpulsionamento(await res.json());
                 }
 
-                alert(`Plano ${nomePlano.textContent.trim()} ativado! Sua vaga agora tem mais destaque no mural.`);
+                mostrarMensagem(`Plano ${nomePlano.textContent.trim()} ativado! Sua vaga agora tem mais destaque no mural.`, 'success');
             } catch (erro) {
                 console.error('Erro ao assinar impulsionamento:', erro);
-                alert('Não foi possível ativar o plano. Verifique se o json-server está rodando.');
+                mostrarMensagem('Não foi possível ativar o plano. Verifique se o json-server está rodando.', 'error');
                 btn.innerHTML = textoOriginal;
             } finally {
                 btn.disabled = false;

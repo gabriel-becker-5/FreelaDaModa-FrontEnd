@@ -38,6 +38,7 @@
         ><a href="/pages/12-publicar-vaga.html">Publicar Vaga</a
         ><a href="/pages/15-minhas-vagas.html">Minhas Vagas</a
         ><a href="/pages/27-mural-freelancers.html">Buscar Freelancers</a
+        ><a href="/pages/11-chat.html">Chat</a
         ><a class="active" href="/pages/16-ordens-servico.html" aria-current="page">Ordens de Serviço</a
         ><a href="/pages/09-perfil-empresa.html">Perfil</a
         ><a href="/pages/21-assinatura.html">Assinatura</a
@@ -171,26 +172,28 @@
           <div class="section-title">Anexos e referências</div>
           <div class="form-group">
             <label>Referências visuais (briefing)</label>
-            <div class="upload-dropzone">
+            <div class="upload-dropzone" id="briefing-dropzone">
               <i class="bi bi-cloud-arrow-up"></i>
               <p>Briefing visual do serviço</p>
               <p style="font-size: 11px;">Somente imagens até 10MB.</p>
+              <input type="file" id="briefing-file-input" accept="image/*" hidden />
             </div>
-            <div class="upload-file-preview">
+            <div class="upload-file-preview" id="briefing-file-preview">
               <i class="bi bi-file-image"></i>
-              <span>briefing-producao-lote.jpg (1.2 MB)</span>
+              <span id="briefing-file-name">Nenhum arquivo anexado.</span>
             </div>
           </div>
           <div class="form-group">
             <label>Referências visuais da entrega</label>
-            <div class="upload-dropzone">
+            <div class="upload-dropzone" id="entrega-dropzone">
               <i class="bi bi-cloud-arrow-up"></i>
               <p>Registro da entrega</p>
               <p style="font-size: 11px;">Somente imagens até 10MB.</p>
+              <input type="file" id="entrega-file-input" accept="image/*" hidden />
             </div>
-            <div class="upload-file-preview">
+            <div class="upload-file-preview" id="entrega-file-preview">
               <i class="bi bi-file-image"></i>
-              <span>entrega-final.jpg (3.1 MB)</span>
+              <span id="entrega-file-name">Nenhum arquivo anexado.</span>
             </div>
           </div>
           <div class="form-row">
@@ -200,7 +203,8 @@
                 <option>Em andamento</option>
                 <option>Concluída</option>
                 <option>Cancelada</option>
-              </select>
+              </select
+              ><span class="field-message" id="os-status-mensagem"></span>
             </div>
             <div class="form-group">
               <label for="os-avaliacao-freela">Avaliação Freelancer</label
@@ -221,6 +225,9 @@
           </div>
           <div class="form-actions">
             <a href="/pages/16-ordens-servico.html" class="btn">Voltar</a
+            ><button type="button" class="btn btn-danger" id="btnExcluirOS">
+              Excluir
+            </button
             ><button class="btn btn-primary" type="submit">
               Salvar alterações
             </button>
@@ -228,6 +235,18 @@
         </form>
       </main>
     </div>
+
+    <div id="modalExcluir" class="sidebar-overlay" style="display: none; align-items: center; justify-content: center; z-index: 1000;">
+        <div class="card animate-scale-in" style="max-width: 400px; width: 90%; background: var(--surface);">
+            <h3 style="color: var(--danger);"><i class="bi bi-exclamation-triangle-fill"></i> Confirmar exclusão</h3>
+            <p class="mt-sm">Tem certeza que deseja excluir esta ordem de serviço? Esta ação não poderá ser desfeita.</p>
+            <div class="form-actions mt-lg">
+                <button id="btnCancelarExclusao" class="btn btn-outline">Cancelar</button>
+                <button id="btnConfirmarExclusao" class="btn btn-danger">Sim, Excluir</button>
+            </div>
+        </div>
+    </div>
+
     <script src="/js/config.js"></script>
     <script src="/js/14-editar-os.js"></script>
   </body>

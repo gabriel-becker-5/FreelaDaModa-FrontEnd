@@ -25,9 +25,17 @@ document.addEventListener('DOMContentLoaded', function () {
     const sessao = JSON.parse(sessionStorage.getItem('usuarioLogado') || 'null');
     if (!sessao || sessao.tipo !== 'empresas') {
         // Sem sessão de empresa, não há vagas para listar; volta para o login.
-        alert('Acesso restrito! Faça login com a conta da sua empresa.');
         window.location.href = '/pages/02-login.html';
         return;
+    }
+
+    function mostrarMensagem(texto, tipo) {
+        const el = document.getElementById('mensagemStatus');
+        if (!el) return;
+        el.className = `alert alert-${tipo}`; // tipo: 'success' | 'error'
+        el.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
+        el.hidden = false;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     // ── 4. Carregar Minhas Vagas ──
@@ -37,6 +45,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let todasVagas = [];
     let paginaAtual = 1;
+    let contagemCandidatosPorVaga = {};
 
     function escapeHtml(str) {
         return String(str ?? '').replace(/[&<>"']/g, function (ch) {
@@ -55,16 +64,17 @@ document.addEventListener('DOMContentLoaded', function () {
     function criarLinha(vaga) {
         const tr = document.createElement('tr');
         tr.dataset.id = vaga.id;
+        const qtdCandidatos = contagemCandidatosPorVaga[vaga.id] || 0;
         tr.innerHTML = `
             <td data-label="ID"><strong>VG-${escapeHtml(vaga.id)}</strong></td>
             <td data-label="Título">${escapeHtml(vaga.titulo)}</td>
             <td data-label="Valor">${escapeHtml(vaga.valor || '—')}</td>
             <td data-label="Status"><span class="badge ${classeBadgeStatus(vaga.status)}">${escapeHtml(vaga.status || 'Aberta')}</span></td>
-            <td data-label="Candidatos"><a href="/pages/17-candidatos-vaga.html" class="text-primary"><strong>—</strong></a></td>
+            <td data-label="Candidatos"><a href="/pages/17-candidatos-vaga.html?id=${encodeURIComponent(vaga.id)}" class="text-primary"><strong>${qtdCandidatos} candidato${qtdCandidatos === 1 ? '' : 's'}</strong></a></td>
             <td data-label="Ações">
                 <div class="table-actions">
-                    <a href="/pages/18-vaga-detalhe.html" class="btn btn-ghost" title="Ver Detalhes"><i class="bi bi-eye"></i></a>
-                    <a href="/pages/13-editar-vaga.html" class="btn btn-ghost" title="Editar"><i class="bi bi-pencil"></i></a>
+                    <a href="/pages/18-vaga-detalhe.html?id=${encodeURIComponent(vaga.id)}" class="btn btn-ghost" title="Ver Detalhes"><i class="bi bi-eye"></i></a>
+                    <a href="/pages/13-editar-vaga.html?id=${encodeURIComponent(vaga.id)}" class="btn btn-ghost" title="Editar"><i class="bi bi-pencil"></i></a>
                     <button class="btn btn-ghost btnExcluir" title="Excluir"><i class="bi bi-trash" style="color: var(--danger);"></i></button>
                 </div>
             </td>
@@ -95,9 +105,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function carregarVagas() {
         try {
-            const res = await fetch(`${API_BASE}/vagas?empresaId=${sessao.id}`);
-            if (!res.ok) throw new Error('Falha ao carregar vagas.');
-            todasVagas = await res.json();
+            const [resVagas, resCandidaturas] = await Promise.all([
+                fetch(`${API_BASE}/vagas?empresaId=${sessao.id}`),
+                fetch(`${API_BASE}/candidaturas?empresaId=${sessao.id}`)
+            ]);
+            if (!resVagas.ok) throw new Error('Falha ao carregar vagas.');
+
+            todasVagas = await resVagas.json();
+
+            contagemCandidatosPorVaga = {};
+            if (resCandidaturas.ok) {
+                const candidaturas = await resCandidaturas.json();
+                candidaturas.forEach(function (candidatura) {
+                    if (!candidatura.vagaId) return;
+                    contagemCandidatosPorVaga[candidatura.vagaId] = (contagemCandidatosPorVaga[candidatura.vagaId] || 0) + 1;
+                });
+            }
+
             aplicarFiltros();
         } catch (erro) {
             console.error('Erro ao carregar minhas vagas:', erro);
@@ -183,13 +207,22 @@ document.addEventListener('DOMContentLoaded', function () {
     if (btnConfirmarExclusao) {
         btnConfirmarExclusao.addEventListener('click', async function () {
             if (!idParaExcluir) return;
+
+            // Não deixa excluir uma vaga que já recebeu candidaturas — isso
+            // deixaria registros órfãos apontando pra uma vaga inexistente.
+            if (contagemCandidatosPorVaga[idParaExcluir]) {
+                mostrarMensagem('Esta vaga já recebeu candidaturas e não pode ser excluída. Encerre a vaga em vez de excluir, para preservar o histórico.', 'error');
+                fecharModalExclusao();
+                return;
+            }
+
             try {
                 const res = await fetch(`${API_BASE}/vagas/${idParaExcluir}`, { method: 'DELETE' });
                 if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
             } catch (erro) {
                 console.error('Erro ao excluir vaga:', erro);
-                alert('Não foi possível excluir a vaga. Verifique se o json-server está rodando.');
                 fecharModalExclusao();
+                mostrarMensagem('Não foi possível excluir a vaga. Verifique se o json-server está rodando.', 'error');
                 return;
             }
             todasVagas = todasVagas.filter(function (v) { return String(v.id) !== String(idParaExcluir); });

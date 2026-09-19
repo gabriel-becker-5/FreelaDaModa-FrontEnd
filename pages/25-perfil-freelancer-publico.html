@@ -39,6 +39,8 @@
       </aside>
       <main class="main" role="main" aria-label="Conteúdo principal">
 
+        <div id="mensagemStatus" class="alert" role="alert" aria-live="polite" hidden></div>
+
         <!-- Estado de carregamento -->
         <div id="perfil-loading" class="text-center">
           <p>Carregando perfil...</p>
@@ -70,7 +72,7 @@
               </div>
             </div>
             <div class="profile-actions">
-              <button class="btn btn-primary btn-lg">
+              <button class="btn btn-primary btn-lg btn-convidar">
                 <i class="bi bi-send-fill"></i> Convidar para vaga
               </button>
             </div>
@@ -145,13 +147,27 @@
           </div>
 
           <div class="text-center mt-lg">
-            <button class="btn btn-primary btn-lg">
+            <button class="btn btn-primary btn-lg btn-convidar">
               <i class="bi bi-send-fill"></i> Convidar para vaga
             </button>
           </div>
         </div>
       </main>
     </div>
+
+    <!-- Modal: Escolher a vaga para convidar o freelancer -->
+    <div id="modalConvidar" class="sidebar-overlay" style="display: none; align-items: center; justify-content: center; z-index: 1000;">
+      <div class="card animate-scale-in" style="max-width: 440px; width: 90%; background: var(--surface);">
+        <h3><i class="bi bi-send-fill"></i> Convidar para uma vaga</h3>
+        <p class="mt-sm text-muted">Escolha para qual vaga aberta da sua empresa você quer convidar <strong id="convidar-nome-freelancer">este freelancer</strong>.</p>
+        <div id="convidar-lista-vagas" class="stack-sm mt-sm" style="max-height: 300px; overflow-y: auto;"></div>
+        <div class="form-actions mt-lg">
+          <button id="btnCancelarConvite" class="btn btn-outline">Cancelar</button>
+          <button id="btnConfirmarConvite" class="btn btn-primary" disabled>Confirmar convite</button>
+        </div>
+      </div>
+    </div>
+
     <script src="/js/config.js"></script>
     <script src="/js/25-perfil-freelancer-publico.js"></script>
   </body>

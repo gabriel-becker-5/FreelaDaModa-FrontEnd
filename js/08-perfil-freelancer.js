@@ -1,10 +1,15 @@
 // npx json-server --watch db.json --port 3000
 // Pendências
-// 1. ID do Freelancer logado
-// 2. Token JWT
+// 1. Token JWT
 
 const API_URL = `${API_BASE}/freelancers`;
-const freelancerId = "-DU9G2RSk6s";
+
+// Sempre edita o perfil de quem está realmente logado — nunca um ID fixo.
+const sessao = JSON.parse(sessionStorage.getItem("usuarioLogado") || "null");
+if (!sessao || sessao.tipo !== "freelancers") {
+    window.location.href = "/pages/02-login.html";
+}
+const freelancerId = sessao ? sessao.id : null;
 const form = document.querySelector("#form-perfil");
 const inputNome = document.querySelector("#pf-nome");
 const inputDataNascimento = document.querySelector("#pf-nascimento");
@@ -38,6 +43,14 @@ const labelNomeProdutor = document.querySelector('label[for="pf-nome-produtor"]'
 const selectVeiculo = document.querySelector("#pf-veiculo");
 const inputFaturamentoMedio = document.querySelector("#pf-faturamento");
 const alertBar = document.querySelector(".alert.alert-success");
+
+function mostrarMensagem(texto, tipo) {
+    if (!alertBar) return;
+    alertBar.className = `alert alert-${tipo}`; // tipo: 'success' | 'error'
+    alertBar.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
+    alertBar.removeAttribute("hidden");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
 const inputEspecialidades = document.querySelector("#multi-select-especialidades");
 const inputMaquinas = document.querySelector("#multi-select-maquinas");
 let mediaFreela;
@@ -156,9 +169,9 @@ selectProdutorFixo.addEventListener("change", () =>
 // Se Produtor Fixo = Sim então obriga o preenchimento do nome do produtor
 function preenchimentoProdutorFixo() 
 {
-    if(selectProdutorFixo.value === "Sim" && inputNomeProdutor.value === "") 
+    if(selectProdutorFixo.value === "Sim" && inputNomeProdutor.value === "")
     {
-        alert("Informe o Nome do Produtor Fixo.");
+        mostrarMensagem("Informe o Nome do Produtor Fixo.", "error");
         return false;
     }
     else 
@@ -295,7 +308,7 @@ function preencherPerfil(dados)
     habilitarDesabilitarCampoEnderecoComercial();
 }
 
-carregarDadosFreelancer();
+if (freelancerId) carregarDadosFreelancer();
 
 // Salvar alterações
 form.addEventListener("submit", async (evento) => 
@@ -321,7 +334,7 @@ form.addEventListener("submit", async (evento) =>
 
     if(especialidadesSelecionadas.length < 1)
     {
-        alert("Selecione pelo menos uma Especialidade antes de prosseguir.");
+        mostrarMensagem("Selecione pelo menos uma Especialidade antes de prosseguir.", "error");
         return;
     }
 
@@ -329,7 +342,7 @@ form.addEventListener("submit", async (evento) =>
 
     if(maquinasSelecionadas.length < 1)
     {
-        alert("Selecione pelo menos uma Máquina antes de prosseguir.");
+        mostrarMensagem("Selecione pelo menos uma Máquina antes de prosseguir.", "error");
         return;
     }
 
@@ -391,13 +404,12 @@ try {
         throw new Error(`Erro HTTP: ${resposta.status}`);
     }
 
-    alertBar.removeAttribute("hidden");
-    window.scrollTo({top: 0, behavior: "smooth"});
+    mostrarMensagem("Alterações salvas com sucesso.", "success");
 
     loadingBar.setAttribute("hidden", "");
     conteudoPerfil.removeAttribute("hidden");
-} 
-catch (erro) 
+}
+catch (erro)
 {
     console.error(erro);
     loadingBar.setAttribute("hidden", "");
@@ -428,7 +440,7 @@ async function consultaCEP(campoCEP, campoEndereco, campoNumero, campoBairro, ca
             campoComplemento.value = "";
             campoBairro.value = "";
             campoCEP.value = "";
-            alert("Verifique o CEP informado, endereço incorreto ou não localizado.");
+            mostrarMensagem("Verifique o CEP informado, endereço incorreto ou não localizado.", "error");
             return;
         }
         else 

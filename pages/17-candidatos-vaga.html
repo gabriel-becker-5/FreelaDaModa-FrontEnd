@@ -29,6 +29,7 @@
         <a href="/pages/12-publicar-vaga.html">Publicar Vaga</a>
         <a class="active" href="/pages/15-minhas-vagas.html" aria-current="page">Minhas Vagas</a>
         <a href="/pages/27-mural-freelancers.html">Buscar Freelancers</a>
+        <a href="/pages/11-chat.html">Chat</a>
         <a href="/pages/16-ordens-servico.html">Ordens de Serviço</a>
         <a href="/pages/09-perfil-empresa.html">Perfil</a>
         <a href="/pages/21-assinatura.html">Assinatura</a>
@@ -43,7 +44,7 @@
                 <header class="header">
                     <div>
                         <h1>Candidatos da Vaga</h1>
-                        <p class="text-muted">Analisando interessados para: <strong class="text-primary">Costureira Pilotista (VG-001)</strong></p>
+                        <p class="text-muted">Analisando interessados para: <strong class="text-primary" id="tituloVaga">Carregando...</strong></p>
                     </div>
                     <div class="header-actions">
                         <a href="/pages/15-minhas-vagas.html" class="btn btn-outline">
@@ -52,13 +53,16 @@
                     </div>
                 </header>
 
-                <!-- Mensagem de Sucesso (Oculta por padrão) -->
-                <div id="feedbackAlert" class="alert alert-success animate-fade-in mb-md" style="display: none;" role="alert">
-                    <i class="bi bi-check-circle-fill"></i> Candidato selecionado! Uma Ordem de Serviço foi gerada.
+                <!-- Mensagem de status (Oculta por padrão) -->
+                <div id="feedbackAlert" class="alert animate-fade-in mb-md" role="alert" aria-live="polite" hidden></div>
+
+                <!-- Estado de erro -->
+                <div id="vagaErro" class="alert" role="alert" aria-live="polite" hidden>
+                    Não foi possível carregar esta vaga. Verifique se o link está correto e se o json-server está rodando.
                 </div>
 
                 <!-- Tabela de Candidatos -->
-                <div class="card table-responsive">
+                <div class="card table-responsive" id="cardCandidatos" hidden>
                     <table class="table">
                         <thead>
                             <tr>
@@ -69,66 +73,8 @@
                                 <th>Ações</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <!-- Candidato 1 -->
-                            <tr id="candidato-1" data-freelancer-id="maria-silva-02">
-                                <td>
-                                    <div style="display: flex; align-items: center; gap: 12px;">
-                                        <div class="chat-avatar">MS</div>
-                                        <div>
-                                            <strong>Maria Silva</strong>
-                                            <div style="font-size: 12px; color: var(--text-secondary);">
-                                                <i class="bi bi-star-fill" style="color: #f2bb55;"></i> 4.7 (12 avaliações)
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div style="display: flex; gap: 4px; flex-wrap: wrap;">
-                                        <span class="badge" style="font-size: 10px;">Reta</span>
-                                        <span class="badge" style="font-size: 10px;">Overloque</span>
-                                    </div>
-                                </td>
-                                <td>Período integral</td>
-                                <td><span class="badge badge-warning" id="status-1">Em análise</span></td>
-                                <td>
-                                    <div class="table-actions">
-                                        <a href="/pages/25-perfil-freelancer-publico.html?id=maria-silva-02" class="btn btn-ghost" title="Ver Perfil Completo"><i class="bi bi-person-lines-fill"></i></a>
-                                        <button class="btn btn-ghost btnSelecionar" data-id="1" title="Selecionar Freela"><i class="bi bi-check-circle-fill" style="color: var(--success);"></i></button>
-                                        <button class="btn btn-ghost btnRejeitar" data-id="1" title="Rejeitar"><i class="bi bi-x-circle-fill" style="color: var(--danger);"></i></button>
-                                    </div>
-                                </td>
-                            </tr>
-
-                            <!-- Candidato 2 -->
-                            <tr id="candidato-2" data-freelancer-id="joana-costa-01">
-                                <td>
-                                    <div style="display: flex; align-items: center; gap: 12px;">
-                                        <div class="chat-avatar" style="background: var(--badge-danger-bg); color: var(--danger);">JC</div>
-                                        <div>
-                                            <strong>Joana Costa</strong>
-                                            <div style="font-size: 12px; color: var(--text-secondary);">
-                                                <i class="bi bi-star-fill" style="color: #f2bb55;"></i> 4.9 (34 avaliações)
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div style="display: flex; gap: 4px; flex-wrap: wrap;">
-                                        <span class="badge" style="font-size: 10px;">Modelagem</span>
-                                        <span class="badge" style="font-size: 10px;">Acabamento</span>
-                                    </div>
-                                </td>
-                                <td>Fins de semana</td>
-                                <td><span class="badge badge-warning" id="status-2">Em análise</span></td>
-                                <td>
-                                    <div class="table-actions">
-                                        <a href="/pages/25-perfil-freelancer-publico.html?id=joana-costa-01" class="btn btn-ghost" title="Ver Perfil Completo"><i class="bi bi-person-lines-fill"></i></a>
-                                        <button class="btn btn-ghost btnSelecionar" data-id="2" title="Selecionar Freela"><i class="bi bi-check-circle-fill" style="color: var(--success);"></i></button>
-                                        <button class="btn btn-ghost btnRejeitar" data-id="2" title="Rejeitar"><i class="bi bi-x-circle-fill" style="color: var(--danger);"></i></button>
-                                    </div>
-                                </td>
-                            </tr>
+                        <tbody id="tbodyCandidatos">
+                            <!-- Renderizado via 17-candidatos-vaga.js -->
                         </tbody>
                     </table>
                 </div>

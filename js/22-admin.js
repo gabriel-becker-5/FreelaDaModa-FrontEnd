@@ -55,6 +55,19 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // ── Mensagem de status global (substitui alert()) ──
+    // painel tem várias abas independentes, então um único banner no topo
+    // da página serve pra dar feedback de qualquer ação, em qualquer aba
+    const elMensagemStatus = document.getElementById('mensagemStatus');
+
+    function mostrarMensagem(texto, tipo) {
+        if (!elMensagemStatus) return;
+        elMensagemStatus.className = `alert alert-${tipo}`;
+        elMensagemStatus.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${escapeHtml(texto)}`;
+        elMensagemStatus.hidden = false;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
     // ── 4. Aba Usuários ──
     // não existe coleção "usuários" — junta freelancers + empresas aqui
     // e guarda a origem em data-tipo pra excluir na coleção certa
@@ -161,7 +174,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 if (e.target.closest('.btn-editar')) {
-                    alert('Edição de usuário: tela de edição ainda não implementada neste mock.');
+                    mostrarMensagem('Edição de usuário: tela de edição ainda não implementada neste mock.', 'error');
                     return;
                 }
 
@@ -172,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
                     } catch (erro) {
                         console.error('Erro ao excluir usuário:', erro);
-                        alert('Não foi possível excluir o usuário. Verifique se o json-server está rodando.');
+                        mostrarMensagem('Não foi possível excluir o usuário. Verifique se o json-server está rodando.', 'error');
                         return;
                     }
                     todosUsuarios = todosUsuarios.filter(function (u) { return !(u.id === id && u.tipoColecao === tipo); });
@@ -271,7 +284,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
                 } catch (erro) {
                     console.error('Erro ao encerrar vaga:', erro);
-                    alert('Não foi possível encerrar a vaga. Verifique se o json-server está rodando.');
+                    mostrarMensagem('Não foi possível encerrar a vaga. Verifique se o json-server está rodando.', 'error');
                     return;
                 }
                 const badge = linha.querySelector('.badge');
@@ -376,7 +389,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
                 } catch (erro) {
                     console.error('Erro ao cancelar ordem de serviço:', erro);
-                    alert('Não foi possível cancelar a ordem de serviço. Verifique se o json-server está rodando.');
+                    mostrarMensagem('Não foi possível cancelar a ordem de serviço. Verifique se o json-server está rodando.', 'error');
                     return;
                 }
 
@@ -452,11 +465,11 @@ document.addEventListener('DOMContentLoaded', function () {
                             body: JSON.stringify(novosParametros)
                         });
                     if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
-                    alert('Parâmetros salvos com sucesso!');
+                    mostrarMensagem('Parâmetros salvos com sucesso!', 'success');
                     await carregarParametros();
                 } catch (erro) {
                     console.error('Erro ao salvar parâmetros:', erro);
-                    alert('Não foi possível salvar os parâmetros. Verifique se o json-server está rodando.');
+                    mostrarMensagem('Não foi possível salvar os parâmetros. Verifique se o json-server está rodando.', 'error');
                 } finally {
                     btnSalvar.disabled = false;
                     btnSalvar.innerHTML = textoOriginal;
@@ -638,7 +651,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     renderizarConversa(chamadoAberto);
                 } catch (erro) {
                     console.error('Erro ao responder chamado:', erro);
-                    alert('Não foi possível enviar a resposta. Verifique se o json-server está rodando.');
+                    mostrarMensagem('Não foi possível enviar a resposta. Verifique se o json-server está rodando.', 'error');
                 } finally {
                     btnEnviarResposta.disabled = false;
                     btnEnviarResposta.innerHTML = textoOriginal;
@@ -663,7 +676,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     fecharDetalheChamado();
                 } catch (erro) {
                     console.error('Erro ao fechar chamado:', erro);
-                    alert('Não foi possível fechar o chamado. Verifique se o json-server está rodando.');
+                    mostrarMensagem('Não foi possível fechar o chamado. Verifique se o json-server está rodando.', 'error');
                 }
             });
         }
@@ -697,7 +710,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
                     } catch (erro) {
                         console.error('Erro ao fechar chamado:', erro);
-                        alert('Não foi possível fechar o chamado. Verifique se o json-server está rodando.');
+                        mostrarMensagem('Não foi possível fechar o chamado. Verifique se o json-server está rodando.', 'error');
                         return;
                     }
                     chamado.status = 'Fechado';
@@ -762,7 +775,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 e.preventDefault();
 
                 if (!inputTitulo.value.trim() || !textareaTexto.value.trim()) {
-                    alert('Preencha o título e o texto do aviso.');
+                    mostrarMensagem('Preencha o título e o texto do aviso.', 'error');
                     return;
                 }
 
@@ -788,11 +801,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     });
                     if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
                     form.reset();
-                    alert('Aviso publicado com sucesso!');
+                    mostrarMensagem('Aviso publicado com sucesso!', 'success');
                     await carregarAvisos();
                 } catch (erro) {
                     console.error('Erro ao publicar aviso:', erro);
-                    alert('Não foi possível publicar o aviso. Verifique se o json-server está rodando.');
+                    mostrarMensagem('Não foi possível publicar o aviso. Verifique se o json-server está rodando.', 'error');
                 } finally {
                     btnPublicar.disabled = false;
                     btnPublicar.innerHTML = textoOriginal;
@@ -813,7 +826,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
                 } catch (erro) {
                     console.error('Erro ao remover aviso:', erro);
-                    alert('Não foi possível remover o aviso. Verifique se o json-server está rodando.');
+                    mostrarMensagem('Não foi possível remover o aviso. Verifique se o json-server está rodando.', 'error');
                     return;
                 }
                 linha.remove();
