@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
-    // ── 2. Menu Lateral no Celular (Hambúrguer) ──
+    // ── 1. Menu Lateral no Celular (Hambúrguer) ──
     const sidebarToggleBtn = document.querySelector('.sidebar-toggle-btn');
     const sidebar = document.querySelector('.sidebar');
     const sidebarOverlay = document.querySelector('.sidebar-overlay');
@@ -20,21 +20,39 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ── 3. Conversas ──
+    // ── 2. Proteção de rota + adapta o menu lateral pro tipo de usuário ──
     const sessao = JSON.parse(sessionStorage.getItem('usuarioLogado') || 'null');
-    const meuId = sessao ? sessao.id : '-DU9G2RSk6s';
-    const meuNome = sessao ? sessao.nome : 'Karina Vicente';
 
-    // índice do botão -> conversaId em "mensagens"
-    const conversaPorIndice = ['conv-1', 'conv-2', 'conv-3'];
+    if (!sessao) {
+        window.location.href = '/pages/02-login.html';
+        return;
+    }
 
-    const botoesContato = document.querySelectorAll('.chat-list .btn');
-    const chatThread = document.querySelector('.chat-thread');
-    const emptyState = document.querySelector('.empty-state');
-    const painelThread = chatThread ? chatThread.closest('.card') : null;
-    const tituloThread = painelThread ? painelThread.querySelector('strong') : null;
+    const meuId = sessao.id;
+    const meuNome = sessao.nome;
+    const meuTipo = sessao.tipo; // 'freelancers' ou 'empresas'
 
-    let conversaAtual = null;
+    if (meuTipo === 'empresas') {
+        const navDashboard = document.getElementById('nav-dashboard');
+        const navVagas = document.getElementById('nav-vagas');
+        const navCandidaturas = document.getElementById('nav-candidaturas');
+        const navPerfil = document.getElementById('nav-perfil');
+        const navExtra = document.getElementById('nav-extra');
+        if (navDashboard) navDashboard.href = '/pages/04-dashboard-empresa.html';
+        if (navVagas) { navVagas.href = '/pages/15-minhas-vagas.html'; navVagas.textContent = 'Minhas Vagas'; }
+        if (navCandidaturas) { navCandidaturas.href = '/pages/16-ordens-servico.html'; navCandidaturas.textContent = 'Ordens de Serviço'; }
+        if (navPerfil) navPerfil.href = '/pages/09-perfil-empresa.html';
+        if (navExtra) { navExtra.href = '/pages/21-assinatura.html'; navExtra.textContent = 'Assinatura'; }
+    }
+
+    function mostrarMensagem(texto, tipo) {
+        const el = document.getElementById('mensagemStatus');
+        if (!el) return;
+        el.className = `alert alert-${tipo}`;
+        el.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
+        el.hidden = false;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 
     function escapeHtml(str) {
         return String(str ?? '').replace(/[&<>"']/g, function (ch) {
@@ -45,6 +63,86 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderizarIniciais(nome) {
         const partes = (nome || '').trim().split(' ');
         return partes.length > 1 ? (partes[0][0] + partes[1][0]).toUpperCase() : (nome || '??').substring(0, 2).toUpperCase();
+    }
+
+    // ── 3. Carregar as conversas em que EU sou participante (matches reais) ──
+    // Filtra no cliente: participanteAId/participanteBId são dois campos possíveis
+    // para "a outra parte", e o json-server deste projeto não faz filtro "OR"
+    // entre dois campos via query string.
+    const listaConversas = document.getElementById('lista-conversas');
+    const chatThread = document.getElementById('chat-thread');
+    const emptyStateThread = document.getElementById('empty-state-thread');
+    const areaEnvioMensagem = document.getElementById('area-envio-mensagem');
+    const tituloThread = document.getElementById('titulo-thread');
+
+    let minhasConversas = [];
+    let conversaAtual = null;
+    let outraParteAtual = null;
+
+    function outraParte(conversa) {
+        if (String(conversa.participanteAId) === String(meuId)) {
+            return { id: conversa.participanteBId, nome: conversa.participanteBNome, tipo: conversa.participanteBTipo };
+        }
+        return { id: conversa.participanteAId, nome: conversa.participanteANome, tipo: conversa.participanteATipo };
+    }
+
+    async function carregarConversas() {
+        try {
+            const res = await fetch(`${API_BASE}/conversas`);
+            if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
+            const todasConversas = await res.json();
+
+            minhasConversas = todasConversas.filter(function (c) {
+                return String(c.participanteAId) === String(meuId) || String(c.participanteBId) === String(meuId);
+            });
+
+            renderizarListaConversas();
+
+            // Veio de um link direto (ex.: preview de mensagens no dashboard) —
+            // abre essa conversa automaticamente.
+            const conversaIdDaUrl = new URLSearchParams(window.location.search).get('conversaId');
+            if (conversaIdDaUrl) {
+                const conversaAlvo = minhasConversas.find(function (c) { return String(c.id) === String(conversaIdDaUrl); });
+                if (conversaAlvo) abrirConversa(conversaAlvo);
+            }
+        } catch (erro) {
+            console.error('Erro ao carregar conversas:', erro);
+            if (listaConversas) listaConversas.innerHTML = '<p class="text-muted" style="font-size: 13px;">Não foi possível carregar suas conversas.</p>';
+        }
+    }
+
+    function renderizarListaConversas() {
+        if (!listaConversas) return;
+        listaConversas.innerHTML = '';
+
+        if (minhasConversas.length === 0) {
+            listaConversas.innerHTML = '<p class="text-muted" style="font-size: 13px; margin-top: 8px;">Você ainda não tem nenhuma conversa. Elas aparecem aqui automaticamente depois que uma candidatura for aprovada (match).</p>';
+            return;
+        }
+
+        // Mais recentes primeiro
+        const ordenadas = minhasConversas.slice().sort(function (a, b) {
+            return new Date(b.ultimaAtualizacao || 0) - new Date(a.ultimaAtualizacao || 0);
+        });
+
+        ordenadas.forEach(function (conversa) {
+            const contato = outraParte(conversa);
+            const btn = document.createElement('button');
+            btn.className = 'btn';
+            btn.style.cssText = 'justify-content: flex-start; gap: 10px; width: 100%;';
+            btn.dataset.conversaId = conversa.id;
+            btn.innerHTML = `
+                <span class="chat-avatar" style="width: 28px; height: 28px; font-size: 12px;">${escapeHtml(renderizarIniciais(contato.nome))}</span>
+                <span style="text-align:left; overflow:hidden;">
+                    <strong style="display:block; font-size:14px;">${escapeHtml(contato.nome || 'Contato')}</strong>
+                    <span class="text-muted" style="font-size:12px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(conversa.ultimaMensagem || '')}</span>
+                </span>
+            `;
+            btn.addEventListener('click', function () {
+                abrirConversa(conversa);
+            });
+            listaConversas.appendChild(btn);
+        });
     }
 
     function renderizarMensagens(mensagens) {
@@ -77,57 +175,60 @@ document.addEventListener('DOMContentLoaded', function () {
         chatThread.scrollTop = chatThread.scrollHeight;
     }
 
-    async function abrirConversa(indice, nomeContato) {
-        conversaAtual = conversaPorIndice[indice];
-        if (!conversaAtual || !chatThread) return;
+    async function abrirConversa(conversa) {
+        conversaAtual = conversa;
+        outraParteAtual = outraParte(conversa);
 
-        if (emptyState) emptyState.style.display = 'none';
-        if (tituloThread) tituloThread.textContent = `Conversa com ${nomeContato}`;
+        listaConversas.querySelectorAll('button').forEach(function (b) {
+            b.classList.toggle('btn-primary', b.dataset.conversaId === String(conversa.id));
+        });
 
-        botoesContato.forEach(function (b) { b.classList.remove('btn-primary'); });
-        botoesContato[indice].classList.add('btn-primary');
+        if (tituloThread) tituloThread.textContent = `Conversa com ${outraParteAtual.nome || 'contato'}`;
+        if (emptyStateThread) emptyStateThread.hidden = true;
+        if (areaEnvioMensagem) areaEnvioMensagem.hidden = false;
 
         try {
-            const res = await fetch(`${API_BASE}/mensagens?conversaId=${conversaAtual}`);
+            const res = await fetch(`${API_BASE}/mensagens?conversaId=${conversa.id}`);
             if (!res.ok) throw new Error('Falha ao carregar mensagens.');
             const mensagens = await res.json();
             renderizarMensagens(mensagens);
+
+            // Marca como lidas as mensagens recebidas por mim nesta conversa.
+            mensagens
+                .filter(function (m) { return String(m.destinatarioId) === String(meuId) && m.lida === false; })
+                .forEach(function (m) {
+                    fetch(`${API_BASE}/mensagens/${m.id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ lida: true })
+                    }).catch(function (erro) { console.error('Erro ao marcar mensagem como lida:', erro); });
+                });
         } catch (erro) {
             console.error('Erro ao carregar conversa:', erro);
             chatThread.innerHTML = '<p class="text-muted">Não foi possível carregar as mensagens.</p>';
         }
     }
 
-    botoesContato.forEach(function (btn, indice) {
-        const nomeSpan = btn.querySelector('span:last-child');
-        const nomeContato = nomeSpan ? nomeSpan.textContent.trim() : `Contato ${indice + 1}`;
-        btn.addEventListener('click', function () {
-            abrirConversa(indice, nomeContato);
-        });
-    });
+    carregarConversas();
 
     // ── 4. Enviar Mensagem ──
     const inputMensagem = document.getElementById('mensagem');
-    const botoesAcao = document.querySelectorAll('.cluster.mt-md .btn');
-    const btnEnviar = Array.from(botoesAcao).find(function (b) { return b.textContent.includes('Enviar'); });
+    const btnEnviar = document.getElementById('btn-enviar-mensagem');
 
     async function enviarMensagem() {
-        if (!inputMensagem || !chatThread || !conversaAtual) return;
+        if (!inputMensagem || !chatThread || !conversaAtual || !outraParteAtual) return;
         const texto = inputMensagem.value.trim();
         if (!texto) return;
 
-        const contatoAtivo = Array.from(botoesContato).find(function (b) { return b.classList.contains('btn-primary'); });
-        const nomeContato = contatoAtivo ? contatoAtivo.querySelector('span:last-child').textContent.trim() : 'Contato';
-        const idContato = 'outro-' + (conversaPorIndice.indexOf(conversaAtual) + 1);
-
         const novaMensagem = {
-            conversaId: conversaAtual,
+            conversaId: conversaAtual.id,
             remetenteId: meuId,
             remetenteNome: meuNome,
-            destinatarioId: conversaAtual === 'conv-1' ? '0UEUrH8HgJE' : idContato,
-            destinatarioNome: nomeContato,
+            destinatarioId: outraParteAtual.id,
+            destinatarioNome: outraParteAtual.nome,
             conteudo: texto,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            lida: false
         };
 
         inputMensagem.value = '';
@@ -144,8 +245,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(novaMensagem)
             });
+
+            // Mantém a conversa com o preview da última mensagem atualizado.
+            await fetch(`${API_BASE}/conversas/${conversaAtual.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ultimaMensagem: texto, ultimaAtualizacao: novaMensagem.timestamp })
+            });
+
+            conversaAtual.ultimaMensagem = texto;
+            conversaAtual.ultimaAtualizacao = novaMensagem.timestamp;
         } catch (erro) {
             console.error('Erro ao enviar mensagem:', erro);
+            mostrarMensagem('Não foi possível enviar a mensagem. Verifique se o json-server está rodando.', 'error');
         }
     }
 

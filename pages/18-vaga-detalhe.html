@@ -56,14 +56,24 @@
                     <i class="bi bi-check-circle-fill"></i> Sua candidatura foi enviada com sucesso! A empresa entrará em contato se houver interesse.
                 </div>
 
+                <!-- Estado de carregamento -->
+                <div id="vagaLoading" class="text-center">
+                    <p>Carregando vaga...</p>
+                </div>
+
+                <!-- Estado de erro -->
+                <div id="vagaErro" class="alert" role="alert" aria-live="polite" hidden>
+                    Não foi possível carregar esta vaga. Verifique se o link está correto e se o json-server está rodando.
+                </div>
+
                 <!-- Card Principal da Vaga -->
-                <div class="card stack mb-md animate-fade-in">
+                <div class="card stack mb-md animate-fade-in" id="vagaConteudo" hidden>
                     <div class="cluster-between" style="align-items: flex-start;">
                         <div>
-                            <h2 style="font-size: 24px; color: var(--color-primary); margin-bottom: 4px;">Costureira Pilotista</h2>
-                            <p class="text-muted"><i class="bi bi-building"></i> Confecção X &nbsp;&nbsp;|&nbsp;&nbsp; <i class="bi bi-geo-alt-fill"></i> São Paulo - SP</p>
+                            <h2 style="font-size: 24px; color: var(--color-primary); margin-bottom: 4px;" id="vaga-titulo">—</h2>
+                            <p class="text-muted"><i class="bi bi-building"></i> <span id="vaga-empresa">—</span> &nbsp;&nbsp;|&nbsp;&nbsp; <i class="bi bi-geo-alt-fill"></i> <span id="vaga-local">—</span></p>
                         </div>
-                        <span class="badge badge-success">Aberta</span>
+                        <span class="badge badge-success" id="vaga-status-badge">Aberta</span>
                     </div>
 
                     <hr style="border: 0; border-top: 1px solid var(--border); margin: 12px 0;">
@@ -71,66 +81,27 @@
                     <!-- Informações em Grid -->
                     <div class="grid-2">
                         <div>
-                            <p class="text-muted" style="font-size: 13px;">Categoria | Modalidade</p>
-                            <p><strong>Costura | Presencial</strong></p>
+                            <p class="text-muted" style="font-size: 13px;">Especialidade | Modalidade</p>
+                            <p><strong id="vaga-especialidade-modalidade">—</strong></p>
                         </div>
                         <div>
                             <p class="text-muted" style="font-size: 13px;">Valor Oferecido</p>
-                            <p><strong class="text-primary" style="font-size: 18px;">R$ 1.200,00</strong></p>
+                            <p><strong class="text-primary" style="font-size: 18px;" id="vaga-valor">—</strong></p>
                         </div>
                         <div>
                             <p class="text-muted" style="font-size: 13px;">Prazo de Entrega</p>
-                            <p><strong>10/12/2026</strong></p>
-                        </div>
-                        <div>
-                            <p class="text-muted" style="font-size: 13px;">Data da Publicação</p>
-                            <p><strong>01/07/2026 09:30</strong></p>
+                            <p><strong id="vaga-prazo">—</strong></p>
                         </div>
                     </div>
 
                     <h3 class="mt-md" style="font-size: 16px;">Descrição do Serviço</h3>
-                    <p style="background: var(--surface-alt); padding: 16px; border-radius: 8px;">
-                        Produção de peças piloto e ajustes finos para a nossa coleção de verão. O profissional precisa garantir o acabamento impecável antes de mandarmos para a produção em lote.
-                    </p>
-
-                    <h3 class="mt-sm" style="font-size: 16px;">Requisitos</h3>
-                    <p>Experiência prévia com modelagem e acabamento. Necessário portfólio de peças femininas.</p>
-
-                    <h3 class="mt-sm" style="font-size: 16px;">Habilidades e Máquinas Desejadas</h3>
-                    <div class="cluster">
-                        <span class="badge badge-primary-bg">Overloque</span>
-                        <span class="badge badge-primary-bg">Costura Reta</span>
-                        <span class="badge badge-primary-bg">Modelagem</span>
-                    </div>
-
-                    <h3 class="mt-sm" style="font-size: 16px;">Referências Visuais</h3>
-                    <div class="upload-file-preview" style="max-width: 300px;">
-                        <i class="bi bi-file-earmark-image"></i>
-                        <span>briefing-colecao.jpg (1.2 MB)</span>
-                        <a href="#" class="btn btn-ghost" style="margin-left: auto; padding: 4px 8px;" title="Baixar"><i class="bi bi-download"></i></a>
-                    </div>
+                    <p style="background: var(--surface-alt); padding: 16px; border-radius: 8px;" id="vaga-descricao">—</p>
 
                     <!-- Botão de Ação -->
                     <div class="form-actions mt-lg" style="justify-content: center; padding-top: 16px; border-top: 1px solid var(--border);">
                         <button id="btnCandidatar" class="btn btn-primary btn-lg" style="width: 100%; max-width: 350px;">
                             <i class="bi bi-send-check-fill"></i> Candidatar-se a esta vaga
                         </button>
-                    </div>
-                </div>
-
-                <!-- Histórico de Evolução da Vaga -->
-                <div class="card mt-md animate-slide-up" style="animation-delay: 0.1s;">
-                    <h3 style="font-size: 16px; margin-bottom: 16px;">Histórico de Evolução</h3>
-                    <div class="timeline">
-                        <div class="timeline-item">
-                            <strong>01/07/2026</strong> - Vaga publicada na plataforma.
-                        </div>
-                        <div class="timeline-item">
-                            <strong>02/07/2026</strong> - Recebimento das primeiras candidaturas.
-                        </div>
-                        <div class="timeline-item" style="border-left-color: var(--border);">
-                            <span class="text-muted">Aguardando definição de profissional...</span>
-                        </div>
                     </div>
                 </div>
 

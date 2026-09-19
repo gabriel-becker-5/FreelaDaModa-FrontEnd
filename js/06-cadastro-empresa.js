@@ -22,6 +22,14 @@ const inputSenha = document.querySelector("#senha");
 const inputConfirmaSenha = document.querySelector("#senha-confirmacao");
 const alertBar = document.querySelector(".alert.alert-success");
 
+function mostrarMensagem(texto, tipo) {
+    if (!alertBar) return;
+    alertBar.className = `alert alert-${tipo}`; // tipo: 'success' | 'error'
+    alertBar.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
+    alertBar.hidden = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 // Busca endereço via API
 async function consultaCEP(campoCEP, campoEndereco, campoNumero, campoBairro, campoCidade, campoEstado, campoComplemento) {
     try {
@@ -43,7 +51,7 @@ async function consultaCEP(campoCEP, campoEndereco, campoNumero, campoBairro, ca
             campoComplemento.value = "";
             campoBairro.value = "";
             campoCEP.value = "";
-            alert("Verifique o CEP informado, endereço incorreto ou não localizado.");
+            mostrarMensagem("Verifique o CEP informado, endereço incorreto ou não localizado.", "error");
             return;
         }
         else 
@@ -322,8 +330,7 @@ try
     }
 
     limparFormulario();
-    alertBar.removeAttribute("hidden");
-    window.scrollTo({top: 0, behavior: "smooth"});
+    mostrarMensagem("Cadastro realizado com sucesso! Você será redirecionado em 5 segundos.", "success");
     await sleep(5000);
     window.location.href = "/pages/01-homepage.html";
     

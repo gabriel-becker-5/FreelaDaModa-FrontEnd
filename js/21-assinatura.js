@@ -20,6 +20,15 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    function mostrarMensagem(texto, tipo) {
+        const el = document.getElementById('mensagemStatus');
+        if (!el) return;
+        el.className = `alert alert-${tipo}`; // tipo: 'success' | 'error'
+        el.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
+        el.hidden = false;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
     // ── 3. Carregar a Assinatura da Empresa ──
     // sem sessão, cai na empresa de exemplo pra não ficar vazio
     const sessao = JSON.parse(sessionStorage.getItem('usuarioLogado') || 'null');
@@ -122,10 +131,26 @@ document.addEventListener('DOMContentLoaded', function () {
                     renderizarAssinatura(await res.json());
                 }
 
-                alert(`Plano ${nomePlano.textContent.trim()} contratado com sucesso!`);
+                // Avisa a empresa sobre a cobrança confirmada.
+                fetch(`${API_BASE}/notificacoes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        usuarioId: empresaId,
+                        usuarioTipo: 'empresas',
+                        tipo: 'pagamento',
+                        titulo: 'Pagamento confirmado',
+                        mensagem: `Pagamento de ${valorPlano} do plano ${nomePlano.textContent.trim()} confirmado. Próxima cobrança em ${proximaCobranca.toLocaleDateString('pt-BR')}.`,
+                        lida: false,
+                        criadoEm: hoje.toISOString(),
+                        link: '/pages/21-assinatura.html'
+                    })
+                }).catch(function (erro) { console.error('Erro ao criar notificação de pagamento:', erro); });
+
+                mostrarMensagem(`Plano ${nomePlano.textContent.trim()} contratado com sucesso!`, 'success');
             } catch (erro) {
                 console.error('Erro ao contratar plano:', erro);
-                alert('Não foi possível contratar o plano. Verifique se o json-server está rodando.');
+                mostrarMensagem('Não foi possível contratar o plano. Verifique se o json-server está rodando.', 'error');
                 btn.innerHTML = textoOriginal;
             } finally {
                 btn.disabled = false;

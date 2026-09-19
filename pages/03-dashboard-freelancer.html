@@ -39,6 +39,19 @@
         <div class="header">
             <h2>Meu Painel</h2>
             <div class="header-actions">
+                <div class="notif-bell-wrapper">
+                    <button class="btn btn-outline" id="btn-notificacoes" aria-label="Notificações" aria-haspopup="true" aria-expanded="false">
+                        <i class="bi bi-bell"></i>
+                        <span class="notif-badge" id="notif-badge" hidden>0</span>
+                    </button>
+                    <div class="notif-dropdown" id="notif-dropdown" hidden>
+                        <div class="notif-dropdown-header">
+                            <strong>Notificações</strong>
+                            <button type="button" id="btn-marcar-todas-lidas" class="btn btn-ghost" style="font-size: 12px; padding: 2px 6px;">Marcar todas como lidas</button>
+                        </div>
+                        <div id="notif-lista"></div>
+                    </div>
+                </div>
                 <button class="btn btn-outline" id="btn-logout">
                     <i class="bi bi-box-arrow-right"></i> Sair
                 </button>
@@ -64,7 +77,7 @@
             <div class="metric-card">
                 <div class="metric-icon"><i class="bi bi-clock-history"></i></div>
                 <div class="metric-info">
-                    <strong id="metric-ativos">2</strong>
+                    <strong id="metric-ativos">—</strong>
                     <span>Serviços em andamento</span>
                 </div>
             </div>
@@ -72,7 +85,7 @@
             <div class="metric-card">
                 <div class="metric-icon"><i class="bi bi-send-check"></i></div>
                 <div class="metric-info">
-                    <strong id="metric-candidaturas">5</strong>
+                    <strong id="metric-candidaturas">—</strong>
                     <span>Propostas enviadas</span>
                 </div>
             </div>
@@ -80,7 +93,7 @@
             <div class="metric-card">
                 <div class="metric-icon"><i class="bi bi-cash-coin"></i></div>
                 <div class="metric-info">
-                    <strong id="metric-faturamento">R$ 4.200</strong>
+                    <strong id="metric-faturamento">—</strong>
                     <span>Ganhos acumulados</span>
                 </div>
             </div>
@@ -88,7 +101,7 @@
             <div class="metric-card">
                 <div class="metric-icon"><i class="bi bi-star-fill" style="color: #f59e0b;"></i></div>
                 <div class="metric-info">
-                    <strong>4.9 / 5.0</strong>
+                    <strong id="metric-avaliacao">—</strong>
                     <span>Avaliação média</span>
                 </div>
             </div>
@@ -104,25 +117,11 @@
                 <div class="section-box">
                     <div class="box-title">
                         <h2><i class="bi bi-scissors"></i> Minhas Produções Atuais</h2>
-                        <span style="font-size: 0.85rem; color: var(--color-primary); font-weight: 600;">2 ativas</span>
+                        <span style="font-size: 0.85rem; color: var(--color-primary); font-weight: 600;" id="contador-servicos-texto">Carregando...</span>
                     </div>
 
                     <div class="services-list" id="lista-servicos">
-                        <div class="service-item">
-                            <div class="service-info">
-                                <h3>Lote de 200 Blazers Linho — Confecção Silva</h3>
-                                <span>Prazo: 22/08/2026 • Valor: R$ 3.500,00</span>
-                            </div>
-                            <span class="status-badge status-em-producao">Em Costura</span>
-                        </div>
-
-                        <div class="service-item">
-                            <div class="service-info">
-                                <h3>Graduação Moldes Verão — Confecção Costa</h3>
-                                <span>Prazo: 18/08/2026 • Valor: R$ 700,00</span>
-                            </div>
-                            <span class="status-badge status-em-producao">Modelagem</span>
-                        </div>
+                        <!-- Carregado via ordensServico da API -->
                     </div>
                 </div>
 
@@ -142,6 +141,16 @@
 
             <!-- Coluna Lateral (Perfil Rápido) -->
             <div class="sidebar-column">
+                <div class="section-box">
+                    <div class="box-title">
+                        <h2><i class="bi bi-chat-dots"></i> Mensagens Recentes</h2>
+                        <a href="/pages/11-chat.html" style="font-size: 0.85rem; color: var(--color-primary); text-decoration: none; font-weight: 600;">Ver todas</a>
+                    </div>
+                    <div id="preview-conversas">
+                        <p class="text-muted" style="font-size: 0.85rem;">Carregando...</p>
+                    </div>
+                </div>
+
                 <div class="section-box profile-quick-view">
                     <div class="profile-avatar-big" id="avatar-iniciais">KV</div>
                     <h3 id="profile-nome">Karina Vicente</h3>

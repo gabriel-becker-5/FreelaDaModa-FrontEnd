@@ -2,7 +2,6 @@
 // Pendências
 // 1. ID da Empresa logada
 // 2. Token JWT
-// 3. Fetch no botão 'Entrar em contato'
 
 const API_URL = `${API_BASE}/empresas`;
 const API_URL_VAGAS = `${API_BASE}/vagas`;
@@ -166,7 +165,7 @@ function exibirVagasAtivas(vagas)
 
         const linkVaga = document.createElement('a');
         linkVaga.textContent = 'Ver vaga';
-        linkVaga.href = vaga.link;
+        linkVaga.href = `/pages/18-vaga-detalhe.html?id=${encodeURIComponent(vaga.id)}`;
         linkVaga.className = 'btn';
         linkVaga.style.cssText = 'padding: 5px 10px; font-size: 12px;';
 
@@ -240,7 +239,7 @@ async function carregarPerfil()
 
         const dadosAvaliacoes = await respostaAvaliacoes.json();
 
-        const respostaVagas = await fetch(`${API_URL_VAGAS}?empresaId=${empresaId}&status=ativa`,
+        const respostaVagas = await fetch(`${API_URL_VAGAS}?empresaId=${empresaId}&status=Aberta`,
         {
             method: "GET",
             headers: 
@@ -273,13 +272,15 @@ async function carregarPerfil()
 carregarPerfil();
 
 
-// Botão "Entrar em contato" -> redireciona para chat
-const botoesContatar = document.querySelectorAll(".btn-primary.btn-lg");
+// Botão "Ver vagas abertas" -> leva até a lista de vagas da empresa nesta mesma
+// página. O freelancer se candidata pela vaga (fluxo correto), não por um
+// botão genérico de contato direto com a empresa.
+const botoesVerVagas = document.querySelectorAll(".btn-ver-vagas");
 
-for (let index = 0; index < botoesContatar.length; index++) 
+for (let index = 0; index < botoesVerVagas.length; index++)
 {
-    botoesContatar[index].addEventListener("click", () => 
+    botoesVerVagas[index].addEventListener("click", () =>
     {
-        window.location.href = "/pages/11-chat.html";
+        listaVagasAtivas.scrollIntoView({ behavior: "smooth", block: "center" });
     });
 }

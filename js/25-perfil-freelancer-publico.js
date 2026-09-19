@@ -2,7 +2,6 @@
 // Pendências
 // 1. ID do Freelancer logado
 // 2. Token JWT
-// 3. Fetch no botão 'Convidar para Vaga'
 
 const API_URL = `${API_BASE}/freelancers`;
 const API_URL_AVALIACOES = `${API_BASE}/avaliacoes`;
@@ -20,7 +19,7 @@ const descricaoFreelancer = document.querySelector("#descricao-freelancer");
 const listaEspecialidades = document.querySelector("#lista-especialidades");
 const listaMaquinas = document.querySelector("#lista-maquinas");
 const listaAvaliacoes = document.querySelector("#lista-avaliacoes");
-const botoesConvidar = document.querySelectorAll(".btn-primary.btn-lg");
+const botoesConvidar = document.querySelectorAll(".btn-convidar");
 const infoTipoNegocio = document.querySelector("#info-tipo-negocio");
 const infoExperiencia = document.querySelector("#info-experiencia");
 const infoOficina = document.querySelector("#info-oficina");
@@ -226,11 +225,196 @@ async function carregarPerfil()
 
 carregarPerfil();
 
-// Botão "Convidar para vaga"
-for (let index = 0; index < botoesConvidar.length; index++) 
+// Mensagem inline (mesmo padrão do Suporte)
+function mostrarMensagem(texto, tipo)
 {
-    botoesConvidar[index].addEventListener("click", () => 
+    const el = document.getElementById("mensagemStatus");
+    if (!el) return;
+    el.className = `alert alert-${tipo}`; // tipo: 'success' | 'error'
+    el.innerHTML = `<i class="bi ${tipo === "success" ? "bi-check-circle-fill" : "bi-exclamation-circle-fill"}"></i> ${texto}`;
+    el.hidden = false;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// Confere se a empresa tem uma assinatura com status "ativo" — convidar um
+// freelancer é um recurso pago, então isso não pode continuar funcionando pra
+// quem nunca contratou nenhum plano (ver tela de Assinatura).
+async function empresaTemAssinaturaAtiva(empresaId)
+{
+    try
     {
-        alert("Convite enviado para o freelancer!");
+        const res = await fetch(`${API_BASE}/assinaturas?empresaId=${empresaId}`);
+        if (!res.ok) return false;
+        const assinaturas = await res.json();
+        return assinaturas.some(function (a) { return a.status === "ativo"; });
+    }
+    catch (erro)
+    {
+        console.error("Erro ao verificar assinatura:", erro);
+        return false;
+    }
+}
+
+// Botão "Convidar para vaga" -> abre modal para escolher a vaga antes de registrar o convite
+const modalConvidar = document.getElementById("modalConvidar");
+const listaVagasConvite = document.getElementById("convidar-lista-vagas");
+const btnCancelarConvite = document.getElementById("btnCancelarConvite");
+const btnConfirmarConvite = document.getElementById("btnConfirmarConvite");
+const nomeFreelancerConvite = document.getElementById("convidar-nome-freelancer");
+let vagaSelecionadaConvite = null;
+
+function fecharModalConvidar()
+{
+    if (modalConvidar) modalConvidar.style.display = "none";
+    vagaSelecionadaConvite = null;
+    if (btnConfirmarConvite) btnConfirmarConvite.disabled = true;
+}
+
+async function abrirModalConvidar()
+{
+    const sessao = JSON.parse(sessionStorage.getItem("usuarioLogado") || "null");
+
+    if (!sessao || sessao.tipo !== "empresas")
+    {
+        mostrarMensagem("Apenas empresas logadas podem convidar freelancers para uma vaga.", "error");
+        return;
+    }
+
+    const assinaturaAtiva = await empresaTemAssinaturaAtiva(sessao.id);
+    if (!assinaturaAtiva)
+    {
+        mostrarMensagem("Sua empresa não tem uma assinatura ativa. Contrate um plano na página de Assinatura para convidar freelancers.", "error");
+        return;
+    }
+
+    if (nomeFreelancerConvite) nomeFreelancerConvite.textContent = nomeFreelancer.textContent || "este freelancer";
+    if (listaVagasConvite) listaVagasConvite.innerHTML = "<p class=\"text-muted\">Carregando suas vagas abertas...</p>";
+    if (modalConvidar) modalConvidar.style.display = "flex";
+
+    try
+    {
+        const resposta = await fetch(`${API_BASE}/vagas?empresaId=${sessao.id}&status=Aberta`);
+        if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
+        const vagasAbertas = await resposta.json();
+
+        if (!listaVagasConvite) return;
+        listaVagasConvite.innerHTML = "";
+
+        if (vagasAbertas.length === 0)
+        {
+            listaVagasConvite.innerHTML = "<p class=\"text-muted\">Você não tem nenhuma vaga aberta no momento. Publique uma vaga antes de convidar um freelancer.</p>";
+            return;
+        }
+
+        vagasAbertas.forEach(function (vaga)
+        {
+            const opcao = document.createElement("label");
+            opcao.className = "checkbox-label";
+            opcao.style.cssText = "border:1px solid var(--border); border-radius:8px; padding:10px 12px; cursor:pointer;";
+            opcao.innerHTML = `
+                <input type="radio" name="vaga-convite" value="${vaga.id}">
+                <span>${vaga.titulo} <span class="text-muted" style="font-size:12px;">(${vaga.especialidade || "—"} · ${vaga.valor || "—"})</span></span>
+            `;
+            listaVagasConvite.appendChild(opcao);
+        });
+
+        listaVagasConvite.querySelectorAll('input[name="vaga-convite"]').forEach(function (radio)
+        {
+            radio.addEventListener("change", function ()
+            {
+                vagaSelecionadaConvite = vagasAbertas.find(function (v) { return String(v.id) === String(radio.value); }) || null;
+                if (btnConfirmarConvite) btnConfirmarConvite.disabled = !vagaSelecionadaConvite;
+            });
+        });
+    }
+    catch (erro)
+    {
+        console.error("Erro ao carregar vagas abertas para convite:", erro);
+        if (listaVagasConvite) listaVagasConvite.innerHTML = "<p class=\"text-muted\">Não foi possível carregar suas vagas. Verifique se o json-server está rodando.</p>";
+    }
+}
+
+for (let index = 0; index < botoesConvidar.length; index++)
+{
+    botoesConvidar[index].addEventListener("click", abrirModalConvidar);
+}
+
+if (btnCancelarConvite) btnCancelarConvite.addEventListener("click", fecharModalConvidar);
+
+if (btnConfirmarConvite)
+{
+    btnConfirmarConvite.addEventListener("click", async function ()
+    {
+        const sessao = JSON.parse(sessionStorage.getItem("usuarioLogado") || "null");
+        if (!sessao || sessao.tipo !== "empresas" || !vagaSelecionadaConvite) return;
+
+        btnConfirmarConvite.disabled = true;
+        const textoOriginal = btnConfirmarConvite.innerHTML;
+        btnConfirmarConvite.innerHTML = "<span class=\"spinner\"></span> Enviando...";
+
+        try
+        {
+            // Evita convidar o mesmo freelancer duas vezes para a mesma vaga.
+            const respostaExistentes = await fetch(`${API_BASE}/convites?empresaId=${sessao.id}`);
+            const convitesDaEmpresa = respostaExistentes.ok ? await respostaExistentes.json() : [];
+            const jaConvidado = convitesDaEmpresa.some(function (c) {
+                return String(c.vagaId) === String(vagaSelecionadaConvite.id) && String(c.freelancerId) === String(freelancerId) && c.status !== 'Recusado';
+            });
+
+            if (jaConvidado)
+            {
+                fecharModalConvidar();
+                mostrarMensagem("Você já convidou este freelancer para essa vaga.", "error");
+                return;
+            }
+
+            const novoConvite = {
+                vagaId: vagaSelecionadaConvite.id,
+                vagaTitulo: vagaSelecionadaConvite.titulo,
+                empresaId: sessao.id,
+                empresaNome: sessao.nome,
+                freelancerId: freelancerId,
+                freelancerNome: nomeFreelancer.textContent || "",
+                status: "Pendente",
+                tipo: "Convite",
+                criadoEm: new Date().toISOString()
+            };
+
+            const resposta = await fetch(`${API_BASE}/convites`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(novoConvite)
+            });
+            if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
+
+            // Avisa o freelancer que ele recebeu um convite.
+            fetch(`${API_BASE}/notificacoes`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    usuarioId: freelancerId,
+                    usuarioTipo: "freelancers",
+                    tipo: "convite",
+                    titulo: "Novo convite de vaga",
+                    mensagem: `${sessao.nome} convidou você para a vaga "${novoConvite.vagaTitulo}".`,
+                    lida: false,
+                    criadoEm: new Date().toISOString(),
+                    link: "/pages/20-minhas-candidaturas.html"
+                })
+            }).catch(function (erro) { console.error("Erro ao criar notificação de convite:", erro); });
+
+            fecharModalConvidar();
+            mostrarMensagem(`Convite para a vaga "${novoConvite.vagaTitulo}" enviado ao freelancer!`, "success");
+        }
+        catch (erro)
+        {
+            console.error("Erro ao registrar convite:", erro);
+            mostrarMensagem("Não foi possível registrar o convite. Verifique se o json-server está rodando.", "error");
+        }
+        finally
+        {
+            btnConfirmarConvite.disabled = false;
+            btnConfirmarConvite.innerHTML = textoOriginal;
+        }
     });
 }

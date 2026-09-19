@@ -38,6 +38,7 @@
         ><a href="/pages/12-publicar-vaga.html">Publicar Vaga</a
         ><a href="/pages/15-minhas-vagas.html">Minhas Vagas</a
         ><a href="/pages/27-mural-freelancers.html">Buscar Freelancers</a
+        ><a href="/pages/11-chat.html">Chat</a
         ><a class="active" href="/pages/16-ordens-servico.html" aria-current="page">Ordens de Serviço</a
         ><a href="/pages/09-perfil-empresa.html">Perfil</a
         ><a href="/pages/21-assinatura.html">Assinatura</a
@@ -55,7 +56,10 @@
           <p><strong>Freelancer:</strong> <span id="resumo-freelancer">Maria Silva</span></p>
           <p><strong>Status:</strong> <span id="resumo-status">Concluída</span></p>
         </section>
-        <form class="card">
+        <div id="avisoNaoConcluida" class="alert alert-error mb-md" role="alert" aria-live="polite" hidden>
+          <i class="bi bi-exclamation-circle-fill"></i> Esta Ordem de Serviço ainda não foi concluída. A avaliação só fica disponível depois que o serviço é finalizado.
+        </div>
+        <form class="card" id="formAvaliacao">
           <div class="alert alert-success" role="alert" aria-live="polite">
             Área para confirmação de envio da avaliação.
           </div>

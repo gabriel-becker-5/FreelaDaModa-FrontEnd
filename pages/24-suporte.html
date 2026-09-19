@@ -55,14 +55,14 @@
             <div class="section-title">Abrir chamado</div>
             <div class="form-group">
               <label for="suporte-assunto">Assunto</label
-              ><select id="suporte-assunto" class="input input-error" required>
+              ><select id="suporte-assunto" class="input" required>
                 <option>Selecione</option>
                 <option>Dúvida</option>
                 <option>Erro no sistema</option>
                 <option>Pagamento</option>
                 <option>Conta e acesso</option>
                 <option>Denúncia</option></select
-              ><span class="field-message field-message-error"
+              ><span id="suporte-assunto-erro" class="field-message field-message-error" hidden
                 ><i class="bi bi-exclamation-circle-fill"></i> Selecione um assunto para continuar.</span>
             </div>
             <div class="form-group">
@@ -77,10 +77,18 @@
             </div>
             <div class="form-group">
               <label for="suporte-anexo">Anexo (opcional)</label>
-              <div class="upload-dropzone" style="padding: 16px;">
+              <div class="upload-dropzone" id="suporte-dropzone" style="padding: 16px;">
                 <i class="bi bi-paperclip"></i>
                 <p>Clique para anexar uma imagem</p>
                 <p style="font-size: 11px;">Somente imagens até 10MB.</p>
+                <input type="file" id="suporte-anexo-input" accept="image/*" hidden>
+              </div>
+              <div id="suporte-anexo-preview" class="upload-file-preview" style="display: none;">
+                <i class="bi bi-file-earmark-image"></i>
+                <span id="suporte-anexo-nome"></span>
+                <button type="button" class="btn btn-ghost" id="btnRemoverAnexo" style="padding:4px 8px;">
+                  <i class="bi bi-x-lg"></i>
+                </button>
               </div>
             </div>
             <div class="form-actions">

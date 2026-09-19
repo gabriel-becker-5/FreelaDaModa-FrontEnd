@@ -1,6 +1,17 @@
 const API_URL = `${API_BASE}/freelancers`;
 let todosFreelancers = [];
 
+// freelancerId -> nome do plano de impulsionamento ativo (ex.: "Pro", "Premium")
+let impulsoPorFreelancer = {};
+
+// Quanto maior, mais destaque no mural — é o que as empresas pagam pra ter
+// quando assinam Impulsionamento (ver pages/10-impulsionamento.html).
+const PRIORIDADE_IMPULSO = { 'Pro': 2, 'Premium': 1 };
+
+function prioridadeDoFreelancer(freela) {
+    return PRIORIDADE_IMPULSO[impulsoPorFreelancer[freela.id]] || 0;
+}
+
 function escapeHtml(str) {
     return String(str ?? '').replace(/[&<>"']/g, function (ch) {
         return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
@@ -50,10 +61,22 @@ async function carregarFreelancers() {
     container.innerHTML = '<div class="empty-state"><i class="bi bi-hourglass-split"></i><p>Carregando freelancers...</p></div>';
 
     try {
-        const response = await fetch(API_URL);
+        const [response, respostaImpulsionamentos] = await Promise.all([
+            fetch(API_URL),
+            fetch(`${API_BASE}/impulsionamentos`)
+        ]);
         if (!response.ok) throw new Error('Erro ao buscar freelancers.');
 
         todosFreelancers = await response.json();
+
+        impulsoPorFreelancer = {};
+        if (respostaImpulsionamentos.ok) {
+            const impulsionamentos = await respostaImpulsionamentos.json();
+            impulsionamentos
+                .filter(function (imp) { return imp.status === 'ativo'; })
+                .forEach(function (imp) { impulsoPorFreelancer[imp.freelancerId] = imp.plano; });
+        }
+
         popularFiltroEspecialidades(todosFreelancers);
 
         // vindo da lupa da Home via ?busca=
@@ -121,9 +144,21 @@ function renderizarFreelancers(freelancers) {
         return;
     }
 
-    freelancers.forEach(freela => {
+    // Quem impulsionou o perfil (Pro/Premium) aparece primeiro — é o que a
+    // empresa está pagando por em pages/10-impulsionamento.html. Ordenação
+    // estável: dentro do mesmo nível de destaque, mantém a ordem original.
+    const freelancersOrdenados = freelancers
+        .map(function (freela, indice) { return { freela: freela, indice: indice }; })
+        .sort(function (a, b) {
+            const diferenca = prioridadeDoFreelancer(b.freela) - prioridadeDoFreelancer(a.freela);
+            return diferenca !== 0 ? diferenca : a.indice - b.indice;
+        })
+        .map(function (item) { return item.freela; });
+
+    freelancersOrdenados.forEach(freela => {
         const card = document.createElement('article');
-        card.className = 'freelancer-card';
+        const plano = impulsoPorFreelancer[freela.id];
+        card.className = 'freelancer-card' + (plano ? ' freelancer-card-destaque' : '');
 
         const iniciais = iniciaisDoNome(freela.nome);
         const cidadeEstado = [
@@ -132,6 +167,7 @@ function renderizarFreelancers(freelancers) {
         ].filter(Boolean).join(' - ');
 
         card.innerHTML = `
+            ${plano ? `<span class="badge badge-primary-bg freelancer-badge-destaque"><i class="bi bi-star-fill"></i> Destaque ${escapeHtml(plano)}</span>` : ''}
             <div class="profile-avatar-lg">${escapeHtml(iniciais)}</div>
             <h3>${escapeHtml(freela.nome)}</h3>
             <span class="badge freelancer-especialidade">${escapeHtml(freela.especialidade || 'Freelancer')}</span>

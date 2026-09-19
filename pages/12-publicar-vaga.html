@@ -29,6 +29,7 @@
         <a class="active" href="/pages/12-publicar-vaga.html" aria-current="page">Publicar Vaga</a>
         <a href="/pages/15-minhas-vagas.html">Minhas Vagas</a>
         <a href="/pages/27-mural-freelancers.html">Buscar Freelancers</a>
+        <a href="/pages/11-chat.html">Chat</a>
         <a href="/pages/16-ordens-servico.html">Ordens de Serviço</a>
         <a href="/pages/09-perfil-empresa.html">Perfil</a>
         <a href="/pages/21-assinatura.html">Assinatura</a>
@@ -74,8 +75,10 @@
                             <label for="categoria"><strong>Categoria *</strong></label>
                             <select id="categoria" class="input" required>
                                 <option value="">Selecione uma categoria</option>
-                                <option value="Costura">Costura</option>
+                                <option value="Costura reta">Costura reta</option>
+                                <option value="Overloque">Overloque</option>
                                 <option value="Modelagem">Modelagem</option>
+                                <option value="Peça piloto">Peça piloto</option>
                                 <option value="Acabamento">Acabamento</option>
                                 <option value="Bordado">Bordado</option>
                                 <option value="Estamparia">Estamparia</option>
@@ -118,7 +121,7 @@
                             <label for="valor"><strong>Valor Oferecido (R$) *</strong></label>
                             <div class="input-number-group">
                                 <button type="button" class="input-number-btn" id="btnDecrementar">-</button>
-                                <input type="text" id="valor" class="input" value="R$ 1.200,00" required>
+                                <input type="text" id="valor" class="input" placeholder="R$ 0,00" required>
                                 <button type="button" class="input-number-btn" id="btnIncrementar">+</button>
                             </div>
                         </div>

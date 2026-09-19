@@ -40,6 +40,16 @@ const inputMaquinas = document.querySelector("#multi-select-maquinas");
 const exibeSenha = document.querySelector("#exibeSenha");
 const exibeConfirmaSenha = document.querySelector("#exibeConfirmaSenha");
 
+// Mensagens inline (mesmo padrão do Suporte) reaproveitando a barra de alerta já existente no formulário
+function mostrarMensagem(texto, tipo)
+{
+    if (!alertBar) return;
+    alertBar.className = `alert ${tipo === "success" ? "alert-success" : "alert-error"}`;
+    alertBar.innerHTML = `<i class="bi ${tipo === "success" ? "bi-check-circle-fill" : "bi-exclamation-circle-fill"}"></i> ${texto}`;
+    alertBar.removeAttribute("hidden");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
 // Toggle exibe / oculta senha
 exibeSenha.addEventListener("click", () => 
 {
@@ -200,9 +210,9 @@ selectProdutorFixo.addEventListener("change", () =>
 // Se Produtor Fixo = Sim então obriga o preenchimento do nome do produtor
 function preenchimentoProdutorFixo() 
 {
-    if(selectProdutorFixo.value === "Sim" && inputNomeProdutor.value === "") 
+    if(selectProdutorFixo.value === "Sim" && inputNomeProdutor.value === "")
     {
-        alert("Informe o Nome do Produtor Fixo.");
+        mostrarMensagem("Informe o Nome do Produtor Fixo.", "error");
         return false;
     }
     else 
@@ -333,7 +343,7 @@ form.addEventListener("submit", async (evento) =>
 
     if(especialidadesSelecionadas.length < 1)
     {
-        alert("Selecione pelo menos uma Especialidade antes de prosseguir.");
+        mostrarMensagem("Selecione pelo menos uma Especialidade antes de prosseguir.", "error");
         return;
     }
 
@@ -341,7 +351,7 @@ form.addEventListener("submit", async (evento) =>
 
     if(maquinasSelecionadas.length < 1)
     {
-        alert("Selecione pelo menos uma Máquina antes de prosseguir.");
+        mostrarMensagem("Selecione pelo menos uma Máquina antes de prosseguir.", "error");
         return;
     }
 
@@ -403,8 +413,7 @@ try
     }
 
     limparFormulario();
-    alertBar.removeAttribute("hidden");
-    window.scrollTo({top: 0, behavior: "smooth"});
+    mostrarMensagem("Cadastro realizado com sucesso! Você será redirecionado em 5 segundos.", "success");
     await sleep(5000);
     window.location.href = "/pages/01-homepage.html";
     
@@ -437,7 +446,7 @@ async function consultaCEP(campoCEP, campoEndereco, campoNumero, campoBairro, ca
             campoComplemento.value = "";
             campoBairro.value = "";
             campoCEP.value = "";
-            alert("Verifique o CEP informado, endereço incorreto ou não localizado.");
+            mostrarMensagem("Verifique o CEP informado, endereço incorreto ou não localizado.", "error");
             return;
         }
         else 

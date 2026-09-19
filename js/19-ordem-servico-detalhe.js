@@ -20,14 +20,29 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // ── Proteção de rota (só empresa logada) ──
+    const sessao = JSON.parse(sessionStorage.getItem('usuarioLogado') || 'null');
+    if (!sessao || sessao.tipo !== 'empresas') {
+        window.location.href = '/pages/02-login.html';
+        return;
+    }
+
     // ── 3. Carregar a Ordem de Serviço ──
     const params = new URLSearchParams(window.location.search);
     const idOS = params.get('id');
 
     if (!idOS) {
-        alert('Ordem de serviço não especificada.');
         window.location.href = '/pages/16-ordens-servico.html';
         return;
+    }
+
+    function mostrarMensagem(texto, tipo) {
+        const el = document.getElementById('mensagemStatus');
+        if (!el) return;
+        el.className = `alert alert-${tipo}`;
+        el.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
+        el.hidden = false;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function formatarDataHora(iso) {
@@ -55,7 +70,41 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Renderiza o anexo de uma OS (briefing/entrega). Aceita tanto o formato
+    // novo, gravado pelo upload real ({ nome, tipo, tamanho, dados }, "dados"
+    // em base64), quanto o formato legado (apenas um nome de arquivo em texto).
+    function renderizarAnexo(elementoId, valor) {
+        const el = document.getElementById(elementoId);
+        if (!el) return;
+
+        if (!valor) {
+            el.textContent = 'Nenhum arquivo anexado.';
+            return;
+        }
+
+        if (typeof valor === 'object' && valor.nome) {
+            const tamanho = typeof valor.tamanho === 'number'
+                ? ` (${(valor.tamanho / 1024 / 1024).toFixed(1)} MB)`
+                : '';
+            const ehImagem = valor.tipo && valor.tipo.startsWith('image/') && valor.dados;
+            el.innerHTML = `
+                <div style="display:flex; align-items:center; gap:10px;">
+                    ${ehImagem ? `<img src="${valor.dados}" alt="${escapeHtml(valor.nome)}" style="width:56px; height:56px; object-fit:cover; border-radius:8px; border:1px solid var(--border);">` : '<i class="bi bi-file-earmark-image" style="font-size:24px;"></i>'}
+                    <div>
+                        <div>${escapeHtml(valor.nome)}${tamanho}</div>
+                        ${valor.dados ? `<a href="${valor.dados}" download="${escapeHtml(valor.nome)}" style="font-size:12px;">Baixar arquivo</a>` : ''}
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        // Formato legado: apenas o nome do arquivo, sem dados reais para exibir/baixar.
+        el.textContent = String(valor);
+    }
+
     let osAtual = null;
+    let acessoNegado = false;
 
     function renderizarOS(os) {
         osAtual = os;
@@ -80,14 +129,19 @@ document.addEventListener('DOMContentLoaded', function () {
         badgeStatus.className = `badge ${classeBadgeStatus(os.status)}`;
         badgeStatus.textContent = os.status;
 
+        // "Finalizar" só faz sentido enquanto a OS está em andamento — uma OS
+        // já concluída ou cancelada não deve poder ser "finalizada" de novo.
+        const btnFinalizarOS = document.getElementById('btn-finalizar-os');
+        if (btnFinalizarOS) btnFinalizarOS.hidden = os.status !== 'Em andamento';
+
         document.getElementById('os-freelancer-display').textContent = os.freelancerNome || '—';
         document.getElementById('os-prazo-display').textContent = formatarData(os.prazo);
         document.getElementById('os-previsao-display').textContent = formatarData(os.previsaoConclusao);
         document.getElementById('os-avaliacao-freela-display').textContent = os.avaliacaoFreelancer || 'Pendente';
         document.getElementById('os-avaliacao-conf-display').textContent = os.avaliacaoConfeccao || 'Pendente';
         document.getElementById('os-observacoes-display').textContent = os.observacoes || '—';
-        document.getElementById('os-briefing-display').textContent = os.referenciaBriefing || 'Nenhum arquivo anexado.';
-        document.getElementById('os-entrega-display').textContent = os.referenciaEntrega || 'Nenhum arquivo anexado.';
+        renderizarAnexo('os-briefing-display', os.referenciaBriefing);
+        renderizarAnexo('os-entrega-display', os.referenciaEntrega);
 
         const timeline = document.getElementById('os-timeline');
         timeline.innerHTML = (os.historico && os.historico.length)
@@ -104,7 +158,19 @@ document.addEventListener('DOMContentLoaded', function () {
         try {
             const res = await fetch(`${API_BASE}/ordensServico/${idOS}`);
             if (!res.ok) throw new Error(`OS não encontrada (HTTP ${res.status}).`);
-            renderizarOS(await res.json());
+            const os = await res.json();
+
+            if (String(os.empresaId) !== String(sessao.id)) {
+                acessoNegado = true;
+                mostrarMensagem('Esta Ordem de Serviço não pertence à sua empresa.', 'error');
+                const btnFinalizarOS = document.getElementById('btn-finalizar-os');
+                const linkEditarOS = document.getElementById('os-link-editar');
+                if (btnFinalizarOS) btnFinalizarOS.hidden = true;
+                if (linkEditarOS) linkEditarOS.hidden = true;
+                return;
+            }
+
+            renderizarOS(os);
         } catch (erro) {
             console.error('Erro ao carregar Ordem de Serviço:', erro);
         }
@@ -147,7 +213,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('Erro ao finalizar Ordem de Serviço:', erro);
                 btnFinalizar.disabled = false;
                 btnFinalizar.innerHTML = textoOriginal;
-                alert('Não foi possível finalizar a OS. Verifique se o json-server está rodando.');
+                mostrarMensagem('Não foi possível finalizar a OS. Verifique se o json-server está rodando.', 'error');
             }
         });
     }

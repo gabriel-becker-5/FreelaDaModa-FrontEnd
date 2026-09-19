@@ -31,6 +31,7 @@
         <a href="/pages/12-publicar-vaga.html">Publicar Vaga</a>
         <a href="/pages/15-minhas-vagas.html">Minhas Vagas</a>
         <a href="/pages/27-mural-freelancers.html">Buscar Freelancers</a>
+        <a href="/pages/11-chat.html">Chat</a>
         <a href="/pages/16-ordens-servico.html">Ordens de Serviço</a>
         <a href="/pages/09-perfil-empresa.html">Perfil</a>
         <a href="/pages/21-assinatura.html">Assinatura</a>
@@ -40,11 +41,26 @@
         <div class="header">
             <h2>Painel da Confecção</h2>
             <div class="header-actions">
+                <div class="notif-bell-wrapper">
+                    <button class="btn btn-outline" id="btn-notificacoes" aria-label="Notificações" aria-haspopup="true" aria-expanded="false">
+                        <i class="bi bi-bell"></i>
+                        <span class="notif-badge" id="notif-badge" hidden>0</span>
+                    </button>
+                    <div class="notif-dropdown" id="notif-dropdown" hidden>
+                        <div class="notif-dropdown-header">
+                            <strong>Notificações</strong>
+                            <button type="button" id="btn-marcar-todas-lidas" class="btn btn-ghost" style="font-size: 12px; padding: 2px 6px;">Marcar todas como lidas</button>
+                        </div>
+                        <div id="notif-lista"></div>
+                    </div>
+                </div>
                 <button class="btn btn-outline" id="btn-logout">
                     <i class="bi bi-box-arrow-right"></i> Sair
                 </button>
             </div>
         </div>
+
+        <div id="mensagemStatus" class="alert" role="alert" aria-live="polite" hidden></div>
 
         <!-- CABEÇALHO DO PAINEL DA EMPRESA -->
         <section class="dash-header">
@@ -73,7 +89,7 @@
             <div class="metric-card">
                 <div class="metric-icon"><i class="bi bi-people"></i></div>
                 <div class="metric-info">
-                    <strong>12</strong>
+                    <strong id="metric-candidatos">—</strong>
                     <span>Candidatos recebidos</span>
                 </div>
             </div>
@@ -81,7 +97,7 @@
             <div class="metric-card">
                 <div class="metric-icon"><i class="bi bi-gear-wide-connected"></i></div>
                 <div class="metric-info">
-                    <strong>3</strong>
+                    <strong id="metric-lotes-producao">—</strong>
                     <span>Lotes em produção</span>
                 </div>
             </div>
@@ -89,7 +105,7 @@
             <div class="metric-card">
                 <div class="metric-icon"><i class="bi bi-cash-stack"></i></div>
                 <div class="metric-info">
-                    <strong>R$ 8.900</strong>
+                    <strong id="metric-investimento">—</strong>
                     <span>Investimento em freelas</span>
                 </div>
             </div>
@@ -118,24 +134,24 @@
                         <span style="font-size: 0.85rem; color: var(--text-secondary);">Tempo real</span>
                     </div>
 
-                    <div class="candidates-list">
-                        <div class="company-job-item">
-                            <div class="job-details">
-                                <h3>Karina Vicente <span style="font-size: 0.8rem; color: #137333; background: #e6f4ea; padding: 2px 8px; border-radius: 10px;">Costureira Especialista</span></h3>
-                                <span>Candidatou-se para: <strong>Costureira Especialista em Alfaiataria</strong></span>
-                            </div>
-                            <div class="job-actions">
-                                <a href="https://wa.me/5547999999999" target="_blank" class="btn btn-outline-purple" style="padding: 6px 12px; font-size: 0.82rem;">
-                                    <i class="bi bi-whatsapp"></i> Conversar
-                                </a>
-                            </div>
-                        </div>
+                    <div class="candidates-list" id="lista-candidaturas-recentes">
+                        <!-- Renderizado via dashboard-empresa.js -->
                     </div>
                 </div>
             </div>
 
             <!-- Coluna Lateral (Dados Cadastrais da Empresa) -->
             <div class="sidebar-column">
+                <div class="section-box">
+                    <div class="box-title">
+                        <h2><i class="bi bi-chat-dots"></i> Mensagens Recentes</h2>
+                        <a href="/pages/11-chat.html" style="font-size: 0.85rem; color: var(--color-primary); text-decoration: none; font-weight: 600;">Ver todas</a>
+                    </div>
+                    <div id="preview-conversas">
+                        <p class="text-muted" style="font-size: 0.85rem;">Carregando...</p>
+                    </div>
+                </div>
+
                 <div class="section-box company-profile-view">
                     <div class="company-avatar-big" id="empresa-iniciais">SF</div>
                     <h3 id="empresa-nome-fantasia">Silva Fashion</h3>
@@ -160,7 +176,7 @@
                         </div>
                     </div>
 
-                    <a href="/pages/06-cadastro-empresa.html" class="btn btn-outline-purple w-full">
+                    <a href="/pages/09-perfil-empresa.html" class="btn btn-outline-purple w-full">
                         <i class="bi bi-building-gear"></i> Editar Dados da Empresa
                     </a>
                 </div>

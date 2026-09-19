@@ -134,9 +134,9 @@ function initLoginForm() {
         e.preventDefault();
         const email = document.getElementById('email').value.trim();
         if (!email) {
-            alert('Digite o seu e-mail no campo acima para redefinir sua senha.');
+            mostrarMensagem('Digite o seu e-mail no campo acima para redefinir sua senha.', 'error');
         } else {
-            alert(`Instruções de redefinição de senha enviadas para: ${email}`);
+            mostrarMensagem(`Instruções de redefinição de senha enviadas para: ${email}`, 'success');
         }
     });
 }

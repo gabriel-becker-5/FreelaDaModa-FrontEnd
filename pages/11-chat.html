@@ -34,69 +34,36 @@
           type="button"
           aria-label="Alternar tema claro e escuro"
         ><i class="bi bi-moon-stars" aria-hidden="true"></i></button>
-        <a href="/pages/03-dashboard-freelancer.html">Dashboard</a
-        ><a href="/pages/07-vagas.html">Vagas</a
-        ><a href="/pages/20-minhas-candidaturas.html">Candidaturas/OS</a
-        ><a href="/pages/08-perfil-freelancer.html">Perfil</a
+        <a id="nav-dashboard" href="/pages/03-dashboard-freelancer.html">Dashboard</a
+        ><a id="nav-vagas" href="/pages/07-vagas.html">Vagas</a
+        ><a id="nav-candidaturas" href="/pages/20-minhas-candidaturas.html">Candidaturas/OS</a
+        ><a id="nav-perfil" href="/pages/08-perfil-freelancer.html">Perfil</a
         ><a class="active" href="/pages/11-chat.html" aria-current="page">Chat</a
-        ><a href="/pages/10-impulsionamento.html">Impulsionamento</a
+        ><a id="nav-extra" href="/pages/10-impulsionamento.html">Impulsionamento</a
         ><a href="/pages/24-suporte.html">Suporte</a>
       </aside>
       <main class="main" role="main" aria-label="Conteúdo principal">
         <div class="header"><h2>Chat</h2></div>
+        <div id="mensagemStatus" class="alert" role="alert" aria-live="polite" hidden></div>
         <div class="chat-layout">
           <section class="card">
-            <strong>Lista de Chats</strong>
-            <div class="chat-list">
-              <button class="btn" style="justify-content: flex-start; gap: 10px;">
-                <span class="online-dot"></span>
-                <span>Empresa X</span>
-              </button
-              ><button class="btn" style="justify-content: flex-start; gap: 10px;">
-                <span class="online-dot"></span>
-                <span>Confecção Y</span>
-              </button
-              ><button class="btn" style="justify-content: flex-start; gap: 10px;">
-                <span class="chat-avatar" style="width: 24px; height: 24px; font-size: 11px;">M</span>
-                <span>Freelancer Maria</span>
-              </button>
-            </div>
-            <div class="empty-state mt-md" aria-live="polite">
-              Nenhuma conversa selecionada.
+            <strong>Minhas Conversas</strong>
+            <div class="chat-list" id="lista-conversas">
+              <p class="text-muted" style="font-size: 13px; margin-top: 8px;">Carregando conversas...</p>
             </div>
           </section>
           <section class="card">
-            <strong>Histórico do chat selecionado</strong>
-            <div class="chat-thread">
-              <div style="display: flex; gap: 8px; align-items: flex-end;">
-                <span class="chat-avatar">CX</span>
-                <div class="message-row">
-                  Olá, tudo bem?
-                  <span class="message-timestamp">10:30</span>
-                </div>
-              </div>
-              <div class="message-row message-row-outgoing">
-                Sim, podemos iniciar.
-                <span class="message-timestamp">10:32</span>
-              </div>
-              <div style="display: flex; gap: 8px; align-items: flex-end;">
-                <span class="chat-avatar">CX</span>
-                <div class="message-row">
-                  Enviei as referências visuais.
-                  <span class="message-timestamp">10:35</span>
-                </div>
-              </div>
-              <div class="typing-indicator">
-                <span></span><span></span><span></span>
-              </div>
+            <strong id="titulo-thread">Histórico do chat selecionado</strong>
+            <div class="chat-thread" id="chat-thread"></div>
+            <div class="empty-state mt-md" id="empty-state-thread" aria-live="polite">
+              Suas conversas aparecem aqui automaticamente depois que uma candidatura for aprovada (match) entre você e a outra parte. Selecione uma conversa ao lado para começar.
             </div>
-            <div class="cluster mt-md">
+            <div class="cluster mt-md" id="area-envio-mensagem" hidden>
               <input
                 id="mensagem"
                 class="input input-grow"
                 placeholder="Digite sua mensagem..."
-              /><button class="btn" style="padding: 10px;" aria-label="Anexar arquivo"><i class="bi bi-paperclip"></i></button
-              ><button class="btn btn-primary"><i class="bi bi-send-fill"></i> Enviar</button>
+              /><button class="btn btn-primary" id="btn-enviar-mensagem"><i class="bi bi-send-fill"></i> Enviar</button>
             </div>
           </section>
         </div>

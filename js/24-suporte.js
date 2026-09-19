@@ -24,12 +24,90 @@ document.addEventListener('DOMContentLoaded', function () {
     const form = document.querySelector('form.card');
     const selectAssunto = document.getElementById('suporte-assunto');
     const textareaDescricao = document.getElementById('suporte-descricao');
-    const alertaSucesso = form ? form.querySelector('.alert-success') : null;
+    const alertaFeedback = form ? form.querySelector('.alert-success') : null;
+
+    function mostrarFeedback(texto, tipo) {
+        if (!alertaFeedback) return;
+        alertaFeedback.textContent = texto;
+        alertaFeedback.classList.toggle('alert-success', tipo === 'success');
+        alertaFeedback.classList.toggle('alert-error', tipo === 'error');
+        alertaFeedback.hidden = false;
+    }
+
+    // ── Anexo (upload de arquivo) ──
+    const dropzone = document.getElementById('suporte-dropzone');
+    const fileInput = document.getElementById('suporte-anexo-input');
+    const filePreview = document.getElementById('suporte-anexo-preview');
+    const fileNameEl = document.getElementById('suporte-anexo-nome');
+    const btnRemoverAnexo = document.getElementById('btnRemoverAnexo');
+    let anexoSelecionado = null;
+
+    function limparAnexo() {
+        anexoSelecionado = null;
+        if (fileInput) fileInput.value = '';
+        if (filePreview) filePreview.style.display = 'none';
+        if (fileNameEl) fileNameEl.textContent = '';
+    }
+
+    function processarArquivo(file) {
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            mostrarFeedback('Somente arquivos de imagem são aceitos.', 'error');
+            return;
+        }
+
+        if (file.size > 10 * 1024 * 1024) {
+            mostrarFeedback('Somente imagens até 10MB.', 'error');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function () {
+            anexoSelecionado = {
+                nome: file.name,
+                tipo: file.type,
+                tamanho: file.size,
+                dados: reader.result
+            };
+            if (fileNameEl) fileNameEl.textContent = file.name;
+            if (filePreview) filePreview.style.display = 'flex';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    if (dropzone && fileInput) {
+        dropzone.addEventListener('click', () => fileInput.click());
+
+        dropzone.addEventListener('dragover', function (e) {
+            e.preventDefault();
+        });
+
+        dropzone.addEventListener('drop', function (e) {
+            e.preventDefault();
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                processarArquivo(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', function () {
+            if (this.files && this.files[0]) {
+                processarArquivo(this.files[0]);
+            }
+        });
+    }
+
+    if (btnRemoverAnexo) {
+        btnRemoverAnexo.addEventListener('click', function (e) {
+            e.preventDefault();
+            limparAnexo();
+        });
+    }
+
+    const assuntoErro = document.getElementById('suporte-assunto-erro');
 
     if (form) {
-        // o HTML vem com "Assunto" marcado como erro só pro mockup visual
-        if (selectAssunto) selectAssunto.classList.remove('input-error');
-        if (alertaSucesso) alertaSucesso.hidden = true;
+        if (alertaFeedback) alertaFeedback.hidden = true;
 
         function validarFormulario() {
             let valido = true;
@@ -37,6 +115,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (selectAssunto) {
                 const semAssunto = !selectAssunto.value || selectAssunto.value === 'Selecione';
                 selectAssunto.classList.toggle('input-error', semAssunto);
+                if (assuntoErro) assuntoErro.hidden = !semAssunto;
                 if (semAssunto) valido = false;
             }
 
@@ -49,10 +128,12 @@ document.addEventListener('DOMContentLoaded', function () {
             return valido;
         }
 
-        // Assim que o usuário escolhe um assunto, tira o destaque vermelho.
+        // Assim que o usuário escolhe um assunto válido, tira o destaque e a mensagem de erro.
         if (selectAssunto) {
             selectAssunto.addEventListener('change', function () {
-                selectAssunto.classList.remove('input-error');
+                const semAssunto = !selectAssunto.value || selectAssunto.value === 'Selecione';
+                selectAssunto.classList.toggle('input-error', semAssunto);
+                if (assuntoErro) assuntoErro.hidden = !semAssunto;
             });
         }
 
@@ -82,6 +163,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 ]
             };
 
+            if (anexoSelecionado) {
+                novoChamado.anexo = anexoSelecionado;
+            }
+
             try {
                 const res = await fetch(`${API_BASE}/chamados`, {
                     method: 'POST',
@@ -90,14 +175,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
                 if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
 
-                if (alertaSucesso) {
-                    alertaSucesso.textContent = 'Chamado enviado com sucesso! Nossa equipe responde em até 24h.';
-                    alertaSucesso.hidden = false;
-                }
+                mostrarFeedback('Chamado enviado com sucesso! Nossa equipe responde em até 24h.', 'success');
                 form.reset();
+                limparAnexo();
             } catch (erro) {
                 console.error('Erro ao enviar chamado:', erro);
-                alert('Não foi possível enviar o chamado. Verifique se o json-server está rodando.');
+                mostrarFeedback('Não foi possível enviar o chamado. Verifique se o json-server está rodando.', 'error');
             } finally {
                 btnEnviar.disabled = false;
                 btnEnviar.innerHTML = textoOriginal;

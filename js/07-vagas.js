@@ -7,6 +7,15 @@ function escapeHtml(str) {
     });
 }
 
+function mostrarMensagem(texto, tipo) {
+    const el = document.getElementById('mensagemStatus');
+    if (!el) return;
+    el.className = `alert alert-${tipo}`; // tipo: 'success' | 'error'
+    el.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
+    el.hidden = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     verificarUsuarioLogado();
     carregarVagas();
@@ -52,7 +61,9 @@ async function carregarVagas() {
     container.innerHTML = '<div class="empty-state"><i class="bi bi-hourglass-split"></i><p>Carregando vagas disponíveis...</p></div>';
 
     try {
-        const response = await fetch(API_URL);
+        // Só mostra vagas realmente abertas — pausadas/encerradas não devem
+        // aparecer no mural nem poder receber novas candidaturas.
+        const response = await fetch(`${API_URL}?status=Aberta`);
         if (!response.ok) throw new Error('Erro ao buscar vagas.');
 
         todasVagas = await response.json();
@@ -105,6 +116,12 @@ function renderizarVagas(vagas) {
     vagas.forEach(vaga => {
         const card = document.createElement('article');
         card.className = 'job-card';
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', (e) => {
+            // Não navega se o clique foi no botão de candidatura ou no link da empresa
+            if (e.target.closest('.btn-candidatar') || e.target.closest('.company-name')) return;
+            window.location.href = `/pages/18-vaga-detalhe.html?id=${encodeURIComponent(vaga.id)}`;
+        });
 
         const empresaNomeSeguro = escapeHtml(vaga.empresaNome || 'Confecção Parceira');
 
@@ -193,28 +210,81 @@ function initBotoesCandidatura() {
     const botoes = document.querySelectorAll('.btn-candidatar');
 
     botoes.forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
             const sessao = JSON.parse(sessionStorage.getItem('usuarioLogado'));
 
             if (!sessao) {
-                alert('Você precisa estar logado como Freelancer para se candidatar!');
                 window.location.href = '/pages/02-login.html';
                 return;
             }
 
             if (sessao.tipo !== 'freelancers') {
-                alert('Apenas perfis de Freelancer podem se candidatar às vagas.');
+                mostrarMensagem('Apenas perfis de Freelancer podem se candidatar às vagas.', 'error');
                 return;
             }
 
-            const tituloVaga = btn.getAttribute('data-titulo');
-            btn.disabled = true;
-            btn.classList.replace('btn-purple', 'btn-light-purple');
-            btn.innerHTML = 'Candidatura Enviada! <i class="bi bi-check2"></i>';
-            btn.style.backgroundColor = '#e6f4ea';
-            btn.style.color = '#137333';
+            const vagaId = btn.getAttribute('data-id');
+            const vaga = todasVagas.find(v => String(v.id) === String(vagaId));
+            if (!vaga) return;
 
-            alert(`Parabéns, ${sessao.nome.split(' ')[0]}! Sua proposta para "${tituloVaga}" foi enviada para a confecção.`);
+            if (vaga.status !== 'Aberta') {
+                mostrarMensagem('Esta vaga não está mais aberta para candidaturas.', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            const textoOriginal = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner"></span> Enviando...';
+
+            try {
+                // Evita candidatura duplicada para a mesma vaga.
+                // Filtra "vagaId" no cliente: o json-server usado neste projeto não
+                // filtra de forma confiável por "?vagaId=" (a coleção "vagas" mistura
+                // ids numéricos e alfanuméricos, o que quebra a indexação dele).
+                const resExistente = await fetch(`${API_BASE}/candidaturas?freelancerId=${sessao.id}`);
+                const candidaturasDoFreelancer = resExistente.ok ? await resExistente.json() : [];
+                const existentes = candidaturasDoFreelancer.filter(c => String(c.vagaId) === String(vaga.id) && c.status !== 'Cancelada');
+
+                if (existentes.length > 0) {
+                    mostrarMensagem('Você já se candidatou a esta vaga.', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = textoOriginal;
+                    return;
+                }
+
+                const novaCandidatura = {
+                    vagaId: vaga.id,
+                    empresaId: vaga.empresaId,
+                    empresaNome: vaga.empresaNome || 'Confecção',
+                    nomeEmpresa: vaga.empresaNome || 'Confecção',
+                    titulo: vaga.titulo,
+                    freelancerId: sessao.id,
+                    freelancerNome: sessao.nome,
+                    status: 'Em análise',
+                    tipo: 'Vaga',
+                    link: '18-vaga-detalhe.html'
+                };
+
+                const res = await fetch(`${API_BASE}/candidaturas`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(novaCandidatura)
+                });
+
+                if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
+
+                btn.classList.replace('btn-purple', 'btn-light-purple');
+                btn.innerHTML = 'Candidatura Enviada! <i class="bi bi-check2"></i>';
+                btn.style.backgroundColor = '#e6f4ea';
+                btn.style.color = '#137333';
+
+                mostrarMensagem(`Parabéns, ${sessao.nome.split(' ')[0]}! Sua proposta para "${vaga.titulo}" foi enviada para a confecção.`, 'success');
+            } catch (error) {
+                console.error('Erro ao enviar candidatura:', error);
+                mostrarMensagem('Não foi possível enviar sua candidatura. Verifique se o json-server está rodando e tente novamente.', 'error');
+                btn.disabled = false;
+                btn.innerHTML = textoOriginal;
+            }
         });
     });
 }

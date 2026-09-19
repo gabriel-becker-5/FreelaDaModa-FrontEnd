@@ -25,7 +25,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const idOS = params.get('id');
 
     if (!idOS) {
-        alert('Ordem de serviço não especificada.');
         window.location.href = '/pages/16-ordens-servico.html';
         return;
     }
@@ -52,6 +51,13 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('resumo-freelancer').textContent = os.freelancerNome || '—';
             document.getElementById('resumo-status').textContent = os.status;
             atualizarLinksVoltar();
+
+            // Só é possível avaliar uma OS depois que ela for concluída.
+            const aviso = document.getElementById('avisoNaoConcluida');
+            const formAvaliacao = document.getElementById('formAvaliacao');
+            const podeAvaliar = os.status === 'Concluída';
+            if (aviso) aviso.hidden = podeAvaliar;
+            if (formAvaliacao) formAvaliacao.hidden = !podeAvaliar;
         } catch (erro) {
             console.error('Erro ao carregar resumo da OS:', erro);
         }
@@ -63,7 +69,15 @@ document.addEventListener('DOMContentLoaded', function () {
     // grava em "avaliacoes" (mesma coleção dos perfis públicos)
     const form = document.querySelector('form.card');
     const textareaComentario = document.getElementById('comentario');
-    const alertaSucesso = form ? form.querySelector('.alert-success') : null;
+    const alertaSucesso = form ? form.querySelector('.alert') : null;
+
+    function mostrarMensagem(texto, tipo) {
+        if (!alertaSucesso) return;
+        alertaSucesso.className = `alert alert-${tipo}`;
+        alertaSucesso.textContent = texto;
+        alertaSucesso.hidden = false;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 
     if (form) {
         if (alertaSucesso) alertaSucesso.hidden = true;
@@ -114,11 +128,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (!resOS.ok) throw new Error(`Erro HTTP: ${resOS.status}`);
                 }
 
-                if (alertaSucesso) {
-                    alertaSucesso.textContent = `Avaliação enviada! Nota ${notaSelecionada()} de 5.`;
-                    alertaSucesso.hidden = false;
-                }
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                mostrarMensagem(`Avaliação enviada! Nota ${notaSelecionada()} de 5.`, 'success');
 
                 setTimeout(function () {
                     window.location.href = osAtual
@@ -129,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('Erro ao enviar avaliação:', erro);
                 btnEnviar.disabled = false;
                 btnEnviar.innerHTML = textoOriginal;
-                alert('Não foi possível enviar a avaliação. Verifique se o json-server está rodando.');
+                mostrarMensagem('Não foi possível enviar a avaliação. Verifique se o json-server está rodando.', 'error');
             }
         });
     }
