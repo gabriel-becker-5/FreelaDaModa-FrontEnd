@@ -1,0 +1,360 @@
+// Script para centralizar funções utilitárias compartilhadas entre as páginas
+// Carregar 'ui.js' sempre após 'config.js'
+
+// Evitar ataques XSS
+function escapeHtml(str) {
+    return String(str ?? '').replace(/[&<>"']/g, function (ch) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+    });
+}
+
+function removerAcentos(texto) {
+    return String(texto ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+/* Formataçõs de Moeda */
+function moedaParaNumero(valor) {
+    if (valor == null) return 0;
+    const texto = String(valor).replace(/[^\d,.-]/g, '').replace(/\./g, '').replace(',', '.');
+    const numero = parseFloat(texto);
+    return Number.isFinite(numero) ? numero : 0;
+}
+
+function formatarMoeda(numero) {
+    return (numero || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function aplicarMascaraMoeda(inputEl, maximo) {
+    const teto = maximo || 999999.99;
+    inputEl.addEventListener('input', function () {
+        let digitos = inputEl.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+        if (!digitos.length) {
+            inputEl.value = '';
+            return;
+        }
+        let numero = parseInt(digitos, 10) / 100;
+        if (numero > teto) {
+            numero = teto;
+        }
+        inputEl.value = formatarMoeda(numero);
+    });
+}
+
+// 'Toast / Barra de mensagens (sucesso, erro, aviso, info)
+function toastMsg(texto, tipo, duracao) {
+    const tiposValidos = ['success', 'error', 'warning', 'info'];
+    const tipoClasse = tiposValidos.includes(tipo) ? tipo : 'success';
+    const icones = {
+        success: 'bi-check-circle-fill',
+        error: 'bi-exclamation-circle-fill',
+        warning: 'bi-exclamation-triangle-fill',
+        info: 'bi-info-circle-fill'
+    };
+
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${tipoClasse}`;
+    toast.setAttribute('role', 'status');
+
+    const icone = document.createElement('i');
+    icone.className = `bi ${icones[tipoClasse]}`;
+    toast.appendChild(icone);
+
+    const span = document.createElement('span');
+    span.textContent = texto;
+    toast.appendChild(span);
+
+    container.appendChild(toast);
+
+    setTimeout(function () {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(function () { toast.remove(); }, 300);
+    }, duracao || 5000);
+}
+
+// Modais para confirmação de ações
+function modalConfirmar(opcoes) {
+    const titulo = opcoes.titulo || 'Confirmar';
+    const mensagem = opcoes.mensagem || '';
+    const textoConfirmar = opcoes.textoConfirmar || 'Confirmar';
+    const textoCancelar = opcoes.textoCancelar || 'Cancelar';
+    const perigoso = !!opcoes.perigoso;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.style.display = 'flex';
+
+    const conteudo = document.createElement('div');
+    conteudo.className = 'modal-content';
+    conteudo.setAttribute('role', 'dialog');
+    conteudo.setAttribute('aria-modal', 'true');
+
+    const cabecalho = document.createElement('div');
+    cabecalho.className = 'modal-header';
+
+    const tituloEl = document.createElement('h2');
+    tituloEl.textContent = titulo;
+    cabecalho.appendChild(tituloEl);
+
+    const fechar = document.createElement('button');
+    fechar.type = 'button';
+    fechar.className = 'btn-close-modal';
+    fechar.setAttribute('aria-label', 'Fechar');
+    fechar.innerHTML = '&times;';
+    cabecalho.appendChild(fechar);
+
+    const textoEl = document.createElement('p');
+    textoEl.className = 'modal-confirm-mensagem';
+    textoEl.textContent = mensagem;
+
+    const acoes = document.createElement('div');
+    acoes.className = 'form-actions';
+
+    const btnCancelar = document.createElement('button');
+    btnCancelar.type = 'button';
+    btnCancelar.className = 'btn btn-outline';
+    btnCancelar.textContent = textoCancelar;
+
+    const btnConfirmar = document.createElement('button');
+    btnConfirmar.type = 'button';
+    btnConfirmar.className = `btn ${perigoso ? 'btn-danger' : 'btn-primary'}`;
+    btnConfirmar.textContent = textoConfirmar;
+
+    acoes.appendChild(btnCancelar);
+    acoes.appendChild(btnConfirmar);
+
+    conteudo.appendChild(cabecalho);
+    conteudo.appendChild(textoEl);
+    conteudo.appendChild(acoes);
+    overlay.appendChild(conteudo);
+    document.body.appendChild(overlay);
+
+    return new Promise(function (resolve) {
+        function concluir(resultado) {
+            overlay.remove();
+            document.removeEventListener('keydown', aoTeclar);
+            resolve(resultado);
+        }
+        function aoTeclar(evento) {
+            if (evento.key === 'Escape') concluir(false);
+        }
+        fechar.addEventListener('click', function () { concluir(false); });
+        btnCancelar.addEventListener('click', function () { concluir(false); });
+        btnConfirmar.addEventListener('click', function () { concluir(true); });
+        overlay.addEventListener('click', function (evento) {
+            if (evento.target === overlay) concluir(false);
+        });
+        document.addEventListener('keydown', aoTeclar);
+    });
+}
+
+// Fallback caso a API do IBGE esteja indisponível
+const UFS_FALLBACK = [
+    { sigla: 'AC', nome: 'Acre' },
+    { sigla: 'AL', nome: 'Alagoas' },
+    { sigla: 'AP', nome: 'Amapá' },
+    { sigla: 'AM', nome: 'Amazonas' },
+    { sigla: 'BA', nome: 'Bahia' },
+    { sigla: 'CE', nome: 'Ceará' },
+    { sigla: 'DF', nome: 'Distrito Federal' },
+    { sigla: 'ES', nome: 'Espírito Santo' },
+    { sigla: 'GO', nome: 'Goiás' },
+    { sigla: 'MA', nome: 'Maranhão' },
+    { sigla: 'MT', nome: 'Mato Grosso' },
+    { sigla: 'MS', nome: 'Mato Grosso do Sul' },
+    { sigla: 'MG', nome: 'Minas Gerais' },
+    { sigla: 'PA', nome: 'Pará' },
+    { sigla: 'PB', nome: 'Paraíba' },
+    { sigla: 'PR', nome: 'Paraná' },
+    { sigla: 'PE', nome: 'Pernambuco' },
+    { sigla: 'PI', nome: 'Piauí' },
+    { sigla: 'RJ', nome: 'Rio de Janeiro' },
+    { sigla: 'RN', nome: 'Rio Grande do Norte' },
+    { sigla: 'RS', nome: 'Rio Grande do Sul' },
+    { sigla: 'RO', nome: 'Rondônia' },
+    { sigla: 'RR', nome: 'Roraima' },
+    { sigla: 'SC', nome: 'Santa Catarina' },
+    { sigla: 'SP', nome: 'São Paulo' },
+    { sigla: 'SE', nome: 'Sergipe' },
+    { sigla: 'TO', nome: 'Tocantins' }
+];
+
+// Obter localidades - API do IBGE
+function ufsOrdenadas() {
+    return UFS_FALLBACK.slice().sort(function (a, b) { return a.nome.localeCompare(b.nome); });
+}
+
+async function obterUFs() {
+    try {
+        const salvo = sessionStorage.getItem('fdlm-ufs');
+        if (salvo) return JSON.parse(salvo);
+        const res = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome');
+        if (!res.ok) throw new Error('IBGE indisponível');
+        const dados = await res.json();
+        const ufs = dados.map(function (uf) { return { sigla: uf.sigla, nome: uf.nome }; });
+        sessionStorage.setItem('fdlm-ufs', JSON.stringify(ufs));
+        return ufs;
+    } catch (erro) {
+        console.error('Falha ao carregar estados do IBGE:', erro);
+        return ufsOrdenadas();
+    }
+}
+
+async function carregarUFs(selectEl, ufSelecionada) {
+    const ufs = await obterUFs();
+    selectEl.innerHTML = '';
+    const vazia = document.createElement('option');
+    vazia.value = '';
+    vazia.textContent = 'Selecione o estado';
+    selectEl.appendChild(vazia);
+    ufs.forEach(function (uf) {
+        const opcao = document.createElement('option');
+        opcao.value = uf.sigla;
+        opcao.textContent = `${uf.nome} (${uf.sigla})`;
+        if (uf.sigla === ufSelecionada) opcao.selected = true;
+        selectEl.appendChild(opcao);
+    });
+}
+
+async function obterMunicipios(uf) {
+    try {
+        const chave = `fdlm-municipios-${uf}`;
+        const salvo = sessionStorage.getItem(chave);
+        if (salvo) return JSON.parse(salvo);
+        const res = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${encodeURIComponent(uf)}/municipios?orderBy=nome`);
+        if (!res.ok) throw new Error('IBGE indisponível');
+        const dados = await res.json();
+        const municipios = dados.map(function (municipio) { return municipio.nome; });
+        sessionStorage.setItem(chave, JSON.stringify(municipios));
+        return municipios;
+    } catch (erro) {
+        console.error(`Falha ao carregar municípios de ${uf}:`, erro);
+        return null;
+    }
+}
+
+// Função para exibir o autocomplete da cidade para o usuário conforme ele digita
+function montarAutocompleteCidade(inputEl, ufSelectEl) {
+    let wrapper = inputEl.closest('.autocomplete-wrapper');
+    if (!wrapper) {
+        wrapper = document.createElement('div');
+        wrapper.className = 'autocomplete-wrapper';
+        inputEl.parentNode.insertBefore(wrapper, inputEl);
+        wrapper.appendChild(inputEl);
+    }
+
+    let dropdown = wrapper.querySelector('.autocomplete-dropdown');
+    if (!dropdown) {
+        dropdown = document.createElement('div');
+        dropdown.className = 'autocomplete-dropdown';
+        dropdown.style.display = 'none';
+        wrapper.appendChild(dropdown);
+    }
+
+    let municipios = [];
+
+    function fechar() {
+        dropdown.style.display = 'none';
+        dropdown.innerHTML = '';
+    }
+
+    async function atualizarLista() {
+        const uf = ufSelectEl ? ufSelectEl.value : '';
+        if (!uf) {
+            municipios = [];
+            fechar();
+            return;
+        }
+        municipios = await obterMunicipios(uf);
+    }
+
+    function mostrar(termo) {
+        dropdown.innerHTML = '';
+        if (municipios === null) {
+            const aviso = document.createElement('div');
+            aviso.className = 'autocomplete-item disabled';
+            aviso.textContent = 'Lista de cidades indisponível — digite manualmente';
+            dropdown.appendChild(aviso);
+            dropdown.style.display = 'block';
+            return;
+        }
+        const opcoes = municipios
+            .filter(function (cidade) {
+                return removerAcentos(cidade).toLowerCase().startsWith(termo);
+            })
+            .slice(0, 10);
+        if (!opcoes.length) {
+            fechar();
+            return;
+        }
+        opcoes.forEach(function (cidade) {
+            const item = document.createElement('div');
+            item.className = 'autocomplete-item';
+            item.textContent = cidade;
+            item.addEventListener('click', function () {
+                inputEl.value = cidade;
+                fechar();
+            });
+            dropdown.appendChild(item);
+        });
+        dropdown.style.display = 'block';
+    }
+
+    inputEl.addEventListener('input', function () {
+        const termo = removerAcentos(inputEl.value.trim()).toLowerCase();
+        if (termo.length < 2) {
+            fechar();
+            return;
+        }
+        mostrar(termo);
+    });
+
+    inputEl.addEventListener('focus', function () {
+        const termo = removerAcentos(inputEl.value.trim()).toLowerCase();
+        if (termo.length >= 2) mostrar(termo);
+    });
+
+    if (ufSelectEl) {
+        ufSelectEl.addEventListener('change', function () {
+            inputEl.value = '';
+            fechar();
+            atualizarLista();
+        });
+    }
+
+    document.addEventListener('click', function (evento) {
+        if (!wrapper.contains(evento.target)) fechar();
+    });
+
+    atualizarLista();
+}
+
+// Buscar localidade pela API do ViaCEP
+async function buscarCep(cep) {
+    const apenasDigitos = String(cep || '').replace(/\D/g, '');
+    if (apenasDigitos.length !== 8) return { erro: true };
+    try {
+        const res = await fetch(`https://viacep.com.br/ws/${apenasDigitos}/json/`);
+        if (!res.ok) throw new Error('ViaCEP indisponível');
+        const dados = await res.json();
+        if (dados.erro) return { erro: true };
+        return {
+            erro: false,
+            logradouro: dados.logradouro,
+            bairro: dados.bairro,
+            cidade: dados.localidade,
+            estado: dados.uf
+        };
+    } catch (erro) {
+        console.error('Falha ao consultar ViaCEP:', erro);
+        return { erro: true };
+    }
+}

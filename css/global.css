@@ -1632,11 +1632,15 @@ a:focus-visible {
 
 /* SITE HEADER (navbar de topo: Homepage, Login, Cadastro) */
 .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 900;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 20px 20px;
-    background: transparent;
+    background: var(--bg);
+    box-shadow: 0 2px 12px rgba(18, 0, 31, 0.06);
 }
 
 .logo-area {
@@ -3254,4 +3258,63 @@ h2.section-title {
 
 @media (max-width: 600px) {
     .freelancers-layout { grid-template-columns: 1fr; }
+}
+
+/* Layout compartilhado entre áreas logadas */
+.user-greeting {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.banner-validacao {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    background: var(--alert-warning-bg);
+    color: var(--warning);
+    border: 1px solid var(--alert-warning-border);
+    font-size: 14px;
+}
+.banner-validacao a {
+    color: inherit;
+    font-weight: 700;
+    text-decoration: underline;
+}
+.banner-validacao i {
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.requisito-ok {
+    color: var(--success);
+}
+.requisito-ok i {
+    color: var(--success);
+}
+
+.sidebar a i {
+    margin-right: 8px;
+}
+
+.autocomplete-item.disabled {
+    cursor: default;
+    color: var(--text-secondary);
+}
+.autocomplete-item.disabled:hover {
+    background: transparent;
+}
+
+.freelancer-badge-destaque {
+    z-index: 2;
+}
+
+.modal-confirm-mensagem {
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+    line-height: 1.5;
 }

@@ -94,7 +94,8 @@ function initLoginForm() {
                     id: usuarioValido.id,
                     nome: usuarioValido.nome || usuarioValido.razaoSocial,
                     email: usuarioValido.email,
-                    tipo: roleAtual
+                    tipo: roleAtual,
+                    validado: usuarioValido.validado === true
                 };
 
                 sessionStorage.setItem('usuarioLogado', JSON.stringify(sessao));
@@ -107,8 +108,14 @@ function initLoginForm() {
 
                 mostrarMensagem('Login realizado com sucesso! Redirecionando...', 'success');
 
-                // Redirecionamento baseado no perfil
+                // Redirecionamento baseado no perfil (ou para a página solicitada)
+                const proxima = proximaPagina();
+
                 setTimeout(() => {
+                    if (proxima) {
+                        window.location.href = proxima;
+                        return;
+                    }
                     if (roleAtual === 'freelancers') {
                         window.location.href = '/pages/03-dashboard-freelancer.html';
                     } else {
@@ -122,7 +129,7 @@ function initLoginForm() {
 
         } catch (error) {
             console.error('Erro no login:', error);
-            mostrarMensagem('Erro de conexão com a API. Verifique se o json-server está rodando.', 'error');
+            mostrarMensagem('Erro de conexão. Tente novamente em instantes.', 'error');
         } finally {
             btnEntrar.disabled = false;
             btnEntrar.innerHTML = 'Entrar na plataforma <i class="bi bi-arrow-right"></i>';
@@ -162,4 +169,11 @@ function carregarEmailSalvo() {
         document.getElementById('email').value = emailSalvo;
         document.getElementById('lembrar-me').checked = true;
     }
+}
+
+function proximaPagina() {
+    const parametros = new URLSearchParams(window.location.search);
+    const proxima = parametros.get('next');
+    if (proxima && proxima.startsWith('/pages/')) return proxima;
+    return null;
 }

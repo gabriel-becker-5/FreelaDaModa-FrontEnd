@@ -75,6 +75,8 @@ document.querySelectorAll('.faq-item').forEach((item) => {
 
     // ── Autocomplete ──
     const wrapper = input.closest('.autocomplete-wrapper');
+    if (!wrapper) return;
+
     const dropdown = document.createElement('div');
     dropdown.className = 'autocomplete-dropdown';
     dropdown.style.display = 'none';
@@ -134,30 +136,40 @@ document.querySelectorAll('.faq-item').forEach((item) => {
             });
     }
 
-    input.addEventListener('input', async function () {
+    let buscaAtual = 0;
+
+    input.addEventListener('input', function () {
         const termo = input.value.trim().toLowerCase();
         if (!termo) { fecharDropdown(); return; }
 
-        const sugestoes = await montarSugestoes(termo);
-        dropdown.innerHTML = '';
+        const minhaBusca = ++buscaAtual;
 
-        if (sugestoes.length === 0) {
-            fecharDropdown();
-            return;
-        }
+        setTimeout(async function () {
+            if (minhaBusca !== buscaAtual) return;
 
-        sugestoes.forEach(function (s) {
-            const item = document.createElement('div');
-            item.className = 'autocomplete-item';
-            item.innerHTML = `<strong>${escapeHtml(s.titulo)}</strong> <span class="text-muted" style="font-size:12px;">— ${escapeHtml(s.subtitulo)}</span>`;
-            item.addEventListener('click', function () {
-                input.value = s.valor;
+            const sugestoes = await montarSugestoes(termo);
+            if (minhaBusca !== buscaAtual) return;
+
+            dropdown.innerHTML = '';
+
+            if (sugestoes.length === 0) {
                 fecharDropdown();
-            });
-            dropdown.appendChild(item);
-        });
+                return;
+            }
 
-        dropdown.style.display = 'block';
+            sugestoes.forEach(function (s) {
+                const item = document.createElement('div');
+                item.className = 'autocomplete-item';
+                item.innerHTML = `<strong>${escapeHtml(s.titulo)}</strong> <span class="text-muted" style="font-size:12px;">— ${escapeHtml(s.subtitulo)}</span>`;
+                item.addEventListener('click', function () {
+                    input.value = s.valor;
+                    fecharDropdown();
+                });
+                dropdown.appendChild(item);
+            });
+
+            dropdown.style.display = 'block';
+        }, 250);
     });
 
     document.addEventListener('click', function (e) {
@@ -165,12 +177,27 @@ document.querySelectorAll('.faq-item').forEach((item) => {
     });
 
     // ── Submeter busca ──
+    function temSessao() {
+        try {
+            return !!sessionStorage.getItem('usuarioLogado');
+        } catch (erro) {
+            return false;
+        }
+    }
+
     form.addEventListener('submit', function (e) {
         e.preventDefault();
         const termo = input.value.trim();
         const destino = LINKS_VER_TODOS[modoAtual].href;
-        window.location.href = termo
+        const alvo = termo
             ? `${destino}?busca=${encodeURIComponent(termo)}`
             : destino;
+
+        if (!temSessao()) {
+            window.location.href = `/pages/02-login.html?next=${encodeURIComponent(alvo)}`;
+            return;
+        }
+
+        window.location.href = alvo;
     });
 })();

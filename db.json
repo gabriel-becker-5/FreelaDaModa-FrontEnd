@@ -1,1051 +1,251 @@
 {
   "freelancers": [
     {
-      "id": "-DU9G2RSk6s",
-      "nome": "Karina Vicente",
-      "email": "karinavicente06@gmail.com",
-      "telefone": "(47) 99999-9999",
-      "nascimento": "1995-04-10",
-      "senha": "12345678",
-      "tipoNegocio": "MEI",
-      "experiencia": "5 a 10 anos",
-      "oficina": "Só eu",
-      "especialidade": "Costura reta",
-      "especialidades": [
-        "Costura reta",
-        "Overloque",
-        "Modelagem"
-      ],
-      "maquinas": [
-        "Reta",
-        "Overloque"
-      ],
-      "fechamento": "Plataformas online",
-      "disponibilidade": "Período integral",
-      "produtorFixo": "nao",
-      "nomeProdutor": "",
-      "veiculo": "sim",
-      "faturamento": "R$ 3.000 a R$ 6.000",
-      "enderecoResidencial": {
-        "cep": "89010-000",
-        "endereco": "Rua das Flores",
-        "numero": "123",
-        "bairro": "Centro",
-        "complemento": "Apto 101",
-        "cidade": "Blumenau",
-        "estado": "SC"
-      },
-      "mediaAvaliacoes": 4.45,
-      "totalAvaliacoes": 33
-    },
-    {
-      "id": "joana-costa-01",
-      "nome": "Joana Costa",
-      "email": "joana.costa@email.com",
-      "telefone": "(11) 98123-4567",
-      "nascimento": "1990-02-18",
-      "senha": "12345678",
-      "tipoNegocio": "Autônomo",
-      "experiencia": "3 a 5 anos",
-      "oficina": "Só eu",
-      "especialidade": "Modelagem",
-      "especialidades": [
-        "Modelagem",
-        "Acabamento"
-      ],
-      "maquinas": [
-        "Reta"
-      ],
-      "fechamento": "Indicação",
-      "disponibilidade": "Fins de semana",
-      "produtorFixo": "nao",
-      "nomeProdutor": "",
-      "veiculo": "nao",
-      "faturamento": "R$ 1.000 a R$ 3.000",
-      "enderecoResidencial": {
-        "cidade": "São Paulo",
-        "estado": "SP"
-      },
-      "mediaAvaliacoes": 4.9,
-      "totalAvaliacoes": 34
-    },
-    {
-      "id": "maria-silva-02",
-      "nome": "Maria Silva",
-      "email": "maria.silva@email.com",
-      "telefone": "(21) 97654-3210",
-      "nascimento": "1988-09-05",
-      "senha": "12345678",
-      "tipoNegocio": "MEI",
-      "experiencia": "5 a 10 anos",
-      "oficina": "2 a 3 pessoas",
-      "especialidade": "Bordado",
-      "especialidades": [
-        "Bordado",
-        "Estamparia"
-      ],
-      "maquinas": [
-        "Overloque",
-        "Galoneira"
-      ],
-      "fechamento": "Plataformas online",
-      "disponibilidade": "Período integral",
-      "produtorFixo": "nao",
-      "nomeProdutor": "",
-      "veiculo": "sim",
-      "faturamento": "R$ 3.000 a R$ 6.000",
-      "enderecoResidencial": {
-        "cidade": "Rio de Janeiro",
-        "estado": "RJ"
-      },
-      "mediaAvaliacoes": 4.7,
-      "totalAvaliacoes": 12
-    },
-    {
-      "id": "ana-ferreira-03",
-      "nome": "Ana Ferreira",
-      "email": "ana.ferreira@email.com",
-      "telefone": "(47) 98888-1122",
-      "nascimento": "1996-11-22",
-      "senha": "12345678",
-      "tipoNegocio": "Sem CNPJ",
-      "experiencia": "1 a 3 anos",
-      "oficina": "Só eu",
-      "especialidade": "Estamparia",
-      "especialidades": [
-        "Estamparia",
-        "Costura reta"
-      ],
-      "maquinas": [
-        "Reta"
-      ],
-      "fechamento": "Redes sociais",
-      "disponibilidade": "Sob demanda",
-      "produtorFixo": "nao",
-      "nomeProdutor": "",
-      "veiculo": "nao",
-      "faturamento": "Até R$ 1.000",
-      "enderecoResidencial": {
-        "cidade": "Blumenau",
-        "estado": "SC"
-      },
-      "mediaAvaliacoes": 4.3,
-      "totalAvaliacoes": 6
-    },
-    {
-      "id": "carlos-souza-04",
-      "nome": "Carlos Souza",
-      "email": "carlos.souza@email.com",
-      "telefone": "(41) 99222-3344",
-      "nascimento": "1985-06-30",
-      "senha": "12345678",
-      "tipoNegocio": "ME",
-      "experiencia": "Mais de 10 anos",
-      "oficina": "4 a 6 pessoas",
-      "especialidade": "Acabamento",
-      "especialidades": [
-        "Acabamento",
-        "Costura reta"
-      ],
-      "maquinas": [
-        "Reta",
-        "Overloque",
-        "Travete"
-      ],
-      "fechamento": "Indicação",
-      "disponibilidade": "Período integral",
-      "produtorFixo": "sim",
-      "nomeProdutor": "Confecção própria",
-      "veiculo": "sim",
-      "faturamento": "De R$ 3000 a R$ 6000",
-      "enderecoResidencial": {
-        "cidade": "Curitiba",
-        "estado": "PR"
-      },
-      "mediaAvaliacoes": 4.6,
-      "totalAvaliacoes": 21
+      "id": "",
+      "nome": "",
+      "cpf": "",
+      "dataNascimento": "",
+      "email": "",
+      "telefone": "",
+      "descricao": "",
+      "senha": "",
+      "cepResidencial": "",
+      "enderecoResidencial": "",
+      "numeroResidencial": "",
+      "bairroResidencial": "",
+      "complementoResidencial": "",
+      "cidadeResidencial": "",
+      "estadoResidencial": "",
+      "tempoExperiencia": "",
+      "disponibilidadeHorario": "",
+      "especialidades": [],
+      "maquinas": [],
+      "foto": "",
+      "referencias": [],
+      "validado": false,
+      "mediaAvaliacoes": 0,
+      "totalAvaliacoes": 0
     }
   ],
   "empresas": [
     {
-      "id": "0UEUrH8HgJE",
-      "razaoSocial": "Confecção Silva & Cia",
-      "nomeFantasia": "Silva Fashion",
-      "cnpj": "12.345.678/0001-90",
-      "email": "contato@silvafashion.com.br",
-      "telefone": "(11) 98888-7777",
-      "senha": "12345678",
-      "ramo": "Moda Feminina",
-      "porte": "Média empresa",
-      "cidade": "São Paulo",
-      "estado": "SP",
-      "mediaAvaliacoes": 4.45,
-      "totalAvaliacoes": 33
-    },
-    {
-      "id": "LZwRUc8wAso",
-      "nomeResponsavel": "Karina Claro",
-      "cpfResponsavel": "043.215.678-90",
-      "razaoSocial": "kC",
-      "nomeFantasia": "kkkk",
-      "cnpjEmpresa": "07.338.788/0001-23",
-      "ramoAtuacao": "confecção",
-      "email": "kc@gmail.com",
-      "telefone": "(47) 99776-4532",
+      "id": "",
+      "nomeResponsavel": "",
+      "cpfResponsavel": "",
+      "dataNascimento": "",
+      "razaoSocial": "",
+      "nomeFantasia": "",
+      "cnpjEmpresa": "",
+      "ramoAtuacao": "",
+      "email": "",
+      "telefone": "",
       "descricaoPerfil": "",
-      "cep": "89026-680",
-      "enderecoComercial": "Rua José João Libório",
-      "numeroComercial": "90",
-      "bairroComercial": "Progresso",
-      "cidadeComercial": "Blumenau",
-      "estadoComercial": "Santa Catarina",
+      "cep": "",
+      "enderecoComercial": "",
+      "numeroComercial": "",
+      "bairroComercial": "",
+      "cidadeComercial": "",
+      "estadoComercial": "",
       "complementoComercial": "",
-      "senha": "qakxo2-midboF-gacxoh",
+      "senha": "",
+      "foto": "",
+      "referencias": [],
+      "validado": false,
       "mediaAvaliacoes": 0,
       "totalAvaliacoes": 0
     }
   ],
   "vagas": [
     {
-      "id": "1",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "titulo": "Costureira Especialista em Alfaiataria",
-      "descricao": "Produção de lote de 200 blazers femininos em linho com forro.",
-      "especialidade": "Costura reta",
-      "valor": "R$ 3.500,00",
-      "prazo": "2026-10-03",
-      "local": "São Paulo, SP (Envio por correio)",
-      "status": "Encerrada"
-    },
-    {
-      "id": "2",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "titulo": "Modelista para Coleção de Verão",
-      "descricao": "Desenvolvimento de moldes digitais e graduação P/M/G para vestidos leves.",
-      "especialidade": "Modelagem",
-      "valor": "R$ 1.800,00",
-      "prazo": "2026-09-25",
-      "local": "Remoto",
-      "status": "Aberta"
-    },
-    {
-      "id": "ZlDvpb1",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "titulo": "Modelista em audaces",
-      "especialidade": "Modelagem",
-      "valor": "2000",
-      "prazo": "2026-09-25",
-      "local": "Santa Catarina",
-      "descricao": "10 modelagens e graduação de camisas femininas",
-      "status": "Aberta"
-    },
-    {
-      "id": "4",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "titulo": "Costureira Pilotista",
-      "descricao": "Confecção de peças piloto para aprovação de novas coleções.",
-      "especialidade": "Peça piloto",
-      "valor": "1.200",
-      "prazo": "2026-09-28",
-      "local": "São Paulo, SP",
-      "modalidade": "Presencial",
-      "status": "Aberta",
-      "link": "18-vaga-detalhe.html"
-    },
-    {
-      "id": "5",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "titulo": "Costureira Industrial",
-      "descricao": "Produção em série em máquina industrial reta e overloque.",
-      "especialidade": "Costura reta",
-      "valor": "2.800",
-      "prazo": "2026-10-08",
-      "local": "São Paulo, SP",
-      "modalidade": "Presencial",
-      "status": "Aberta",
-      "link": "18-vaga-detalhe.html"
-    },
-    {
-      "id": "6",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "titulo": "Técnico(a) em Controle de Qualidade Têxtil",
-      "descricao": "Inspeção de acabamento e conformidade de peças antes do envio.",
-      "especialidade": "Acabamento",
-      "valor": "3.500",
-      "prazo": "2026-10-18",
-      "local": "São Paulo, SP",
-      "modalidade": "Híbrido",
-      "status": "Aberta",
-      "link": "18-vaga-detalhe.html"
+      "id": "",
+      "empresaId": "",
+      "empresaNome": "",
+      "titulo": "",
+      "especialidade": "",
+      "valor": "",
+      "prazo": "",
+      "modalidade": "",
+      "cidade": "",
+      "estado": "",
+      "local": "",
+      "descricao": "",
+      "referencias": [],
+      "status": ""
     }
   ],
-  "avaliacoes": [
+  "avaliacoes": [],
+  "convites": [
     {
-      "id": "1",
-      "freelancerId": "-DU9G2RSk6s",
-      "nota": 5,
-      "comentario": "Excelente profissional, muito competente e pontual na entrega.",
-      "autor": "Carlos"
-    },
-    {
-      "id": "2",
-      "freelancerId": "-DU9G2RSk6s",
-      "nota": 4,
-      "comentario": "Bom trabalho, demonstrou conhecimento técnico e atenção aos detalhes.",
-      "autor": "Mariana"
-    },
-    {
-      "id": "3",
-      "freelancerId": "-DU9G2RSk6s",
-      "nota": 5,
-      "comentario": "Profissional dedicado, entregou um ótimo resultado dentro do prazo.",
-      "autor": "Rafael"
-    },
-    {
-      "id": "4",
-      "empresaId": "0UEUrH8HgJE",
-      "nota": 4,
-      "comentario": "Boa estrutura e equipe profissional. Experiência bastante positiva.",
-      "autor": "Camila"
-    },
-    {
-      "id": "5",
-      "empresaId": "0UEUrH8HgJE",
-      "nota": 5,
-      "comentario": "Excelente empresa, ambiente organizado e boas oportunidades.",
-      "autor": "Lucas"
-    },
-    {
-      "id": "6",
-      "empresaId": "0UEUrH8HgJE",
-      "nota": 4,
-      "comentario": "Empresa séria, com processos bem organizados e bons projetos.",
-      "autor": "Marcos"
-    },
-    {
-      "freelancerId": "-DU9G2RSk6s",
-      "nota": 3,
-      "comentario": "SENSASIONAL",
-      "autor": "Confecção X",
-      "id": "Wuu4J-7hgkE"
+      "vagaId": "",
+      "vagaTitulo": "",
+      "empresaId": "",
+      "empresaNome": "",
+      "freelancerId": "",
+      "freelancerNome": "",
+      "status": "",
+      "tipo": "",
+      "criadoEm": "",
+      "id": ""
     }
   ],
   "candidaturas": [
     {
-      "id": "1",
-      "titulo": "Produção Lote de verão",
-      "nomeEmpresa": "VestiLar Confecções",
-      "status": "Em andamento",
-      "tipo": "OS",
-      "link": "18-vaga-detalhe.html",
-      "freelancerId": "-DU9G2RSk6s"
-    },
-    {
-      "id": "2",
-      "titulo": "Costureira Pilotista",
-      "nomeEmpresa": "Alvorada Moda & Têxtil",
-      "status": "Em análise",
-      "tipo": "Vaga",
-      "link": "18-vaga-detalhe.html",
-      "freelancerId": "-DU9G2RSk6s"
-    },
-    {
-      "id": "3",
-      "titulo": "Costura de amostras",
-      "nomeEmpresa": "VestiLar Confecções",
-      "status": "Concluída",
-      "tipo": "OS",
-      "link": "18-vaga-detalhe.html",
-      "freelancerId": "-DU9G2RSk6s"
-    },
-    {
-      "id": "4",
-      "titulo": "Costureira Pilotista",
-      "nomeEmpresa": "Alvorada Moda & Têxtil",
-      "status": "Em análise",
-      "tipo": "Vaga",
-      "link": "18-vaga-detalhe.html",
-      "freelancerId": "-DU9G2RSk6s"
-    },
-    {
-      "id": "5",
-      "titulo": "Ajuste de modelagem de peças",
-      "nomeEmpresa": "Fio & Forma Confecções",
-      "status": "Em andamento",
-      "tipo": "OS",
-      "link": "18-vaga-detalhe.html",
-      "freelancerId": "-DU9G2RSk6s"
-    },
-    {
-      "id": "6",
-      "titulo": "Costura de peças piloto",
-      "nomeEmpresa": "Bella Linha Têxtil",
-      "status": "Em análise",
-      "tipo": "Vaga",
-      "link": "18-vaga-detalhe.html",
-      "freelancerId": "-DU9G2RSk6s"
-    },
-    {
-      "id": "7",
-      "titulo": "Produção de camisetas básicas",
-      "nomeEmpresa": "Sulvest Confecções",
-      "status": "Concluída",
-      "tipo": "OS",
-      "link": "18-vaga-detalhe.html",
-      "freelancerId": "-DU9G2RSk6s"
-    },
-    {
-      "id": "8",
-      "titulo": "Costureira para linha fitness",
-      "nomeEmpresa": "MoveFit Moda Esportiva",
-      "status": "Em andamento",
-      "tipo": "Vaga",
-      "link": "18-vaga-detalhe.html",
-      "freelancerId": "-DU9G2RSk6s"
-    },
-    {
-      "id": "9",
-      "titulo": "Acabamento de peças em malha",
-      "nomeEmpresa": "TramaSul Indústria Têxtil",
-      "status": "Em análise",
-      "tipo": "OS",
-      "link": "18-vaga-detalhe.html",
-      "freelancerId": "-DU9G2RSk6s"
-    },
-    {
-      "id": "10",
-      "titulo": "Costureira para produção em série",
-      "nomeEmpresa": "Estilo Norte Confecções",
-      "status": "Em andamento",
-      "tipo": "Vaga",
-      "link": "18-vaga-detalhe.html",
-      "freelancerId": "-DU9G2RSk6s"
-    },
-    {
-      "id": "11",
-      "titulo": "Montagem de peças de alfaiataria",
-      "nomeEmpresa": "Corte & Linha Moda",
-      "status": "Concluída",
-      "tipo": "OS",
-      "link": "18-vaga-detalhe.html",
-      "freelancerId": "-DU9G2RSk6s"
-    },
-    {
-      "id": "12",
-      "titulo": "Costureira para coleção primavera",
-      "nomeEmpresa": "Essenza Moda Feminina",
-      "status": "Em análise",
-      "tipo": "Vaga",
-      "link": "18-vaga-detalhe.html",
-      "freelancerId": "-DU9G2RSk6s"
-    },
-    {
-      "id": "13",
-      "titulo": "Produção de uniformes profissionais",
-      "nomeEmpresa": "ProUniforme Têxtil",
-      "status": "Em andamento",
-      "tipo": "OS",
-      "link": "18-vaga-detalhe.html",
-      "freelancerId": "-DU9G2RSk6s"
-    },
-    {
-      "id": "14",
-      "titulo": "Costureira para peças de moda feminina",
-      "nomeEmpresa": "Ateliê Nova Estação",
-      "status": "Concluída",
-      "tipo": "Vaga",
-      "link": "18-vaga-detalhe.html",
-      "freelancerId": "-DU9G2RSk6s"
-    },
-    {
-      "id": "c-vg1-1",
-      "vagaId": "1",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "nomeEmpresa": "Silva Fashion",
-      "titulo": "Costureira Especialista em Alfaiataria",
-      "freelancerId": "maria-silva-02",
-      "freelancerNome": "Maria Silva",
-      "status": "Selecionado",
-      "tipo": "Vaga",
-      "link": "18-vaga-detalhe.html"
-    },
-    {
-      "id": "c-vg1-2",
-      "vagaId": "1",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "nomeEmpresa": "Silva Fashion",
-      "titulo": "Costureira Especialista em Alfaiataria",
-      "freelancerId": "carlos-souza-04",
-      "freelancerNome": "Carlos Souza",
-      "status": "Rejeitado",
-      "tipo": "Vaga",
-      "link": "18-vaga-detalhe.html"
-    },
-    {
-      "id": "c-vg2-1",
-      "vagaId": "2",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "nomeEmpresa": "Silva Fashion",
-      "titulo": "Modelista para Coleção de Verão",
-      "freelancerId": "joana-costa-01",
-      "freelancerNome": "Joana Costa",
-      "status": "Em análise",
-      "tipo": "Vaga",
-      "link": "18-vaga-detalhe.html"
-    },
-    {
-      "id": "c-vg4-1",
-      "vagaId": "4",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "nomeEmpresa": "Silva Fashion",
-      "titulo": "Costureira Pilotista",
-      "freelancerId": "ana-ferreira-03",
-      "freelancerNome": "Ana Ferreira",
-      "status": "Em análise",
-      "tipo": "Vaga",
-      "link": "18-vaga-detalhe.html"
-    },
-    {
-      "id": "c-vg4-2",
-      "vagaId": "4",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "nomeEmpresa": "Silva Fashion",
-      "titulo": "Costureira Pilotista",
-      "freelancerId": "maria-silva-02",
-      "freelancerNome": "Maria Silva",
-      "status": "Em análise",
-      "tipo": "Vaga",
-      "link": "18-vaga-detalhe.html"
-    },
-    {
-      "id": "c-vg5-1",
-      "vagaId": "5",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "nomeEmpresa": "Silva Fashion",
-      "titulo": "Costureira Industrial",
-      "freelancerId": "carlos-souza-04",
-      "freelancerNome": "Carlos Souza",
-      "status": "Em análise",
-      "tipo": "Vaga",
-      "link": "18-vaga-detalhe.html"
-    },
-    {
-      "vagaId": "1",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "nomeEmpresa": "Silva Fashion",
-      "titulo": "Costureira Especialista em Alfaiataria",
-      "freelancerId": "-DU9G2RSk6s",
-      "freelancerNome": "Karina Vicente",
-      "status": "Rejeitado",
-      "tipo": "Vaga",
-      "link": "18-vaga-detalhe.html",
-      "id": "IAbs837HfRk"
-    },
-    {
-      "vagaId": "2",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "nomeEmpresa": "Silva Fashion",
-      "titulo": "Modelista para Coleção de Verão",
-      "freelancerId": "-DU9G2RSk6s",
-      "freelancerNome": "Karina Vicente",
-      "status": "Em análise",
-      "tipo": "Vaga",
-      "link": "18-vaga-detalhe.html",
-      "id": "x97-5cQ4WDw"
-    }
-  ],
-  "convites": [
-    {
-      "vagaId": "6",
-      "vagaTitulo": "Técnico(a) em Controle de Qualidade Têxtil",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "freelancerId": "-DU9G2RSk6s",
-      "freelancerNome": "Karina Vicente",
-      "status": "Pendente",
-      "tipo": "Convite",
-      "criadoEm": "2026-09-19T12:00:00.000Z",
-      "id": "upjN6rgrXMU"
+      "vagaId": "",
+      "empresaId": "",
+      "empresaNome": "",
+      "nomeEmpresa": "",
+      "titulo": "",
+      "freelancerId": "",
+      "freelancerNome": "",
+      "status": "",
+      "tipo": "",
+      "link": "",
+      "id": ""
     }
   ],
   "ordensServico": [
     {
-      "id": "1",
-      "titulo": "Produção lote verão",
-      "categoria": "Costura",
-      "modalidade": "Presencial",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Confecção X",
-      "freelancerId": "-DU9G2RSk6s",
-      "freelancerNome": "Maria Silva",
-      "cidade": "São Paulo",
-      "estado": "SP",
-      "valor": "5000",
-      "descricao": "Produção de peças em escala.",
-      "requisitos": "Experiência com produção em lote.",
-      "habilidades": [
-        "Produção em lote",
-        "Acabamento"
-      ],
-      "status": "Em andamento",
-      "dataPublicacao": "2026-07-01T09:30",
-      "prazo": "2026-12-20",
-      "previsaoConclusao": "2026-12-22",
-      "avaliacaoFreelancer": "Pendente",
-      "avaliacaoConfeccao": "Avaliado",
-      "observacoes": "Primeira entrega em",
-      "referenciaBriefing": "briefing-producao-lote.jpg",
-      "referenciaEntrega": "entrega-final.jpg",
-      "historico": [
-        {
-          "data": "2026-07-01",
-          "evento": "OS criada."
-        },
-        {
-          "data": "2026-07-05",
-          "evento": "Freelancer atribuído."
-        },
-        {
-          "data": "2026-07-20",
-          "evento": "Entrega parcial enviada."
-        }
-      ]
-    },
-    {
-      "id": "2",
-      "titulo": "Costura de amostras",
-      "categoria": "Costura",
-      "modalidade": "Remota",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "VestiLar Confecções",
-      "freelancerId": "-DU9G2RSk6s",
-      "freelancerNome": "Karina Vicente",
-      "cidade": "Blumenau",
-      "estado": "SC",
-      "valor": "1200",
-      "descricao": "Costura de peças de amostra para aprovação de coleção.",
-      "requisitos": "Atenção a detalhes de acabamento.",
-      "habilidades": [
-        "Amostras",
-        "Acabamento"
-      ],
-      "status": "Concluída",
-      "dataPublicacao": "2026-06-10T09:00",
-      "prazo": "2026-06-20",
-      "previsaoConclusao": "2026-06-19",
-      "avaliacaoFreelancer": "Avaliado",
-      "avaliacaoConfeccao": "Avaliado",
-      "observacoes": "Entrega aprovada sem ressalvas.",
-      "referenciaBriefing": "",
-      "referenciaEntrega": "",
-      "historico": [
-        {
-          "data": "2026-06-10",
-          "evento": "OS criada."
-        },
-        {
-          "data": "2026-06-12",
-          "evento": "Freelancer atribuído."
-        },
-        {
-          "data": "2026-06-19",
-          "evento": "Entrega final enviada."
-        },
-        {
-          "data": "2026-06-20",
-          "evento": "OS finalizada."
-        }
-      ]
-    },
-    {
-      "id": "3",
-      "titulo": "Ajuste de modelagem de peças",
-      "categoria": "Modelagem",
-      "modalidade": "Híbrida",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Fio & Forma Confecções",
-      "freelancerId": "-DU9G2RSk6s",
-      "freelancerNome": "Karina Vicente",
-      "cidade": "São Paulo",
-      "estado": "SP",
-      "valor": "700",
-      "descricao": "Ajuste de moldes para nova numeração da coleção.",
-      "requisitos": "Experiência com graduação de moldes.",
-      "habilidades": [
-        "Modelagem"
-      ],
-      "status": "Cancelada",
-      "dataPublicacao": "2026-05-02T14:00",
-      "prazo": "2026-05-10",
-      "previsaoConclusao": "2026-05-09",
-      "avaliacaoFreelancer": "Não aplicável",
-      "avaliacaoConfeccao": "Não aplicável",
-      "observacoes": "Cancelada a pedido da confecção antes do início da produção.",
-      "referenciaBriefing": "",
-      "referenciaEntrega": "",
-      "historico": [
-        {
-          "data": "2026-05-02",
-          "evento": "OS criada."
-        },
-        {
-          "data": "2026-05-04",
-          "evento": "OS cancelada pela empresa."
-        }
-      ]
-    },
-    {
-      "titulo": "Costureira Especialista em Alfaiataria",
-      "categoria": "Costura reta",
-      "modalidade": "Presencial",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Confecção Silva & Cia",
-      "freelancerId": "maria-silva-02",
-      "freelancerNome": "Maria Silva",
+      "titulo": "",
+      "categoria": "",
+      "modalidade": "",
+      "empresaId": "",
+      "empresaNome": "",
+      "freelancerId": "",
+      "freelancerNome": "",
       "cidade": "",
       "estado": "",
-      "valor": "R$ 3.500,00",
-      "descricao": "Ordem de serviço gerada a partir da candidatura de Maria Silva para a vaga \"Costureira Especialista em Alfaiataria\".",
+      "valor": "",
+      "descricao": "",
       "requisitos": "",
       "habilidades": [],
-      "status": "Em andamento",
-      "dataPublicacao": "2026-09-18T22:17:08.587Z",
-      "prazo": "2026-10-03",
+      "status": "",
+      "dataPublicacao": "",
+      "prazo": "",
       "previsaoConclusao": "",
-      "avaliacaoFreelancer": "Pendente",
-      "avaliacaoConfeccao": "Pendente",
+      "avaliacaoFreelancer": "",
+      "avaliacaoConfeccao": "",
       "observacoes": "",
       "referenciaBriefing": "",
       "referenciaEntrega": "",
       "historico": [
         {
-          "data": "2026-09-18",
-          "evento": "OS criada a partir da seleção do candidato."
+          "data": "",
+          "evento": ""
         }
       ],
-      "id": "W14joWNLaLo"
-    },
-    {
-      "titulo": "Ajuste de peças de festa",
-      "categoria": "Costura",
-      "modalidade": "Presencial",
-      "empresaId": "LZwRUc8wAso",
-      "empresaNome": "kkkk",
-      "freelancerId": "joana-costa-01",
-      "freelancerNome": "Joana Costa",
-      "cidade": "Blumenau",
-      "estado": "SC",
-      "valor": "900",
-      "descricao": "Ajustes finais em peças de festa antes da entrega.",
-      "requisitos": "",
-      "habilidades": [],
-      "status": "Em andamento",
-      "dataPublicacao": "2026-09-10T09:00:00.000Z",
-      "prazo": "2026-09-30",
-      "previsaoConclusao": "",
-      "avaliacaoFreelancer": "Pendente",
-      "avaliacaoConfeccao": "Pendente",
-      "observacoes": "",
-      "referenciaBriefing": "",
-      "referenciaEntrega": "",
-      "historico": [
-        {
-          "data": "2026-09-10",
-          "evento": "OS criada."
-        }
-      ],
-      "id": "5GSxXeNI-tk"
+      "id": ""
     }
   ],
   "conversas": [
     {
-      "id": "conv-1",
-      "participanteAId": "-DU9G2RSk6s",
-      "participanteANome": "Karina Vicente",
-      "participanteATipo": "freelancers",
-      "participanteBId": "0UEUrH8HgJE",
-      "participanteBNome": "Silva Fashion",
-      "participanteBTipo": "empresas",
-      "ultimaMensagem": "Enviei as referências visuais.",
-      "ultimaAtualizacao": "2026-08-01T10:35:00"
-    },
-    {
-      "id": "conv-2",
-      "participanteAId": "-DU9G2RSk6s",
-      "participanteANome": "Karina Vicente",
-      "participanteATipo": "freelancers",
-      "participanteBId": "LZwRUc8wAso",
-      "participanteBNome": "kkkk",
-      "participanteBTipo": "empresas",
-      "ultimaMensagem": "Perfeito, pode enviar as fotos finais.",
-      "ultimaAtualizacao": "2026-08-02T09:15:00"
-    },
-    {
-      "id": "conv-3",
-      "participanteAId": "-DU9G2RSk6s",
-      "participanteANome": "Karina Vicente",
-      "participanteATipo": "freelancers",
-      "participanteBId": "maria-silva-02",
-      "participanteBNome": "Maria Silva",
-      "participanteBTipo": "freelancers",
-      "ultimaMensagem": "Consigo entregar a modelagem até sexta-feira.",
-      "ultimaAtualizacao": "2026-08-03T14:02:00"
-    },
-    {
-      "participanteAId": "maria-silva-02",
-      "participanteANome": "Maria Silva",
-      "participanteATipo": "freelancers",
-      "participanteBId": "0UEUrH8HgJE",
-      "participanteBNome": "Silva Fashion",
-      "participanteBTipo": "empresas",
+      "participanteAId": "",
+      "participanteANome": "",
+      "participanteATipo": "",
+      "participanteBId": "",
+      "participanteBNome": "",
+      "participanteBTipo": "",
       "ultimaMensagem": "",
-      "ultimaAtualizacao": "2026-09-18T22:17:08.587Z",
-      "id": "JeF3SqlHss4"
+      "ultimaAtualizacao": "",
+      "id": ""
     }
   ],
   "mensagens": [
     {
-      "id": "1",
-      "conversaId": "conv-1",
-      "remetenteId": "0UEUrH8HgJE",
-      "remetenteNome": "Silva Fashion",
-      "destinatarioId": "-DU9G2RSk6s",
-      "destinatarioNome": "Karina Vicente",
-      "conteudo": "Olá, tudo bem?",
-      "timestamp": "2026-08-01T10:30:00",
-      "lida": true
-    },
-    {
-      "id": "2",
-      "conversaId": "conv-1",
-      "remetenteId": "-DU9G2RSk6s",
-      "remetenteNome": "Karina Vicente",
-      "destinatarioId": "0UEUrH8HgJE",
-      "destinatarioNome": "Silva Fashion",
-      "conteudo": "Sim, podemos iniciar.",
-      "timestamp": "2026-08-01T10:32:00",
-      "lida": true
-    },
-    {
-      "id": "3",
-      "conversaId": "conv-1",
-      "remetenteId": "0UEUrH8HgJE",
-      "remetenteNome": "Silva Fashion",
-      "destinatarioId": "-DU9G2RSk6s",
-      "destinatarioNome": "Karina Vicente",
-      "conteudo": "Enviei as referências visuais.",
-      "timestamp": "2026-08-01T10:35:00",
-      "lida": false
-    },
-    {
-      "id": "4",
-      "conversaId": "conv-2",
-      "remetenteId": "LZwRUc8wAso",
-      "remetenteNome": "kkkk",
-      "destinatarioId": "-DU9G2RSk6s",
-      "destinatarioNome": "Karina Vicente",
-      "conteudo": "Bom dia! O lote de blusas já está pronto para envio.",
-      "timestamp": "2026-08-02T09:10:00",
-      "lida": true
-    },
-    {
-      "id": "5",
-      "conversaId": "conv-2",
-      "remetenteId": "-DU9G2RSk6s",
-      "remetenteNome": "Karina Vicente",
-      "destinatarioId": "LZwRUc8wAso",
-      "destinatarioNome": "kkkk",
-      "conteudo": "Perfeito, pode enviar as fotos finais.",
-      "timestamp": "2026-08-02T09:15:00",
-      "lida": true
-    },
-    {
-      "id": "6",
-      "conversaId": "conv-3",
-      "remetenteId": "maria-silva-02",
-      "remetenteNome": "Maria Silva",
-      "destinatarioId": "-DU9G2RSk6s",
-      "destinatarioNome": "Karina Vicente",
-      "conteudo": "Consigo entregar a modelagem até sexta-feira.",
-      "timestamp": "2026-08-03T14:02:00",
-      "lida": true
+      "conversaId": "",
+      "remetenteId": "",
+      "remetenteNome": "",
+      "destinatarioId": "",
+      "destinatarioNome": "",
+      "conteudo": "",
+      "timestamp": "",
+      "lida": true,
+      "id": ""
     }
   ],
   "chamados": [
     {
-      "id": "1",
-      "assunto": "Dúvida",
-      "descricao": "Como funciona a plataforma?",
-      "status": "Aberto",
-      "autorId": "-DU9G2RSk6s",
-      "autorNome": "Maria Silva",
-      "criadoEm": "2026-07-10",
+      "assunto": "",
+      "descricao": "",
+      "status": "",
+      "autorId": "",
+      "autorNome": "",
+      "criadoEm": "",
       "mensagens": [
         {
-          "autor": "Maria Silva",
-          "texto": "Como funciona a plataforma?",
-          "data": "2026-07-10"
-        }
-      ]
-    },
-    {
-      "id": "2",
-      "assunto": "Pagamento",
-      "descricao": "Dúvida sobre cobrança da assinatura.",
-      "status": "Respondido",
-      "autorId": "0UEUrH8HgJE",
-      "autorNome": "Confecção X",
-      "criadoEm": "2026-07-12",
-      "mensagens": [
-        {
-          "autor": "Confecção X",
-          "texto": "Dúvida sobre cobrança da assinatura.",
-          "data": "2026-07-12"
-        },
-        {
-          "autor": "Suporte Freela da Moda",
-          "texto": "Olá! A cobrança é mensal e renova automaticamente. Posso ajudar em algo mais?",
-          "data": "2026-07-12"
-        }
-      ]
-    },
-    {
-      "assunto": "Dúvida",
-      "descricao": "ola estou com duvida",
-      "status": "Fechado",
-      "autorId": null,
-      "autorNome": "Visitante",
-      "criadoEm": "2026-09-13",
-      "mensagens": [
-        {
-          "autor": "Visitante",
-          "texto": "ola estou com duvida",
-          "data": "2026-09-13"
-        },
-        {
-          "autor": "Suporte Freela da Moda",
-          "texto": "ok",
-          "data": "2026-09-13"
+          "autor": "",
+          "texto": "",
+          "data": ""
         }
       ],
-      "id": "TJNm37eKX8k"
+      "anexo": {
+        "nome": "",
+        "tipo": "",
+        "tamanho": 0,
+        "dados": ""
+      },
+      "id": ""
     }
   ],
   "notificacoes": [
     {
-      "usuarioId": "-DU9G2RSk6s",
-      "usuarioTipo": "freelancers",
-      "tipo": "convite",
-      "titulo": "Novo convite de vaga",
-      "mensagem": "Silva Fashion convidou você para a vaga \"Técnico(a) em Controle de Qualidade Têxtil\".",
-      "lida": false,
-      "criadoEm": "2026-09-19T12:00:00.000Z",
-      "link": "/pages/20-minhas-candidaturas.html",
-      "id": "jSRIVSM41tc"
-    },
-    {
-      "usuarioId": "0UEUrH8HgJE",
-      "usuarioTipo": "empresas",
-      "tipo": "pagamento",
-      "titulo": "Pagamento confirmado",
-      "mensagem": "Pagamento de R$ 49,90 do plano Básico confirmado. Próxima cobrança em 14/10/2026.",
-      "lida": false,
-      "criadoEm": "2026-09-14T09:00:00.000Z",
-      "link": "/pages/21-assinatura.html",
-      "id": "LC9g2oyrbbI"
+      "usuarioId": "",
+      "usuarioTipo": "",
+      "tipo": "",
+      "titulo": "",
+      "mensagem": "",
+      "lida": true,
+      "criadoEm": "",
+      "link": "",
+      "id": ""
     }
   ],
   "assinaturas": [
     {
-      "id": "1",
-      "empresaId": "0UEUrH8HgJE",
-      "plano": "Básico",
-      "valor": "R$ 49,90",
-      "status": "ativo",
-      "proximaCobranca": "2026-10-14",
+      "empresaId": "",
+      "plano": "",
+      "valor": "",
+      "status": "",
+      "proximaCobranca": "",
       "historico": [
         {
-          "data": "2026-08-10",
-          "plano": "Básico",
-          "valor": "R$ 49,90",
-          "status": "pago"
-        },
-        {
-          "data": "2026-09-13",
-          "plano": "Pro",
-          "valor": "R$ 99,90",
-          "status": "pago"
-        },
-        {
-          "data": "2026-09-14",
-          "plano": "Básico",
-          "valor": "R$ 49,90",
-          "status": "pago"
+          "data": "",
+          "plano": "",
+          "valor": "",
+          "status": ""
         }
-      ]
+      ],
+      "id": ""
     }
   ],
   "impulsionamentos": [
     {
-      "id": "1",
-      "freelancerId": "-DU9G2RSk6s",
-      "plano": "Premium",
-      "valor": "R$ 14,90/mês",
-      "status": "ativo",
-      "dataInicio": "2026-09-18",
-      "dataFim": null
-    },
-    {
-      "freelancerId": "carlos-souza-04",
-      "plano": "Pro",
-      "valor": "R$ 29,90/mês",
-      "status": "ativo",
-      "dataInicio": "2026-09-01",
+      "freelancerId": "",
+      "plano": "",
+      "valor": "",
+      "status": "",
+      "dataInicio": "",
       "dataFim": null,
-      "id": "pBtwG69awGE"
+      "id": ""
     }
   ],
   "parametros": [
     {
-      "id": "1",
-      "taxa": 10,
-      "limite": 5,
+      "taxa": 0,
+      "limite": 0,
       "aviso": "",
-      "cor": "#7000c2"
+      "cor": "#a1a1a1",
+      "id": ""
     }
   ],
   "avisos": [
     {
-      "id": "1",
-      "titulo": "Manutenção programada",
-      "texto": "A plataforma ficará indisponível das 2h às 4h para manutenção.",
-      "autor": "Administração",
-      "publicadoEm": "2026-07-01",
-      "expiraEm": "2026-07-15",
-      "status": "Ativo"
-    },
-    {
-      "id": "2",
-      "titulo": "Atualização de termos de uso",
-      "texto": "Os termos de uso foram atualizados. Confira as novidades na sua conta.",
-      "autor": "Administração",
-      "publicadoEm": "2026-06-20",
-      "expiraEm": "2026-08-20",
-      "status": "Programado"
+      "titulo": "",
+      "texto": "",
+      "autor": "",
+      "publicadoEm": "",
+      "expiraEm": "",
+      "status": "",
+      "id": ""
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
