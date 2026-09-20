@@ -1,7 +1,15 @@
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
-    // ── 2. Menu Lateral no Celular (Hambúrguer) ──
+    // ── Sessão: empresa OU freelancer logado pode ver a OS (cada um só a sua) ──
+    const sessao = exigirLogin();
+    if (!sessao) return;
+
+    renderizarSidebar(document.querySelector('.sidebar'), sessao.tipo, sessao.tipo === 'empresas' ? '16-ordens-servico' : '29-minhas-os');
+    renderizarTopbar(document.querySelector('#header-acoes'), sessao);
+    renderizarBannerValidacao(document.querySelector('.main'), sessao);
+
+    // ── Menu Lateral no Celular (Hambúrguer) ──
     const sidebarToggleBtn = document.querySelector('.sidebar-toggle-btn');
     const sidebar = document.querySelector('.sidebar');
     const sidebarOverlay = document.querySelector('.sidebar-overlay');
@@ -20,19 +28,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ── Proteção de rota (só empresa logada) ──
-    const sessao = JSON.parse(sessionStorage.getItem('usuarioLogado') || 'null');
-    if (!sessao || sessao.tipo !== 'empresas') {
-        window.location.href = '/pages/02-login.html';
-        return;
-    }
-
-    // ── 3. Carregar a Ordem de Serviço ──
+    // ── Carregar a Ordem de Serviço ──
     const params = new URLSearchParams(window.location.search);
     const idOS = params.get('id');
 
     if (!idOS) {
-        window.location.href = '/pages/16-ordens-servico.html';
+        window.location.href = sessao.tipo === 'empresas' ? '/pages/16-ordens-servico.html' : '/pages/29-minhas-os.html';
         return;
     }
 
@@ -40,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const el = document.getElementById('mensagemStatus');
         if (!el) return;
         el.className = `alert alert-${tipo}`;
-        el.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
+        el.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${escapeHtml(texto)}`;
         el.hidden = false;
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -64,15 +65,8 @@ document.addEventListener('DOMContentLoaded', function () {
         return 'badge-warning';
     }
 
-    function escapeHtml(str) {
-        return String(str ?? '').replace(/[&<>"']/g, function (ch) {
-            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
-        });
-    }
-
-    // Renderiza o anexo de uma OS (briefing/entrega). Aceita tanto o formato
-    // novo, gravado pelo upload real ({ nome, tipo, tamanho, dados }, "dados"
-    // em base64), quanto o formato legado (apenas um nome de arquivo em texto).
+    // Renderiza o anexo de uma OS. Só exibe imagem/baixar quando "dados" é um
+    // data URI válido de imagem (evita injetar conteúdo arbitrário no HTML).
     function renderizarAnexo(elementoId, valor) {
         const el = document.getElementById(elementoId);
         if (!el) return;
@@ -86,25 +80,50 @@ document.addEventListener('DOMContentLoaded', function () {
             const tamanho = typeof valor.tamanho === 'number'
                 ? ` (${(valor.tamanho / 1024 / 1024).toFixed(1)} MB)`
                 : '';
-            const ehImagem = valor.tipo && valor.tipo.startsWith('image/') && valor.dados;
-            el.innerHTML = `
-                <div style="display:flex; align-items:center; gap:10px;">
-                    ${ehImagem ? `<img src="${valor.dados}" alt="${escapeHtml(valor.nome)}" style="width:56px; height:56px; object-fit:cover; border-radius:8px; border:1px solid var(--border);">` : '<i class="bi bi-file-earmark-image" style="font-size:24px;"></i>'}
-                    <div>
-                        <div>${escapeHtml(valor.nome)}${tamanho}</div>
-                        ${valor.dados ? `<a href="${valor.dados}" download="${escapeHtml(valor.nome)}" style="font-size:12px;">Baixar arquivo</a>` : ''}
-                    </div>
-                </div>
-            `;
+            const dados = typeof valor.dados === 'string' ? valor.dados : '';
+            const ehImagem = valor.tipo && valor.tipo.startsWith('image/') && dados.startsWith('data:image/');
+
+            el.innerHTML = '';
+            const linha = document.createElement('div');
+            linha.style.cssText = 'display:flex; align-items:center; gap:10px;';
+
+            if (ehImagem) {
+                const img = document.createElement('img');
+                img.src = dados;
+                img.alt = valor.nome;
+                img.style.cssText = 'width:56px; height:56px; object-fit:cover; border-radius:8px; border:1px solid var(--border);';
+                linha.appendChild(img);
+            } else {
+                const icone = document.createElement('i');
+                icone.className = 'bi bi-file-earmark-image';
+                icone.style.fontSize = '24px';
+                linha.appendChild(icone);
+            }
+
+            const infos = document.createElement('div');
+            const nomeArquivo = document.createElement('div');
+            nomeArquivo.textContent = `${valor.nome}${tamanho}`;
+            infos.appendChild(nomeArquivo);
+
+            if (ehImagem) {
+                const linkBaixar = document.createElement('a');
+                linkBaixar.href = dados;
+                linkBaixar.download = valor.nome;
+                linkBaixar.style.fontSize = '12px';
+                linkBaixar.textContent = 'Baixar arquivo';
+                infos.appendChild(linkBaixar);
+            }
+
+            linha.appendChild(infos);
+            el.appendChild(linha);
             return;
         }
 
-        // Formato legado: apenas o nome do arquivo, sem dados reais para exibir/baixar.
+        // Formato legado: apenas o nome do arquivo.
         el.textContent = String(valor);
     }
 
     let osAtual = null;
-    let acessoNegado = false;
 
     function renderizarOS(os) {
         osAtual = os;
@@ -116,7 +135,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('os-empresa-display').textContent = os.empresaNome || '—';
         document.getElementById('os-local-display').textContent = [os.cidade, os.estado].filter(Boolean).join(' - ') || '—';
         document.getElementById('os-data-display').textContent = formatarDataHora(os.dataPublicacao);
-        document.getElementById('os-valor-display').textContent = os.valor ? `R$ ${os.valor}` : '—';
+        document.getElementById('os-valor-display').textContent = os.valor || '—';
         document.getElementById('os-descricao-display').textContent = os.descricao || '—';
         document.getElementById('os-requisitos-display').textContent = os.requisitos || '—';
 
@@ -128,11 +147,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const badgeStatus = document.getElementById('os-status-badge');
         badgeStatus.className = `badge ${classeBadgeStatus(os.status)}`;
         badgeStatus.textContent = os.status;
-
-        // "Finalizar" só faz sentido enquanto a OS está em andamento — uma OS
-        // já concluída ou cancelada não deve poder ser "finalizada" de novo.
-        const btnFinalizarOS = document.getElementById('btn-finalizar-os');
-        if (btnFinalizarOS) btnFinalizarOS.hidden = os.status !== 'Em andamento';
 
         document.getElementById('os-freelancer-display').textContent = os.freelancerNome || '—';
         document.getElementById('os-prazo-display').textContent = formatarData(os.prazo);
@@ -150,8 +164,24 @@ document.addEventListener('DOMContentLoaded', function () {
             }).join('')
             : '<div class="timeline-item">Nenhum evento registrado.</div>';
 
+        // Ações conforme o papel de quem está logado
+        const ehEmpresaDona = sessao.tipo === 'empresas' && String(os.empresaId) === String(sessao.id);
+        const ehFreelancerDono = sessao.tipo === 'freelancers' && String(os.freelancerId) === String(sessao.id);
+
         const linkEditar = document.getElementById('os-link-editar');
+        const btnFinalizar = document.getElementById('btn-finalizar-os');
+        const linkAvaliar = document.getElementById('os-link-avaliar');
+
+        if (linkEditar) linkEditar.hidden = !ehEmpresaDona;
         if (linkEditar) linkEditar.href = `/pages/14-editar-os.html?id=${os.id}`;
+
+        if (btnFinalizar) btnFinalizar.hidden = !(ehEmpresaDona && os.status === 'Em andamento');
+
+        if (linkAvaliar) {
+            const podeAvaliar = ehFreelancerDono && os.status === 'Concluída' && os.avaliacaoFreelancer !== 'Avaliado';
+            linkAvaliar.hidden = !podeAvaliar;
+            linkAvaliar.href = `/pages/23-avaliacao-os.html?id=${os.id}`;
+        }
     }
 
     async function carregarOS() {
@@ -160,31 +190,37 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!res.ok) throw new Error(`OS não encontrada (HTTP ${res.status}).`);
             const os = await res.json();
 
-            if (String(os.empresaId) !== String(sessao.id)) {
-                acessoNegado = true;
-                mostrarMensagem('Esta Ordem de Serviço não pertence à sua empresa.', 'error');
-                const btnFinalizarOS = document.getElementById('btn-finalizar-os');
-                const linkEditarOS = document.getElementById('os-link-editar');
-                if (btnFinalizarOS) btnFinalizarOS.hidden = true;
-                if (linkEditarOS) linkEditarOS.hidden = true;
+            const ehEmpresaDona = sessao.tipo === 'empresas' && String(os.empresaId) === String(sessao.id);
+            const ehFreelancerDono = sessao.tipo === 'freelancers' && String(os.freelancerId) === String(sessao.id);
+
+            if (!ehEmpresaDona && !ehFreelancerDono) {
+                mostrarMensagem('Esta Ordem de Serviço não está vinculada à sua conta.', 'error');
                 return;
             }
 
             renderizarOS(os);
         } catch (erro) {
             console.error('Erro ao carregar Ordem de Serviço:', erro);
+            mostrarMensagem('Não foi possível carregar a Ordem de Serviço. Tente novamente.', 'error');
         }
     }
 
     carregarOS();
 
-    // ── 4. Finalizar Ordem de Serviço ──
+    // ── Finalizar Ordem de Serviço (empresa) ──
     const btnFinalizar = document.getElementById('btn-finalizar-os');
 
     if (btnFinalizar) {
         btnFinalizar.addEventListener('click', async function () {
             if (!osAtual) return;
-            if (!confirm('Confirmar a finalização desta Ordem de Serviço?')) return;
+
+            const confirmou = await modalConfirmar({
+                titulo: 'Finalizar Ordem de Serviço',
+                mensagem: 'Confirmar a finalização desta Ordem de Serviço?',
+                textoConfirmar: 'Finalizar',
+                textoCancelar: 'Cancelar'
+            });
+            if (!confirmou) return;
 
             const textoOriginal = btnFinalizar.innerHTML;
             btnFinalizar.disabled = true;
@@ -205,6 +241,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const badgeStatus = document.getElementById('os-status-badge');
                 badgeStatus.className = 'badge badge-success';
                 badgeStatus.textContent = 'Concluída';
+                btnFinalizar.hidden = true;
 
                 setTimeout(function () {
                     window.location.href = `/pages/23-avaliacao-os.html?id=${osAtual.id}`;
@@ -213,7 +250,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('Erro ao finalizar Ordem de Serviço:', erro);
                 btnFinalizar.disabled = false;
                 btnFinalizar.innerHTML = textoOriginal;
-                mostrarMensagem('Não foi possível finalizar a OS. Verifique se o json-server está rodando.', 'error');
+                mostrarMensagem('Não foi possível finalizar a OS. Tente novamente.', 'error');
             }
         });
     }

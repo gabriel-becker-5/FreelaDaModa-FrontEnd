@@ -1,56 +1,61 @@
 const API_URL = `${API_BASE}/vagas`;
 let todasVagas = [];
 
-function escapeHtml(str) {
-    return String(str ?? '').replace(/[&<>"']/g, function (ch) {
-        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
-    });
-}
-
 function mostrarMensagem(texto, tipo) {
     const el = document.getElementById('mensagemStatus');
     if (!el) return;
-    el.className = `alert alert-${tipo}`; // tipo: 'success' | 'error'
-    el.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
+    el.className = `alert alert-${tipo}`;
+    el.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${escapeHtml(texto)}`;
     el.hidden = false;
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    verificarUsuarioLogado();
+    const sessao = obterSessao();
+
+    // Isolamento de áreas: empresa logada não acessa o mural de vagas.
+    if (sessao && sessao.tipo === 'empresas') {
+        window.location.href = '/pages/04-dashboard-empresa.html';
+        return;
+    }
+
+    if (sessao) {
+        renderizarSidebar(document.querySelector('.sidebar'), 'freelancers', '07-vagas');
+        renderizarTopbar(document.getElementById('header-acoes'), sessao);
+        renderizarBannerValidacao(document.querySelector('.main'), sessao);
+        configurarMenuMobile();
+    } else {
+        // Página pública: sem menu lateral, apenas o botão Entrar no topo.
+        document.querySelector('.sidebar').setAttribute('hidden', '');
+        document.querySelector('.sidebar-toggle-btn').setAttribute('hidden', '');
+        document.querySelector('.sidebar-overlay').setAttribute('hidden', '');
+        renderizarHeaderPublico(document.getElementById('header-acoes'));
+    }
+
     carregarVagas();
     initFiltros();
 });
 
 /* -------------------------------------------------------------------------- */
-/* 1. VERIFICAR AUTENTICAÇÃO DO USUÁRIO                                      */
+/* 1. MENU MOBILE (HAMBÚRGUER)                                                */
 /* -------------------------------------------------------------------------- */
-function verificarUsuarioLogado() {
-    const sessao = JSON.parse(sessionStorage.getItem('usuarioLogado'));
-    const greeting = document.getElementById('user-greeting');
-    const btnAuth = document.getElementById('btn-auth');
-    const linkDashboard = document.getElementById('link-dashboard');
+function configurarMenuMobile() {
+    const sidebarToggleBtn = document.querySelector('.sidebar-toggle-btn');
+    const sidebar = document.querySelector('.sidebar');
+    const sidebarOverlay = document.querySelector('.sidebar-overlay');
+    if (!sidebarToggleBtn || !sidebar || !sidebarOverlay) return;
 
-    if (sessao) {
-        greeting.textContent = `Olá, ${sessao.nome.split(' ')[0]}!`;
-        btnAuth.textContent = 'Sair';
-        btnAuth.href = '#';
-        btnAuth.addEventListener('click', (e) => {
-            e.preventDefault();
-            sessionStorage.removeItem('usuarioLogado');
-            window.location.reload();
-        });
-
-        if (sessao.tipo === 'empresas') {
-            linkDashboard.href = '/pages/04-dashboard-empresa.html';
-        } else {
-            linkDashboard.href = '/pages/03-dashboard-freelancer.html';
-        }
-    } else {
-        greeting.textContent = '';
-        btnAuth.textContent = 'Entrar';
-        btnAuth.href = '/pages/02-login.html';
-    }
+    sidebarToggleBtn.addEventListener('click', function () {
+        const abrindo = !sidebar.classList.contains('open');
+        sidebar.classList.toggle('open', abrindo);
+        sidebarOverlay.classList.toggle('open', abrindo);
+        sidebarToggleBtn.setAttribute('aria-expanded', String(abrindo));
+    });
+    sidebarOverlay.addEventListener('click', function () {
+        sidebar.classList.remove('open');
+        sidebarOverlay.classList.remove('open');
+        sidebarToggleBtn.setAttribute('aria-expanded', 'false');
+    });
 }
 
 /* -------------------------------------------------------------------------- */
@@ -73,23 +78,16 @@ async function carregarVagas() {
         if (termoDaUrl) {
             const inputBusca = document.getElementById('filtro-busca');
             if (inputBusca) inputBusca.value = termoDaUrl;
-            const termo = termoDaUrl.toLowerCase().trim();
-            const filtradas = todasVagas.filter(vaga =>
-                vaga.titulo.toLowerCase().includes(termo) ||
-                (vaga.descricao || '').toLowerCase().includes(termo) ||
-                (vaga.especialidade || '').toLowerCase().includes(termo) ||
-                (vaga.empresaNome && vaga.empresaNome.toLowerCase().includes(termo))
-            );
-            renderizarVagas(filtradas);
+            aplicarFiltros();
         } else {
             renderizarVagas(todasVagas);
         }
     } catch (error) {
-        console.error(error);
+        console.error('Erro ao carregar vagas:', error);
         container.innerHTML = `
             <div class="empty-state">
                 <i class="bi bi-exclamation-triangle"></i>
-                <p>Não foi possível carregar as vagas. Certifique-se de que a API (json-server) está ativa.</p>
+                <p>Não foi possível carregar as vagas. Tente novamente em instantes.</p>
             </div>
         `;
     }
@@ -153,7 +151,7 @@ function renderizarVagas(vagas) {
                     </div>
                 </div>
 
-                <button class="btn btn-purple btn-candidatar" data-id="${escapeHtml(vaga.id)}" data-titulo="${escapeHtml(vaga.titulo)}">
+                <button class="btn btn-purple btn-candidatar" data-id="${escapeHtml(vaga.id)}">
                     Candidatar-se <i class="bi bi-send"></i>
                 </button>
             </div>
@@ -166,41 +164,61 @@ function renderizarVagas(vagas) {
 }
 
 /* -------------------------------------------------------------------------- */
-/* 4. FILTROS DE BUSCA E ESPECIALIDADE                                        */
+/* 4. FILTROS DE BUSCA, ESPECIALIDADE E LOCALIDADE                            */
 /* -------------------------------------------------------------------------- */
+let selectEstado = null;
+let inputCidade = null;
+
 function initFiltros() {
     const inputBusca = document.getElementById('filtro-busca');
     const selectEspecialidade = document.getElementById('filtro-especialidade');
     const btnLimpar = document.getElementById('btn-limpar-filtros');
+    selectEstado = document.getElementById('filtro-estado');
+    inputCidade = document.getElementById('filtro-cidade');
 
-    const aplicarFiltros = () => {
-        const termo = inputBusca.value.toLowerCase().trim();
-        const esp = selectEspecialidade.value;
-
-        const filtradas = todasVagas.filter(vaga => {
-            const bateTermo =
-                !termo ||
-                vaga.titulo.toLowerCase().includes(termo) ||
-                (vaga.descricao || '').toLowerCase().includes(termo) ||
-                (vaga.especialidade || '').toLowerCase().includes(termo) ||
-                (vaga.empresaNome && vaga.empresaNome.toLowerCase().includes(termo));
-
-            const bateEsp = esp === '' || vaga.especialidade === esp;
-
-            return bateTermo && bateEsp;
-        });
-
-        renderizarVagas(filtradas);
-    };
+    if (selectEstado) carregarUFs(selectEstado);
+    if (selectEstado && inputCidade) montarAutocompleteCidade(inputCidade, selectEstado);
 
     inputBusca.addEventListener('input', aplicarFiltros);
     selectEspecialidade.addEventListener('change', aplicarFiltros);
+    if (selectEstado) selectEstado.addEventListener('change', aplicarFiltros);
+    if (inputCidade) inputCidade.addEventListener('input', aplicarFiltros);
 
     btnLimpar.addEventListener('click', () => {
         inputBusca.value = '';
         selectEspecialidade.value = '';
+        if (selectEstado) selectEstado.value = '';
+        if (inputCidade) inputCidade.value = '';
         renderizarVagas(todasVagas);
     });
+}
+
+function aplicarFiltros() {
+    const inputBusca = document.getElementById('filtro-busca');
+    const selectEspecialidade = document.getElementById('filtro-especialidade');
+
+    const termo = inputBusca.value.toLowerCase().trim();
+    const esp = selectEspecialidade.value;
+    const uf = selectEstado ? selectEstado.value : '';
+    const cidade = inputCidade ? removerAcentos(inputCidade.value.trim().toLowerCase()) : '';
+
+    const filtradas = todasVagas.filter(vaga => {
+        const bateTermo =
+            !termo ||
+            (vaga.titulo || '').toLowerCase().includes(termo) ||
+            (vaga.descricao || '').toLowerCase().includes(termo) ||
+            (vaga.especialidade || '').toLowerCase().includes(termo) ||
+            ((vaga.empresaNome || '') && vaga.empresaNome.toLowerCase().includes(termo));
+
+        const bateEsp = esp === '' || vaga.especialidade === esp;
+
+        const bateUf = !uf || String(vaga.estado || '').toUpperCase() === uf.toUpperCase();
+        const bateCidade = !cidade || removerAcentos(String(vaga.cidade || '')).toLowerCase().includes(cidade);
+
+        return bateTermo && bateEsp && bateUf && bateCidade;
+    });
+
+    renderizarVagas(filtradas);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -211,10 +229,11 @@ function initBotoesCandidatura() {
 
     botoes.forEach(btn => {
         btn.addEventListener('click', async () => {
-            const sessao = JSON.parse(sessionStorage.getItem('usuarioLogado'));
+            const sessao = obterSessao();
 
             if (!sessao) {
-                window.location.href = '/pages/02-login.html';
+                const proxima = encodeURIComponent(window.location.pathname + window.location.search);
+                window.location.href = `/pages/02-login.html?next=${proxima}`;
                 return;
             }
 
@@ -238,9 +257,6 @@ function initBotoesCandidatura() {
 
             try {
                 // Evita candidatura duplicada para a mesma vaga.
-                // Filtra "vagaId" no cliente: o json-server usado neste projeto não
-                // filtra de forma confiável por "?vagaId=" (a coleção "vagas" mistura
-                // ids numéricos e alfanuméricos, o que quebra a indexação dele).
                 const resExistente = await fetch(`${API_BASE}/candidaturas?freelancerId=${sessao.id}`);
                 const candidaturasDoFreelancer = resExistente.ok ? await resExistente.json() : [];
                 const existentes = candidaturasDoFreelancer.filter(c => String(c.vagaId) === String(vaga.id) && c.status !== 'Cancelada');
@@ -258,6 +274,8 @@ function initBotoesCandidatura() {
                     empresaNome: vaga.empresaNome || 'Confecção',
                     nomeEmpresa: vaga.empresaNome || 'Confecção',
                     titulo: vaga.titulo,
+                    cidade: vaga.cidade || '',
+                    estado: vaga.estado || '',
                     freelancerId: sessao.id,
                     freelancerNome: sessao.nome,
                     status: 'Em análise',
@@ -278,10 +296,10 @@ function initBotoesCandidatura() {
                 btn.style.backgroundColor = '#e6f4ea';
                 btn.style.color = '#137333';
 
-                mostrarMensagem(`Parabéns, ${sessao.nome.split(' ')[0]}! Sua proposta para "${vaga.titulo}" foi enviada para a confecção.`, 'success');
+                mostrarMensagem(`Parabéns, ${escapeHtml(sessao.nome.split(' ')[0])}! Sua proposta para "${escapeHtml(vaga.titulo)}" foi enviada para a confecção.`, 'success');
             } catch (error) {
                 console.error('Erro ao enviar candidatura:', error);
-                mostrarMensagem('Não foi possível enviar sua candidatura. Verifique se o json-server está rodando e tente novamente.', 'error');
+                mostrarMensagem('Não foi possível enviar sua candidatura. Tente novamente.', 'error');
                 btn.disabled = false;
                 btn.innerHTML = textoOriginal;
             }

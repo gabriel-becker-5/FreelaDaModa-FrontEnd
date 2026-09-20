@@ -3060,7 +3060,7 @@ h2.section-title {
 
 .filter-bar {
     display: grid;
-    grid-template-columns: 2fr 1.2fr auto;
+    grid-template-columns: 1.5fr 1fr 1fr 1fr auto;
     gap: 12px;
     background: rgba(255, 255, 255, 0.1);
     padding: 12px;
@@ -3388,4 +3388,40 @@ h2.section-title {
     color: var(--text-secondary);
     font-size: 26px;
     background: var(--surface-alt);
+}
+
+@media (max-width: 900px) {
+    .filter-bar {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .filter-bar {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* perfil público — selo, avatar com foto e referências maiores */
+
+.badge-primary-bg {
+    background: var(--badge-primary-bg);
+    color: var(--color-primary);
+}
+
+.profile-avatar-lg img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 20px;
+}
+
+#lista-referencias .referencia-item img {
+    width: 120px;
+    height: 120px;
+}
+
+#lista-referencias .imagem-placeholder {
+    width: 120px;
+    height: 120px;
 }
