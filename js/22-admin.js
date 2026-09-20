@@ -1,6 +1,11 @@
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
+    // ── Gate de login (a autorização real fica no back) ──
+    const sessaoAdmin = exigirLogin();
+    if (!sessaoAdmin) return;
+    let token;
+
     // ── 2. Menu Lateral no Celular (Hambúrguer) ──
     const sidebarToggleBtn = document.querySelector('.sidebar-toggle-btn');
     const sidebar = document.querySelector('.sidebar');
@@ -82,6 +87,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         let todosUsuarios = [];
 
+        function badgeValidacao(validado) {
+            return validado
+                ? '<span class="badge badge-success">Validado</span>'
+                : '<span class="badge badge-warning">Validação pendente</span>';
+        }
+
         function criarLinhaUsuario(usuario) {
             const tr = document.createElement('tr');
             tr.dataset.id = usuario.id;
@@ -91,11 +102,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 <td data-label="Nome">${escapeHtml(usuario.nome)}</td>
                 <td data-label="Email">${escapeHtml(usuario.email)}</td>
                 <td data-label="Tipo">${escapeHtml(usuario.tipoExibicao)}</td>
-                <td data-label="Status"><span class="badge badge-success">Ativo</span></td>
+                <td data-label="Status">${badgeValidacao(usuario.validado)}</td>
                 <td data-label="Ações">
                     <div class="table-actions">
                         <button class="btn btn-editar">Editar</button>
-                        <button class="btn btn-bloquear">Bloquear</button>
+                        <button class="btn btn-validar" type="button">${usuario.validado ? 'Invalidar' : 'Validar'}</button>
                         <button class="btn btn-danger btn-excluir" type="button">Excluir</button>
                     </div>
                 </td>
@@ -141,10 +152,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 todosUsuarios = [
                     ...freelancers.map(function (f) {
-                        return { id: f.id, nome: f.nome, email: f.email, tipoColecao: 'freelancers', tipoExibicao: 'Freelancer' };
+                        return { id: f.id, nome: f.nome, email: f.email, tipoColecao: 'freelancers', tipoExibicao: 'Freelancer', validado: !!f.validado };
                     }),
                     ...empresas.map(function (e) {
-                        return { id: e.id, nome: e.nomeFantasia || e.razaoSocial, email: e.email, tipoColecao: 'empresas', tipoExibicao: 'Empresa/Confecção' };
+                        return { id: e.id, nome: e.nomeFantasia || e.razaoSocial, email: e.email, tipoColecao: 'empresas', tipoExibicao: 'Empresa/Confecção', validado: !!e.validado };
                     })
                 ];
 
@@ -165,11 +176,43 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!linha) return;
                 const { id, tipo } = linha.dataset;
 
-                if (e.target.closest('.btn-bloquear')) {
-                    const badge = linha.querySelector('.badge');
-                    const bloqueado = badge.textContent.trim() === 'Ativo';
-                    badge.className = bloqueado ? 'badge badge-danger' : 'badge badge-success';
-                    badge.textContent = bloqueado ? 'Bloqueado' : 'Ativo';
+                if (e.target.closest('.btn-validar')) {
+                    const usuario = todosUsuarios.find(function (u) { return u.id === id && u.tipoColecao === tipo; });
+                    if (!usuario) return;
+                    const novoEstado = !usuario.validado;
+
+                    const confirmou = await modalConfirmar({
+                        titulo: novoEstado ? 'Validar conta' : 'Invalidar validação',
+                        mensagem: novoEstado
+                            ? `Confirmar a validação da conta de ${usuario.nome}? O selo de verificado será liberado.`
+                            : `Invalidar a validação da conta de ${usuario.nome}? O selo será removido.`,
+                        textoConfirmar: novoEstado ? 'Validar' : 'Invalidar',
+                        textoCancelar: 'Voltar',
+                        perigoso: !novoEstado
+                    });
+                    if (!confirmou) return;
+
+                    try {
+                        const res = await fetch(`${API_BASE}/${tipo}/${id}`, {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ validado: novoEstado })
+                        });
+                        if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
+                    } catch (erro) {
+                        console.error('Erro ao atualizar validação do usuário:', erro);
+                        mostrarMensagem('Não foi possível atualizar a validação. Tente novamente em instantes.', 'error');
+                        return;
+                    }
+
+                    usuario.validado = novoEstado;
+                    aplicarFiltrosUsuarios();
+                    mostrarMensagem(novoEstado
+                        ? `Conta de ${usuario.nome} validada com sucesso!`
+                        : `Validação da conta de ${usuario.nome} invalidada.`, 'success');
                     return;
                 }
 
@@ -179,13 +222,25 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 if (e.target.closest('.btn-excluir')) {
-                    if (!confirm('Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.')) return;
+                    const usuario = todosUsuarios.find(function (u) { return u.id === id && u.tipoColecao === tipo; });
+                    const confirmou = await modalConfirmar({
+                        titulo: 'Excluir usuário',
+                        mensagem: `Tem certeza que deseja excluir o usuário ${usuario ? usuario.nome : ''}? Esta ação não pode ser desfeita.`,
+                        textoConfirmar: 'Excluir',
+                        textoCancelar: 'Voltar',
+                        perigoso: true
+                    });
+                    if (!confirmou) return;
+
                     try {
-                        const res = await fetch(`${API_BASE}/${tipo}/${id}`, { method: 'DELETE' });
+                        const res = await fetch(`${API_BASE}/${tipo}/${id}`, {
+                            method: 'DELETE',
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
                         if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
                     } catch (erro) {
                         console.error('Erro ao excluir usuário:', erro);
-                        mostrarMensagem('Não foi possível excluir o usuário. Verifique se o json-server está rodando.', 'error');
+                        mostrarMensagem('Não foi possível excluir o usuário. Tente novamente em instantes.', 'error');
                         return;
                     }
                     todosUsuarios = todosUsuarios.filter(function (u) { return !(u.id === id && u.tipoColecao === tipo); });
@@ -220,7 +275,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <td data-label="Data">—</td>
                 <td data-label="Ações">
                     <div class="table-actions">
-                        <a href="/pages/18-vaga-detalhe.html" class="btn">Ver</a>
+                        <a href="/pages/18-vaga-detalhe.html?id=${encodeURIComponent(vaga.id)}" class="btn">Ver</a>
                         <button class="btn btn-danger btn-fechar" type="button">Fechar</button>
                     </div>
                 </td>
@@ -273,18 +328,29 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!e.target.closest('.btn-fechar')) return;
                 const linha = e.target.closest('tr');
                 const id = linha.dataset.id;
-                if (!confirm('Encerrar esta vaga na plataforma?')) return;
+
+                const confirmou = await modalConfirmar({
+                    titulo: 'Encerrar vaga',
+                    mensagem: 'Encerrar esta vaga na plataforma? Ela sai do ar, mas o histórico será preservado.',
+                    textoConfirmar: 'Encerrar',
+                    textoCancelar: 'Voltar',
+                    perigoso: true
+                });
+                if (!confirmou) return;
 
                 try {
                     const res = await fetch(`${API_BASE}/vagas/${id}`, {
                         method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
                         body: JSON.stringify({ status: 'Encerrada' })
                     });
                     if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
                 } catch (erro) {
                     console.error('Erro ao encerrar vaga:', erro);
-                    mostrarMensagem('Não foi possível encerrar a vaga. Verifique se o json-server está rodando.', 'error');
+                    mostrarMensagem('Não foi possível encerrar a vaga. Tente novamente em instantes.', 'error');
                     return;
                 }
                 const badge = linha.querySelector('.badge');
@@ -325,7 +391,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <td data-label="Status"><span class="badge ${classeBadgeStatusOS(os.status)}">${escapeHtml(os.status)}</span></td>
                 <td data-label="Ações">
                     <div class="table-actions">
-                        <a href="/pages/19-ordem-servico-detalhe.html?id=${os.id}" class="btn">Ver</a>
+                        <a href="/pages/19-ordem-servico-detalhe.html?id=${encodeURIComponent(os.id)}" class="btn">Ver</a>
                         <button class="btn btn-danger btn-cancelar" type="button">Cancelar</button>
                     </div>
                 </td>
@@ -378,18 +444,29 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!e.target.closest('.btn-cancelar')) return;
                 const linha = e.target.closest('tr');
                 const id = linha.dataset.id;
-                if (!confirm('Cancelar esta ordem de serviço?')) return;
+
+                const confirmou = await modalConfirmar({
+                    titulo: 'Cancelar ordem de serviço',
+                    mensagem: 'Cancelar esta ordem de serviço? O histórico será preservado e a ação não poderá ser desfeita.',
+                    textoConfirmar: 'Cancelar OS',
+                    textoCancelar: 'Voltar',
+                    perigoso: true
+                });
+                if (!confirmou) return;
 
                 try {
                     const res = await fetch(`${API_BASE}/ordensServico/${id}`, {
                         method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
                         body: JSON.stringify({ status: 'Cancelada' })
                     });
                     if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
                 } catch (erro) {
                     console.error('Erro ao cancelar ordem de serviço:', erro);
-                    mostrarMensagem('Não foi possível cancelar a ordem de serviço. Verifique se o json-server está rodando.', 'error');
+                    mostrarMensagem('Não foi possível cancelar a ordem de serviço. Tente novamente em instantes.', 'error');
                     return;
                 }
 
@@ -469,7 +546,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     await carregarParametros();
                 } catch (erro) {
                     console.error('Erro ao salvar parâmetros:', erro);
-                    mostrarMensagem('Não foi possível salvar os parâmetros. Verifique se o json-server está rodando.', 'error');
+                    mostrarMensagem('Não foi possível salvar os parâmetros. Tente novamente em instantes.', 'error');
                 } finally {
                     btnSalvar.disabled = false;
                     btnSalvar.innerHTML = textoOriginal;
@@ -651,7 +728,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     renderizarConversa(chamadoAberto);
                 } catch (erro) {
                     console.error('Erro ao responder chamado:', erro);
-                    mostrarMensagem('Não foi possível enviar a resposta. Verifique se o json-server está rodando.', 'error');
+                    mostrarMensagem('Não foi possível enviar a resposta. Tente novamente em instantes.', 'error');
                 } finally {
                     btnEnviarResposta.disabled = false;
                     btnEnviarResposta.innerHTML = textoOriginal;
@@ -662,12 +739,23 @@ document.addEventListener('DOMContentLoaded', function () {
         if (btnFecharChamadoModal) {
             btnFecharChamadoModal.addEventListener('click', async function () {
                 if (!chamadoAberto) return;
-                if (!confirm('Fechar este chamado de suporte?')) return;
+
+                const confirmou = await modalConfirmar({
+                    titulo: 'Fechar chamado',
+                    mensagem: `Fechar o chamado TKT-${chamadoAberto.id}? Ele será encerrado sem novas respostas.`,
+                    textoConfirmar: 'Fechar chamado',
+                    textoCancelar: 'Voltar',
+                    perigoso: true
+                });
+                if (!confirmou) return;
 
                 try {
                     const res = await fetch(`${API_BASE}/chamados/${chamadoAberto.id}`, {
                         method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
                         body: JSON.stringify({ status: 'Fechado' })
                     });
                     if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
@@ -676,7 +764,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     fecharDetalheChamado();
                 } catch (erro) {
                     console.error('Erro ao fechar chamado:', erro);
-                    mostrarMensagem('Não foi possível fechar o chamado. Verifique se o json-server está rodando.', 'error');
+                    mostrarMensagem('Não foi possível fechar o chamado. Tente novamente em instantes.', 'error');
                 }
             });
         }
@@ -700,17 +788,28 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 if (e.target.closest('.btn-fechar-ticket')) {
-                    if (!confirm('Fechar este chamado de suporte?')) return;
+                    const confirmou = await modalConfirmar({
+                        titulo: 'Fechar chamado',
+                        mensagem: `Fechar o chamado TKT-${id}? Ele será encerrado sem novas respostas.`,
+                        textoConfirmar: 'Fechar chamado',
+                        textoCancelar: 'Voltar',
+                        perigoso: true
+                    });
+                    if (!confirmou) return;
+
                     try {
                         const res = await fetch(`${API_BASE}/chamados/${id}`, {
                             method: 'PATCH',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
                             body: JSON.stringify({ status: 'Fechado' })
                         });
                         if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
                     } catch (erro) {
                         console.error('Erro ao fechar chamado:', erro);
-                        mostrarMensagem('Não foi possível fechar o chamado. Verifique se o json-server está rodando.', 'error');
+                        mostrarMensagem('Não foi possível fechar o chamado. Tente novamente em instantes.', 'error');
                         return;
                     }
                     chamado.status = 'Fechado';
@@ -805,7 +904,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     await carregarAvisos();
                 } catch (erro) {
                     console.error('Erro ao publicar aviso:', erro);
-                    mostrarMensagem('Não foi possível publicar o aviso. Verifique se o json-server está rodando.', 'error');
+                    mostrarMensagem('Não foi possível publicar o aviso. Tente novamente em instantes.', 'error');
                 } finally {
                     btnPublicar.disabled = false;
                     btnPublicar.innerHTML = textoOriginal;
@@ -817,16 +916,27 @@ document.addEventListener('DOMContentLoaded', function () {
             tabelaAvisos.addEventListener('click', async function (e) {
                 const botaoRemover = e.target.closest('.btn-remover-aviso');
                 if (!botaoRemover) return;
-                if (!confirm('Remover este aviso da plataforma?')) return;
+
+                const confirmou = await modalConfirmar({
+                    titulo: 'Remover aviso',
+                    mensagem: 'Remover este aviso da plataforma? Esta ação não pode ser desfeita.',
+                    textoConfirmar: 'Remover',
+                    textoCancelar: 'Voltar',
+                    perigoso: true
+                });
+                if (!confirmou) return;
 
                 const linha = botaoRemover.closest('tr');
                 const id = linha.dataset.id;
                 try {
-                    const res = await fetch(`${API_BASE}/avisos/${id}`, { method: 'DELETE' });
+                    const res = await fetch(`${API_BASE}/avisos/${id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
                     if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
                 } catch (erro) {
                     console.error('Erro ao remover aviso:', erro);
-                    mostrarMensagem('Não foi possível remover o aviso. Verifique se o json-server está rodando.', 'error');
+                    mostrarMensagem('Não foi possível remover o aviso. Tente novamente em instantes.', 'error');
                     return;
                 }
                 linha.remove();
