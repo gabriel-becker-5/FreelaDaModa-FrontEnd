@@ -163,6 +163,12 @@ function obterClasseBadgeStatus(status) {
     return 'badge';
 }
 
+function formatarData(str) {
+    if (!str) return '';
+    const data = new Date(str);
+    return isNaN(data.getTime()) ? String(str) : data.toLocaleDateString('pt-BR');
+}
+
 function preencherLinha(os) {
     const tableRow = document.createElement('tr');
 
@@ -174,6 +180,15 @@ function preencherLinha(os) {
 
     const tdLocal = document.createElement('td');
     tdLocal.textContent = [os.cidade, os.estado].filter(Boolean).join(' - ') || '—';
+
+    const tdValor = document.createElement('td');
+    tdValor.textContent = os.valor || '—';
+
+    const tdPrazo = document.createElement('td');
+    tdPrazo.textContent = formatarData(os.prazo) || '—';
+
+    const tdDataInicio = document.createElement('td');
+    tdDataInicio.textContent = formatarData(os.dataPublicacao) || '—';
 
     const tdStatus = document.createElement('td');
     const badgeStatus = document.createElement('span');
@@ -213,9 +228,12 @@ function preencherLinha(os) {
 
     tdAcoes.appendChild(divAcoes);
     tableRow.appendChild(tdTitulo);
+    tableRow.appendChild(tdStatus);
     tableRow.appendChild(tdEmpresa);
     tableRow.appendChild(tdLocal);
-    tableRow.appendChild(tdStatus);
+    tableRow.appendChild(tdValor);
+    tableRow.appendChild(tdPrazo);
+    tableRow.appendChild(tdDataInicio);
     tableRow.appendChild(tdAcoes);
     bodyLista.appendChild(tableRow);
 }

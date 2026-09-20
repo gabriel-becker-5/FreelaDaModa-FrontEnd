@@ -171,6 +171,12 @@ function obterClasseBadgeStatus(status) {
     return 'badge';
 }
 
+function formatarData(str) {
+    if (!str) return '';
+    const data = new Date(str);
+    return isNaN(data.getTime()) ? String(str) : data.toLocaleDateString('pt-BR');
+}
+
 function preencherLinha(candidatura) {
     const tableRow = document.createElement('tr');
 
@@ -182,6 +188,15 @@ function preencherLinha(candidatura) {
 
     const tdLocal = document.createElement('td');
     tdLocal.textContent = [candidatura.cidade, candidatura.estado].filter(Boolean).join(' - ') || '—';
+
+    const tdValor = document.createElement('td');
+    tdValor.textContent = candidatura.valor || '—';
+
+    const tdPrazo = document.createElement('td');
+    tdPrazo.textContent = formatarData(candidatura.prazo) || '—';
+
+    const tdDataCandidatura = document.createElement('td');
+    tdDataCandidatura.textContent = formatarData(candidatura.dataCandidatura) || '—';
 
     const tdStatus = document.createElement('td');
     const badgeStatus = document.createElement('span');
@@ -213,9 +228,12 @@ function preencherLinha(candidatura) {
 
     tdAcoes.appendChild(divAcoes);
     tableRow.appendChild(tdTitulo);
+    tableRow.appendChild(tdStatus);
     tableRow.appendChild(tdEmpresa);
     tableRow.appendChild(tdLocal);
-    tableRow.appendChild(tdStatus);
+    tableRow.appendChild(tdValor);
+    tableRow.appendChild(tdPrazo);
+    tableRow.appendChild(tdDataCandidatura);
     tableRow.appendChild(tdAcoes);
     bodyLista.appendChild(tableRow);
 }
@@ -410,6 +428,9 @@ if (btnConfirmarAceiteConvite) {
                         titulo: convite.vagaTitulo,
                         cidade: vaga.cidade || '',
                         estado: vaga.estado || '',
+                        valor: vaga.valor || '',
+                        prazo: vaga.prazo || '',
+                        dataCandidatura: new Date().toISOString(),
                         freelancerId: freelancerId,
                         freelancerNome: convite.freelancerNome,
                         status: 'Selecionado',
@@ -483,7 +504,6 @@ if (btnConfirmarAceiteConvite) {
                 estado: vaga.estado || '',
                 valor: vaga.valor || '',
                 descricao: `Ordem de serviço gerada a partir do convite aceito para a vaga "${convite.vagaTitulo}".`,
-                requisitos: '',
                 habilidades: [],
                 status: 'Em andamento',
                 dataPublicacao: new Date().toISOString(),

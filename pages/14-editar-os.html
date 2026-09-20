@@ -1,253 +1,196 @@
-﻿<!doctype html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR" data-theme="light">
-  <head>
-    <meta charset="UTF-8" />
+<head>
+    <meta charset="UTF-8">
     <script src="/js/theme.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Editar OS</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-    />
-    <link rel="stylesheet" href="/css/global.css" />
-  </head>
-  <body>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freela da Moda - Editar Ordem de Serviço</title>
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
     <div class="app">
-      <button class="sidebar-toggle-btn" type="button" aria-label="Abrir menu" aria-expanded="false">
-  <span class="hamburger-line"></span>
-</button>
-<div class="sidebar-overlay"></div>
-<aside class="sidebar" role="navigation" aria-label="Menu principal">
-        <a href="/pages/01-homepage.html" class="brand">
-          <img
-            src="/assets/logo-icone-branco-2048.png"
-            alt="Logo Freela"
-            class="brand-logo"
-          /><span class="brand-text">FREELA<span class="brand-sub">DA MODA</span></span>
-        </a>
-        <button
-          class="theme-toggle"
-          type="button"
-          aria-label="Alternar tema claro e escuro"
-        ><i class="bi bi-moon-stars" aria-hidden="true"></i></button>
-        <a href="/pages/04-dashboard-empresa.html">Dashboard</a
-        ><a href="/pages/12-publicar-vaga.html">Publicar Vaga</a
-        ><a href="/pages/15-minhas-vagas.html">Minhas Vagas</a
-        ><a href="/pages/27-mural-freelancers.html">Buscar Freelancers</a
-        ><a href="/pages/11-chat.html">Chat</a
-        ><a class="active" href="/pages/16-ordens-servico.html" aria-current="page">Ordens de Serviço</a
-        ><a href="/pages/09-perfil-empresa.html">Perfil</a
-        ><a href="/pages/21-assinatura.html">Assinatura</a
-        ><a href="/pages/24-suporte.html">Suporte</a>
-      </aside>
-      <main class="main" role="main" aria-label="Conteúdo principal">
-        <div class="header">
-          <h2>Editar Ordem de Serviço</h2>
-          <a href="/pages/16-ordens-servico.html" class="btn">Voltar</a>
-        </div>
-        <form class="card">
-          <div class="alert alert-success" role="alert" aria-live="polite">
-            Área para feedback de alteração da OS.
-          </div>
-          <div class="section-title">Informações do serviço</div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="os-id">Id</label
-              ><input id="os-id" class="input" value="OS-001" disabled /><span class="field-message">Identificador gerado automaticamente.</span>
-            </div>
-            <div class="form-group">
-              <label for="os-titulo">Título</label
-              ><input
-                id="os-titulo"
-                class="input input-success"
-                value="Produção lote verão"
-                required
-              /><span class="field-message field-message-success"
-                ><i class="bi bi-check-circle-fill"></i> Título preenchido.</span>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="os-categoria">Categoria</label
-              ><select id="os-categoria" class="input">
-                <option>Costura</option>
-                <option>Modelagem</option>
-                <option>Acabamento</option>
-                <option>Bordado</option>
-                <option>Estamparia</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="os-modalidade">Modalidade</label
-              ><select id="os-modalidade" class="input">
-                <option>Presencial</option>
-                <option>Híbrida</option>
-                <option>Remota</option>
-                <option>Sob demanda</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="os-empresa">Nome da Empresa</label
-              ><input id="os-empresa" class="input" value="Confecção X" disabled /><span class="field-message">Empresa contratante.</span>
-            </div>
-            <div class="form-group">
-              <label for="os-publicacao">Data/Hora da Publicação</label
-              ><input id="os-publicacao" type="datetime-local" class="input" disabled /><span class="field-message">Data original da publicação.</span>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="os-cidade">Cidade</label>
-              <div class="autocomplete-wrapper">
-                <input id="os-cidade" class="input" value="São Paulo" placeholder="Digite a cidade..." />
-                <div class="autocomplete-dropdown">
-                  <div class="autocomplete-item">São Paulo - SP</div>
-                  <div class="autocomplete-item">Santo André - SP</div>
-                  <div class="autocomplete-item">São Bernardo do Campo - SP</div>
-                  <div class="autocomplete-item">Sorocaba - SP</div>
-                </div>
-              </div>
-              <span class="field-message">Autocomplete visual de cidades.</span>
-            </div>
-            <div class="form-group">
-              <label for="os-estado">Estado</label
-              ><input id="os-estado" class="input" value="SP" />
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="os-valor">Valor</label>
-              <div class="input-number-group">
-                <button type="button" class="input-number-btn" aria-label="Diminuir valor">&minus;</button>
-                <input id="os-valor" type="number" class="input" value="5000" min="0" step="100" />
-                <button type="button" class="input-number-btn" aria-label="Aumentar valor">+</button>
-              </div>
-              <span class="field-message">Input numérico com incremento/decremento.</span>
-            </div>
-            <div class="form-group">
-              <label for="os-prazo">Prazo</label>
-              <div class="date-input-wrapper">
-                <input id="os-prazo" type="date" class="input" />
-                <i class="bi bi-calendar3" aria-hidden="true"></i>
-              </div>
-              <span class="field-message">DatePicker com ícone.</span>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="os-previsao">Previsão de conclusão</label>
-              <div class="date-input-wrapper">
-                <input id="os-previsao" type="date" class="input" />
-                <i class="bi bi-calendar3" aria-hidden="true"></i>
-              </div>
-              <span class="field-message">Data prevista para entrega.</span>
-            </div>
-            <div class="form-group">
-              <label for="os-freelancer">Freelancer atribuído</label
-              ><input id="os-freelancer" class="input" value="Maria Silva" disabled /><span class="field-message">Profissional selecionado para a OS.</span>
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="os-descricao">Descrição</label
-            ><textarea id="os-descricao" class="input" required>Detalhes do serviço.</textarea
-            ><span class="field-message">Descreva o escopo do serviço.</span>
-          </div>
-          <div class="form-group">
-            <label for="os-requisitos">Requisitos</label
-            ><textarea id="os-requisitos" class="input" required></textarea>
-          </div>
-          <div class="form-group">
-            <label>Habilidades Desejadas</label>
-            <div class="multi-select">
-              <span class="badge">Produção em lote</span
-              ><span class="badge">Acabamento</span>
-            </div>
-          </div>
-          <div class="section-title">Anexos e referências</div>
-          <div class="form-group">
-            <label>Referências visuais (briefing)</label>
-            <div class="upload-dropzone" id="briefing-dropzone">
-              <i class="bi bi-cloud-arrow-up"></i>
-              <p>Briefing visual do serviço</p>
-              <p style="font-size: 11px;">Somente imagens até 10MB.</p>
-              <input type="file" id="briefing-file-input" accept="image/*" hidden />
-            </div>
-            <div class="upload-file-preview" id="briefing-file-preview">
-              <i class="bi bi-file-image"></i>
-              <span id="briefing-file-name">Nenhum arquivo anexado.</span>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Referências visuais da entrega</label>
-            <div class="upload-dropzone" id="entrega-dropzone">
-              <i class="bi bi-cloud-arrow-up"></i>
-              <p>Registro da entrega</p>
-              <p style="font-size: 11px;">Somente imagens até 10MB.</p>
-              <input type="file" id="entrega-file-input" accept="image/*" hidden />
-            </div>
-            <div class="upload-file-preview" id="entrega-file-preview">
-              <i class="bi bi-file-image"></i>
-              <span id="entrega-file-name">Nenhum arquivo anexado.</span>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="os-status">Status</label
-              ><select id="os-status" class="input">
-                <option>Em andamento</option>
-                <option>Concluída</option>
-                <option>Cancelada</option>
-              </select
-              ><span class="field-message" id="os-status-mensagem"></span>
-            </div>
-            <div class="form-group">
-              <label for="os-avaliacao-freela">Avaliação Freelancer</label
-              ><input id="os-avaliacao-freela" class="input" value="Pendente" disabled /><span class="field-message">Atualizada ao final da OS.</span>
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="os-avaliacao-conf">Avaliação Confecção</label
-            ><input id="os-avaliacao-conf" class="input" value="Pendente" disabled /><span class="field-message">Atualizada ao final da OS.</span>
-          </div>
-          <div class="form-group">
-            <label for="os-observacoes">Observações</label
-            ><textarea id="os-observacoes" class="input"></textarea>
-          </div>
-          <div class="form-group">
-            <label for="os-mensagens">Mensagens</label
-            ><textarea id="os-mensagens" class="input"></textarea>
-          </div>
-          <div class="form-actions">
-            <a href="/pages/16-ordens-servico.html" class="btn">Voltar</a
-            ><button type="button" class="btn btn-danger" id="btnExcluirOS">
-              Excluir
-            </button
-            ><button class="btn btn-primary" type="submit">
-              Salvar alterações
-            </button>
-          </div>
-        </form>
-      </main>
-    </div>
+    <button class="sidebar-toggle-btn" type="button" aria-label="Abrir menu" aria-expanded="false">
+        <span class="hamburger-line"></span>
+    </button>
+    <div class="sidebar-overlay"></div>
+    <aside class="sidebar" role="navigation" aria-label="Menu principal"></aside>
 
-    <div id="modalExcluir" class="sidebar-overlay" style="display: none; align-items: center; justify-content: center; z-index: 1000;">
-        <div class="card animate-scale-in" style="max-width: 400px; width: 90%; background: var(--surface);">
-            <h3 style="color: var(--danger);"><i class="bi bi-exclamation-triangle-fill"></i> Confirmar exclusão</h3>
-            <p class="mt-sm">Tem certeza que deseja excluir esta ordem de serviço? Esta ação não poderá ser desfeita.</p>
-            <div class="form-actions mt-lg">
-                <button id="btnCancelarExclusao" class="btn btn-outline">Cancelar</button>
-                <button id="btnConfirmarExclusao" class="btn btn-danger">Sim, Excluir</button>
+        <!-- Conteúdo Principal -->
+        <main class="main">
+            <div class="header">
+                <h2>Editar Ordem de Serviço</h2>
+                <div class="header-actions" id="header-acoes"></div>
             </div>
-        </div>
+
+            <div class="page-container-md">
+
+                <!-- Mensagem de Feedback -->
+                <div id="alert-editar-os" class="alert alert-success mb-md" role="alert" aria-live="polite" hidden></div>
+
+                <!-- Estado de carregamento -->
+                <div id="osLoading" class="text-center">
+                    <p>Carregando ordem de serviço...</p>
+                </div>
+
+                <!-- Estado de erro -->
+                <div id="osErro" class="alert mb-md" role="alert" aria-live="polite" hidden>
+                    Não foi possível carregar esta ordem de serviço. Tente novamente mais tarde.
+                </div>
+
+                <!-- Formulário de Edição -->
+                <form id="formEditarOS" class="card stack" novalidate hidden>
+                    <div class="cluster-between">
+                        <span class="section-title" style="margin: 0;">Informações do Serviço</span>
+                        <span class="badge badge-primary-bg" style="font-size: 14px;" id="badgeOSId">ID: OS-—</span>
+                    </div>
+
+                    <!-- Título -->
+                    <div class="form-group">
+                        <label for="titulo" class="checkbox-label"><strong>Título do Serviço *</strong></label>
+                        <input type="text" id="titulo" class="input" required>
+                    </div>
+
+                    <!-- Categoria e Modalidade -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="categoria"><strong>Categoria *</strong></label>
+                            <select id="categoria" class="input" required>
+                                <option value="">Selecione</option>
+                                <option value="Costura reta">Costura reta</option>
+                                <option value="Overloque">Overloque</option>
+                                <option value="Modelagem">Modelagem</option>
+                                <option value="Peça piloto">Peça piloto</option>
+                                <option value="Acabamento">Acabamento</option>
+                                <option value="Bordado">Bordado</option>
+                                <option value="Estamparia">Estamparia</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="modalidade"><strong>Modalidade *</strong></label>
+                            <select id="modalidade" class="input" required>
+                                <option value="">Selecione</option>
+                                <option value="Presencial">Presencial</option>
+                                <option value="Híbrida">Híbrida</option>
+                                <option value="Remota">Remota</option>
+                                <option value="Sob demanda">Sob demanda</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Cidade e Estado -->
+                    <div class="form-row">
+                        <div class="form-group autocomplete-wrapper">
+                            <label for="cidade"><strong>Cidade *</strong></label>
+                            <input type="text" id="cidade" class="input" placeholder="Ex: Blumenau" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="estado"><strong>Estado (UF) *</strong></label>
+                            <select id="estado" class="input" required></select>
+                        </div>
+                    </div>
+
+                    <!-- Valor e Prazo -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="valor"><strong>Valor do Serviço *</strong></label>
+                            <input type="text" id="valor" class="input" placeholder="R$ 0,00" required>
+                        </div>
+                        <div class="form-group date-input-wrapper">
+                            <label for="prazo"><strong>Prazo Estimado</strong></label>
+                            <input type="date" id="prazo" class="input">
+                            <i class="bi bi-calendar-event"></i>
+                        </div>
+                    </div>
+
+                    <!-- Previsão e Freelancer -->
+                    <div class="form-row">
+                        <div class="form-group date-input-wrapper">
+                            <label for="previsao"><strong>Previsão de Conclusão</strong></label>
+                            <input type="date" id="previsao" class="input">
+                            <i class="bi bi-calendar-event"></i>
+                        </div>
+                        <div class="form-group">
+                            <label for="freelancer"><strong>Freelancer Atribuído</strong></label>
+                            <input type="text" id="freelancer" class="input" disabled>
+                        </div>
+                    </div>
+
+                    <!-- Empresa (somente leitura) -->
+                    <div class="form-group">
+                        <label for="empresa"><strong>Empresa Contratante</strong></label>
+                        <input type="text" id="empresa" class="input" disabled>
+                    </div>
+
+                    <!-- Descrição -->
+                    <div class="form-group">
+                        <label for="descricao"><strong>Descrição do Serviço *</strong></label>
+                        <textarea id="descricao" class="input" required></textarea>
+                    </div>
+
+                    <!-- Observações -->
+                    <div class="form-group">
+                        <label for="observacoes"><strong>Observações</strong></label>
+                        <textarea id="observacoes" class="input"></textarea>
+                    </div>
+
+                    <!-- Avaliações (somente leitura) -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="avaliacaoFreelancer"><strong>Avaliação do Freelancer</strong></label>
+                            <input type="text" id="avaliacaoFreelancer" class="input" disabled>
+                            <span class="field-message">Atualizada na tela de avaliação após a conclusão.</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="avaliacaoConfeccao"><strong>Avaliação da Confecção</strong></label>
+                            <input type="text" id="avaliacaoConfeccao" class="input" disabled>
+                            <span class="field-message">Atualizada na tela de avaliação após a conclusão.</span>
+                        </div>
+                    </div>
+
+                    <!-- Anexos -->
+                    <div class="section-title">Anexos</div>
+                    <div class="form-group">
+                        <label for="briefingInput"><strong>Briefing visual do serviço</strong></label>
+                        <div class="upload-row">
+                            <label class="btn btn-outline" for="briefingInput">
+                                <i class="bi bi-image"></i> Anexar imagem
+                            </label>
+                            <input type="file" id="briefingInput" accept="image/*" hidden />
+                        </div>
+                        <div class="referencias-grid" id="briefingPreview"></div>
+                        <span class="field-message">Imagem de até 5MB.</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="entregaInput"><strong>Registro da entrega</strong></label>
+                        <div class="upload-row">
+                            <label class="btn btn-outline" for="entregaInput">
+                                <i class="bi bi-image"></i> Anexar imagem
+                            </label>
+                            <input type="file" id="entregaInput" accept="image/*" hidden />
+                        </div>
+                        <div class="referencias-grid" id="entregaPreview"></div>
+                        <span class="field-message">Imagem de até 5MB.</span>
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="/pages/16-ordens-servico.html" class="btn btn-outline">Cancelar</a>
+                        <button type="submit" class="btn btn-primary" id="btnSubmit">
+                            <i class="bi bi-save-fill"></i> Salvar Alterações
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </main>
     </div>
 
     <script src="/js/config.js"></script>
+    <script src="/js/ui.js"></script>
+    <script src="/js/nav.js"></script>
     <script src="/js/14-editar-os.js"></script>
-  </body>
+</body>
 </html>

@@ -65,62 +65,49 @@ document.addEventListener('DOMContentLoaded', function () {
         return 'badge-warning';
     }
 
-    // Renderiza o anexo de uma OS. Só exibe imagem/baixar quando "dados" é um
-    // data URI válido de imagem (evita injetar conteúdo arbitrário no HTML).
+    // Renderiza o anexo de uma OS. Anexos são gravados por CAMINHO (/uploads/...);
+    // a miniatura usa placeholder quando o arquivo não está disponível.
     function renderizarAnexo(elementoId, valor) {
         const el = document.getElementById(elementoId);
         if (!el) return;
+
+        el.innerHTML = '';
 
         if (!valor) {
             el.textContent = 'Nenhum arquivo anexado.';
             return;
         }
 
-        if (typeof valor === 'object' && valor.nome) {
-            const tamanho = typeof valor.tamanho === 'number'
-                ? ` (${(valor.tamanho / 1024 / 1024).toFixed(1)} MB)`
-                : '';
-            const dados = typeof valor.dados === 'string' ? valor.dados : '';
-            const ehImagem = valor.tipo && valor.tipo.startsWith('image/') && dados.startsWith('data:image/');
+        if (typeof valor === 'string' && valor.startsWith('/uploads/')) {
+            const nomeArquivo = decodeURIComponent(valor.split('/').pop() || 'arquivo');
 
-            el.innerHTML = '';
             const linha = document.createElement('div');
             linha.style.cssText = 'display:flex; align-items:center; gap:10px;';
 
-            if (ehImagem) {
-                const img = document.createElement('img');
-                img.src = dados;
-                img.alt = valor.nome;
-                img.style.cssText = 'width:56px; height:56px; object-fit:cover; border-radius:8px; border:1px solid var(--border);';
-                linha.appendChild(img);
-            } else {
+            const img = document.createElement('img');
+            img.src = valor;
+            img.alt = nomeArquivo;
+            img.style.cssText = 'width:56px; height:56px; object-fit:cover; border-radius:8px; border:1px solid var(--border);';
+            img.onerror = function () {
                 const icone = document.createElement('i');
                 icone.className = 'bi bi-file-earmark-image';
                 icone.style.fontSize = '24px';
-                linha.appendChild(icone);
-            }
+                img.replaceWith(icone);
+            };
+            linha.appendChild(img);
 
             const infos = document.createElement('div');
-            const nomeArquivo = document.createElement('div');
-            nomeArquivo.textContent = `${valor.nome}${tamanho}`;
-            infos.appendChild(nomeArquivo);
-
-            if (ehImagem) {
-                const linkBaixar = document.createElement('a');
-                linkBaixar.href = dados;
-                linkBaixar.download = valor.nome;
-                linkBaixar.style.fontSize = '12px';
-                linkBaixar.textContent = 'Baixar arquivo';
-                infos.appendChild(linkBaixar);
-            }
+            const nome = document.createElement('div');
+            nome.textContent = nomeArquivo;
+            infos.appendChild(nome);
 
             linha.appendChild(infos);
             el.appendChild(linha);
             return;
         }
 
-        // Formato legado: apenas o nome do arquivo.
-        el.textContent = String(valor);
+        // Formato não suportado: exibe como texto simples (sem injetar HTML).
+        el.textContent = typeof valor === 'object' && valor.nome ? valor.nome : String(valor);
     }
 
     let osAtual = null;
@@ -137,7 +124,6 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('os-data-display').textContent = formatarDataHora(os.dataPublicacao);
         document.getElementById('os-valor-display').textContent = os.valor || '—';
         document.getElementById('os-descricao-display').textContent = os.descricao || '—';
-        document.getElementById('os-requisitos-display').textContent = os.requisitos || '—';
 
         const habilidadesEl = document.getElementById('os-habilidades-display');
         habilidadesEl.innerHTML = (os.habilidades && os.habilidades.length)

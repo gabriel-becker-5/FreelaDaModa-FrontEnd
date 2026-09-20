@@ -1,18 +1,66 @@
+// Editar Ordem de Serviço (empresa) — padrão da 13-editar-vaga
+
 document.addEventListener('DOMContentLoaded', function () {
-    'use strict';
+    const sessao = exigirTipo('empresas');
+    if (!sessao) return;
 
-    // ── 2. Menu Lateral no Celular (Hambúrguer) ──
-    const sidebarToggleBtn = document.querySelector('.sidebar-toggle-btn');
-    const sidebar = document.querySelector('.sidebar');
-    const sidebarOverlay = document.querySelector('.sidebar-overlay');
+    // A 14 não está no menu lateral; destaca "Ordens de Serviço" como contexto.
+    renderizarSidebar(document.querySelector('.sidebar'), 'empresas', '16-ordens-servico');
+    renderizarTopbar(document.getElementById('header-acoes'), sessao);
+    renderizarBannerValidacao(document.querySelector('.main'), sessao);
 
-    if (sidebarToggleBtn && sidebar && sidebarOverlay) {
+    initMenuMobile();
+
+    /* ------------------------- refs ---------------------------------------- */
+    const osId = new URLSearchParams(window.location.search).get('id');
+    const loadingBar = document.getElementById('osLoading');
+    const erroBar = document.getElementById('osErro');
+    const form = document.getElementById('formEditarOS');
+    const alertBar = document.getElementById('alert-editar-os');
+    const btnSubmit = document.getElementById('btnSubmit');
+    let token;
+
+    const inputTitulo = document.getElementById('titulo');
+    const inputCategoria = document.getElementById('categoria');
+    const inputModalidade = document.getElementById('modalidade');
+    const inputCidade = document.getElementById('cidade');
+    const selectEstado = document.getElementById('estado');
+    const inputValor = document.getElementById('valor');
+    const inputPrazo = document.getElementById('prazo');
+    const inputPrevisao = document.getElementById('previsao');
+    const inputFreelancer = document.getElementById('freelancer');
+    const inputEmpresa = document.getElementById('empresa');
+    const inputDescricao = document.getElementById('descricao');
+    const inputObservacoes = document.getElementById('observacoes');
+    const inputAvaliacaoFreelancer = document.getElementById('avaliacaoFreelancer');
+    const inputAvaliacaoConfeccao = document.getElementById('avaliacaoConfeccao');
+    const inputBriefing = document.getElementById('briefingInput');
+    const briefingPreview = document.getElementById('briefingPreview');
+    const inputEntrega = document.getElementById('entregaInput');
+    const entregaPreview = document.getElementById('entregaPreview');
+    const badgeOSId = document.getElementById('badgeOSId');
+
+    const LIMITE_FOTO_MB = 5;
+    const TETO_VALOR = 999999.99;
+
+    // Anexos gravados por CAMINHO no banco; preview em sessão via blob URL.
+    const anexoBriefing = { caminho: '', previewUrl: '' };
+    const anexoEntrega = { caminho: '', previewUrl: '' };
+
+    /* ------------------------- menu mobile -------------------------------- */
+    function initMenuMobile() {
+        const sidebarToggleBtn = document.querySelector('.sidebar-toggle-btn');
+        const sidebar = document.querySelector('.sidebar');
+        const sidebarOverlay = document.querySelector('.sidebar-overlay');
+        if (!sidebarToggleBtn || !sidebar || !sidebarOverlay) return;
+
         sidebarToggleBtn.addEventListener('click', function () {
             const abrindo = !sidebar.classList.contains('open');
             sidebar.classList.toggle('open', abrindo);
             sidebarOverlay.classList.toggle('open', abrindo);
             sidebarToggleBtn.setAttribute('aria-expanded', String(abrindo));
         });
+
         sidebarOverlay.addEventListener('click', function () {
             sidebar.classList.remove('open');
             sidebarOverlay.classList.remove('open');
@@ -20,311 +68,222 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ── 3. Contador de Valor (Botões +/-) ──
-    const inputValor = document.getElementById('os-valor');
-    const botoesNumero = document.querySelectorAll('.input-number-btn');
-
-    botoesNumero.forEach(function (btn) {
-        const aumentando = btn.textContent.trim() === '+';
-        btn.addEventListener('click', function () {
-            if (!inputValor) return;
-            const passo = Number(inputValor.step) || 100;
-            const atual = Number(inputValor.value) || 0;
-            const novoValor = aumentando ? atual + passo : Math.max(0, atual - passo);
-            inputValor.value = novoValor;
-        });
-    });
-
-    // ── 4. Autocomplete de Cidade ──
-    const inputCidade = document.getElementById('os-cidade');
-    const dropdownCidade = document.querySelector('.autocomplete-dropdown');
-
-    if (inputCidade && dropdownCidade) {
-        inputCidade.addEventListener('focus', function () {
-            dropdownCidade.style.display = 'block';
-        });
-
-        dropdownCidade.querySelectorAll('.autocomplete-item').forEach(function (item) {
-            item.addEventListener('click', function () {
-                inputCidade.value = item.textContent.trim();
-                dropdownCidade.style.display = 'none';
-            });
-        });
-
-        document.addEventListener('click', function (e) {
-            const dentroDoCampo = inputCidade.contains(e.target) || dropdownCidade.contains(e.target);
-            if (!dentroDoCampo) dropdownCidade.style.display = 'none';
-        });
+    /* ------------------------- mensagens ----------------------------------- */
+    function mostrarMensagem(texto, tipo) {
+        if (!alertBar) return;
+        alertBar.className = `alert ${tipo === 'success' ? 'alert-success' : 'alert-error'}`;
+        alertBar.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
+        alertBar.removeAttribute('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // ── Proteção de rota (só empresa logada) ──
-    const sessao = JSON.parse(sessionStorage.getItem('usuarioLogado') || 'null');
-    if (!sessao || sessao.tipo !== 'empresas') {
-        window.location.href = '/pages/02-login.html';
+    function limparMensagem() {
+        if (alertBar) alertBar.setAttribute('hidden', '');
+    }
+
+    if (!osId) {
+        loadingBar.setAttribute('hidden', '');
+        erroBar.textContent = 'Nenhuma ordem de serviço informada para edição. Volte para "Ordens de Serviço" e clique em Editar novamente.';
+        erroBar.removeAttribute('hidden');
         return;
     }
 
-    // ── 5. Carregar a Ordem de Serviço para edição ──
-    const params = new URLSearchParams(window.location.search);
-    const idOS = params.get('id');
-    let osAtual = null;
-    let acessoNegado = false;
+    /* ------------------------- máscara de moeda ---------------------------- */
+    aplicarMascaraMoeda(inputValor, TETO_VALOR);
 
-    if (!idOS) {
-        window.location.href = '/pages/16-ordens-servico.html';
-        return;
+    /* ------------------------- uploads de anexos --------------------------- */
+    function criarImagemComFallback(container, src, alt) {
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = alt;
+        img.onerror = function () {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'imagem-placeholder';
+            placeholder.innerHTML = '<i class="bi bi-image"></i>';
+            container.replaceChild(placeholder, img);
+        };
+        container.appendChild(img);
     }
 
-    // ── Preview de anexo (referências visuais) ──
-    function descreverAnexo(valor) {
-        if (!valor) return 'Nenhum arquivo anexado.';
-        if (typeof valor === 'object' && valor.nome) {
-            const tamanho = typeof valor.tamanho === 'number'
-                ? ` (${(valor.tamanho / 1024 / 1024).toFixed(1)} MB)`
-                : '';
-            return `${valor.nome}${tamanho}`;
+    function renderizarAnexo(anexo, previewEl) {
+        previewEl.innerHTML = '';
+        if (!anexo.previewUrl) {
+            previewEl.innerHTML = '<span class="field-message">Nenhum arquivo anexado.</span>';
+            return;
         }
-        return String(valor);
+
+        const item = document.createElement('div');
+        item.className = 'referencia-item';
+
+        criarImagemComFallback(item, anexo.previewUrl, 'Anexo da ordem de serviço');
+
+        const botao = document.createElement('button');
+        botao.type = 'button';
+        botao.setAttribute('aria-label', 'Remover anexo');
+        botao.innerHTML = '<i class="bi bi-x"></i>';
+        botao.addEventListener('click', function () {
+            if (anexo.previewUrl && anexo.previewUrl.startsWith('blob:')) URL.revokeObjectURL(anexo.previewUrl);
+            anexo.caminho = '';
+            anexo.previewUrl = '';
+            renderizarAnexo(anexo, previewEl);
+        });
+
+        item.appendChild(botao);
+        previewEl.appendChild(item);
     }
 
-    function atualizarPreviewAnexo(spanId, valor) {
-        const span = document.getElementById(spanId);
-        if (span) span.textContent = descreverAnexo(valor);
-    }
-
-    function preencherFormulario(os) {
-        osAtual = os;
-        document.getElementById('os-id').value = `OS-${os.id}`;
-        document.getElementById('os-titulo').value = os.titulo || '';
-        document.getElementById('os-categoria').value = os.categoria || 'Costura';
-        document.getElementById('os-modalidade').value = os.modalidade || 'Presencial';
-        document.getElementById('os-empresa').value = os.empresaNome || '';
-        document.getElementById('os-cidade').value = os.cidade || '';
-        document.getElementById('os-estado').value = os.estado || '';
-        document.getElementById('os-valor').value = os.valor || 0;
-        document.getElementById('os-prazo').value = os.prazo || '';
-        document.getElementById('os-previsao').value = os.previsaoConclusao || '';
-        document.getElementById('os-freelancer').value = os.freelancerNome || '';
-        document.getElementById('os-descricao').value = os.descricao || '';
-        document.getElementById('os-requisitos').value = os.requisitos || '';
-        const selectStatus = document.getElementById('os-status');
-        const statusMensagem = document.getElementById('os-status-mensagem');
-        selectStatus.value = os.status || 'Em andamento';
-        // Uma OS já concluída ou cancelada é um estado final — não faz sentido
-        // reabri-la ou pular de um estado final direto para outro por aqui.
-        const estadoFinal = os.status === 'Concluída' || os.status === 'Cancelada';
-        selectStatus.disabled = estadoFinal;
-        if (statusMensagem) {
-            statusMensagem.textContent = estadoFinal
-                ? 'Esta OS já está em um estado final e não pode ser reaberta.'
-                : '';
-        }
-        document.getElementById('os-avaliacao-freela').value = os.avaliacaoFreelancer || 'Pendente';
-        document.getElementById('os-avaliacao-conf').value = os.avaliacaoConfeccao || 'Pendente';
-        document.getElementById('os-observacoes').value = os.observacoes || '';
-        atualizarPreviewAnexo('briefing-file-name', os.referenciaBriefing);
-        atualizarPreviewAnexo('entrega-file-name', os.referenciaEntrega);
-    }
-
-    async function carregarOS() {
-        try {
-            const res = await fetch(`${API_BASE}/ordensServico/${idOS}`);
-            if (!res.ok) throw new Error(`OS não encontrada (HTTP ${res.status}).`);
-            const os = await res.json();
-
-            if (String(os.empresaId) !== String(sessao.id)) {
-                acessoNegado = true;
-                alertaSucessoExibir('Esta Ordem de Serviço não pertence à sua empresa.', 'error');
-                const formEl = document.querySelector('form.card');
-                if (formEl) {
-                    formEl.querySelectorAll('input, select, textarea, button').forEach(function (el) { el.disabled = true; });
-                }
+    function configurarUpload(input, anexo, previewEl, rotulo) {
+        input.addEventListener('change', function () {
+            const arquivo = input.files && input.files[0];
+            if (!arquivo) return;
+            if (!arquivo.type.startsWith('image/')) {
+                mostrarMensagem('O anexo deve ser uma imagem (PNG ou JPG).', 'error');
+                input.value = '';
+                return;
+            }
+            if (arquivo.size > LIMITE_FOTO_MB * 1024 * 1024) {
+                mostrarMensagem(`O anexo deve ter no máximo ${LIMITE_FOTO_MB}MB.`, 'error');
+                input.value = '';
                 return;
             }
 
-            preencherFormulario(os);
+            if (anexo.previewUrl && anexo.previewUrl.startsWith('blob:')) URL.revokeObjectURL(anexo.previewUrl);
+            anexo.caminho = `/uploads/os/${osId}/${rotulo}-${Date.now()}.jpg`;
+            anexo.previewUrl = URL.createObjectURL(arquivo);
+            renderizarAnexo(anexo, previewEl);
+            input.value = '';
+        });
+    }
+
+    configurarUpload(inputBriefing, anexoBriefing, briefingPreview, 'briefing');
+    configurarUpload(inputEntrega, anexoEntrega, entregaPreview, 'entrega');
+
+    /* ------------------------- carregar OS --------------------------------- */
+    async function carregarOS() {
+        try {
+            const res = await fetch(`${API_BASE}/ordensServico/${osId}`);
+            if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
+
+            const os = await res.json();
+
+            if (String(os.empresaId) !== String(sessao.id)) {
+                loadingBar.setAttribute('hidden', '');
+                erroBar.textContent = 'Esta ordem de serviço não pertence à sua empresa.';
+                erroBar.removeAttribute('hidden');
+                return;
+            }
+
+            badgeOSId.textContent = `ID: OS-${os.id}`;
+            inputTitulo.value = os.titulo || '';
+            inputCategoria.value = os.categoria || '';
+            if (os.categoria && !inputCategoria.value) {
+                // Valor fora da lista: exibido como opção extra para não corromper o dado.
+                const extra = document.createElement('option');
+                extra.value = os.categoria;
+                extra.textContent = os.categoria;
+                inputCategoria.appendChild(extra);
+                inputCategoria.value = os.categoria;
+            }
+            inputModalidade.value = os.modalidade || '';
+            inputValor.value = os.valor ? formatarMoeda(moedaParaNumero(os.valor)) : '';
+            inputPrazo.value = os.prazo || '';
+            inputPrevisao.value = os.previsaoConclusao || '';
+            inputFreelancer.value = os.freelancerNome || '';
+            inputEmpresa.value = os.empresaNome || '';
+            inputDescricao.value = os.descricao || '';
+            inputObservacoes.value = os.observacoes || '';
+            inputAvaliacaoFreelancer.value = os.avaliacaoFreelancer || 'Pendente';
+            inputAvaliacaoConfeccao.value = os.avaliacaoConfeccao || 'Pendente';
+
+            await carregarUFs(selectEstado, os.estado || '');
+            if (os.cidade) inputCidade.value = os.cidade;
+            montarAutocompleteCidade(inputCidade, selectEstado);
+
+            anexoBriefing.caminho = typeof os.referenciaBriefing === 'string' ? os.referenciaBriefing : '';
+            anexoBriefing.previewUrl = anexoBriefing.caminho;
+            renderizarAnexo(anexoBriefing, briefingPreview);
+
+            anexoEntrega.caminho = typeof os.referenciaEntrega === 'string' ? os.referenciaEntrega : '';
+            anexoEntrega.previewUrl = anexoEntrega.caminho;
+            renderizarAnexo(anexoEntrega, entregaPreview);
+
+            loadingBar.setAttribute('hidden', '');
+            form.removeAttribute('hidden');
         } catch (erro) {
-            console.error('Erro ao carregar OS para edição:', erro);
+            console.error('Erro ao carregar ordem de serviço:', erro);
+            loadingBar.setAttribute('hidden', '');
+            erroBar.removeAttribute('hidden');
         }
     }
 
     carregarOS();
 
-    // ── 5b. Upload de Referências Visuais (briefing e entrega) ──
-    let briefingSelecionado = null;
-    let entregaSelecionado = null;
-    const TAMANHO_MAXIMO = 10 * 1024 * 1024; // 10MB
+    /* ------------------------- validação ----------------------------------- */
+    function validarFormulario() {
+        const erros = [];
 
-    function configurarUpload(dropzoneId, inputId, previewSpanId, aoSelecionar) {
-        const dropzone = document.getElementById(dropzoneId);
-        const input = document.getElementById(inputId);
-        if (!dropzone || !input) return;
+        if (!inputTitulo.value.trim()) erros.push('Informe o título do serviço.');
+        if (!inputCategoria.value) erros.push('Selecione a categoria.');
+        if (!inputModalidade.value) erros.push('Selecione a modalidade.');
+        if (!inputCidade.value.trim()) erros.push('Informe a cidade.');
+        if (!selectEstado.value) erros.push('Selecione o estado (UF).');
+        if (moedaParaNumero(inputValor.value) <= 0) erros.push('Informe um valor maior que zero.');
+        if (!inputDescricao.value.trim()) erros.push('Informe a descrição do serviço.');
 
-        dropzone.addEventListener('click', function () {
-            input.click();
-        });
-
-        dropzone.addEventListener('dragover', function (e) {
-            e.preventDefault();
-        });
-
-        dropzone.addEventListener('drop', function (e) {
-            e.preventDefault();
-            const arquivo = e.dataTransfer && e.dataTransfer.files ? e.dataTransfer.files[0] : null;
-            if (arquivo) processarArquivo(arquivo, previewSpanId, aoSelecionar);
-        });
-
-        input.addEventListener('change', function () {
-            const arquivo = this.files && this.files[0] ? this.files[0] : null;
-            if (arquivo) processarArquivo(arquivo, previewSpanId, aoSelecionar);
-        });
+        if (erros.length) {
+            mostrarMensagem(erros.join('<br>'), 'error');
+            return false;
+        }
+        return true;
     }
 
-    function processarArquivo(file, previewSpanId, aoSelecionar) {
-        if (!file.type || !file.type.startsWith('image/')) {
-            alertaSucessoExibir('Selecione apenas arquivos de imagem.', 'error');
-            return;
-        }
-        if (file.size > TAMANHO_MAXIMO) {
-            alertaSucessoExibir('O arquivo excede o limite de 10MB.', 'error');
-            return;
-        }
+    /* ------------------------- salvar (PATCH) ------------------------------ */
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        limparMensagem();
 
-        const reader = new FileReader();
-        reader.onload = function () {
-            const selecionado = {
-                nome: file.name,
-                tipo: file.type,
-                tamanho: file.size,
-                dados: reader.result
-            };
-            aoSelecionar(selecionado);
-            atualizarPreviewAnexo(previewSpanId, selecionado);
+        if (!validarFormulario()) return;
+
+        const osAtualizada = {
+            titulo: inputTitulo.value.trim(),
+            categoria: inputCategoria.value,
+            modalidade: inputModalidade.value,
+            cidade: inputCidade.value.trim(),
+            estado: selectEstado.value,
+            valor: formatarMoeda(moedaParaNumero(inputValor.value)),
+            prazo: inputPrazo.value,
+            previsaoConclusao: inputPrevisao.value,
+            descricao: inputDescricao.value.trim(),
+            observacoes: inputObservacoes.value.trim(),
+            referenciaBriefing: anexoBriefing.caminho,
+            referenciaEntrega: anexoEntrega.caminho
         };
-        reader.readAsDataURL(file);
-    }
 
-    configurarUpload('briefing-dropzone', 'briefing-file-input', 'briefing-file-name', function (selecionado) {
-        briefingSelecionado = selecionado;
-    });
-    configurarUpload('entrega-dropzone', 'entrega-file-input', 'entrega-file-name', function (selecionado) {
-        entregaSelecionado = selecionado;
-    });
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<span class="spinner"></span> Salvando...';
 
-    // ── 6. Validação e Envio do Formulário (grava via PATCH) ──
-    const form = document.querySelector('form.card');
-    const alertaSucesso = form ? form.querySelector('.alert-success') : null;
-
-    function alertaSucessoExibir(texto, tipo) {
-        if (!alertaSucesso) return;
-        alertaSucesso.classList.toggle('alert-success', tipo !== 'error');
-        alertaSucesso.classList.toggle('alert-error', tipo === 'error');
-        alertaSucesso.textContent = texto;
-        alertaSucesso.hidden = false;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    if (form) {
-        if (alertaSucesso) alertaSucesso.hidden = true;
-
-        form.addEventListener('submit', async function (e) {
-            e.preventDefault();
-            if (acessoNegado) return;
-
-            const titulo = document.getElementById('os-titulo');
-            const descricao = document.getElementById('os-descricao');
-            const requisitos = document.getElementById('os-requisitos');
-
-            let valido = true;
-            [titulo, descricao, requisitos].forEach(function (campo) {
-                if (!campo) return;
-                const vazio = !campo.value.trim();
-                campo.classList.toggle('input-error', vazio);
-                if (vazio) valido = false;
+        try {
+            const res = await fetch(`${API_BASE}/ordensServico/${osId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(osAtualizada)
             });
 
-            if (!valido) return;
+            if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
 
-            const btnSalvar = form.querySelector('button[type="submit"]');
-            const textoOriginal = btnSalvar.innerHTML;
-            btnSalvar.disabled = true;
-            btnSalvar.innerHTML = '<span class="spinner"></span> Salvando...';
+            mostrarMensagem('Alterações salvas com sucesso! Redirecionando...', 'success');
 
-            const alteracoes = {
-                titulo: titulo.value.trim(),
-                categoria: document.getElementById('os-categoria').value,
-                modalidade: document.getElementById('os-modalidade').value,
-                cidade: document.getElementById('os-cidade').value.trim(),
-                estado: document.getElementById('os-estado').value.trim(),
-                valor: document.getElementById('os-valor').value,
-                prazo: document.getElementById('os-prazo').value,
-                previsaoConclusao: document.getElementById('os-previsao').value,
-                descricao: descricao.value.trim(),
-                requisitos: requisitos.value.trim(),
-                status: document.getElementById('os-status').value,
-                observacoes: document.getElementById('os-observacoes').value.trim()
-            };
-
-            if (briefingSelecionado) alteracoes.referenciaBriefing = briefingSelecionado;
-            if (entregaSelecionado) alteracoes.referenciaEntrega = entregaSelecionado;
-
-            try {
-                const idParaSalvar = osAtual ? osAtual.id : idOS;
-                if (idParaSalvar) {
-                    const res = await fetch(`${API_BASE}/ordensServico/${idParaSalvar}`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(alteracoes)
-                    });
-                    if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
-                }
-
-                alertaSucessoExibir('Ordem de serviço atualizada com sucesso!', 'success');
-
-                setTimeout(function () {
-                    window.location.href = '/pages/16-ordens-servico.html';
-                }, 1200);
-            } catch (erro) {
-                console.error('Erro ao salvar Ordem de Serviço:', erro);
-                btnSalvar.disabled = false;
-                btnSalvar.innerHTML = textoOriginal;
-                alertaSucessoExibir('Não foi possível salvar as alterações. Verifique se o json-server está rodando.', 'error');
-            }
-        });
-    }
-
-    // ── 7. Excluir Ordem de Serviço (modal de confirmação) ──
-    const modalExcluir = document.getElementById('modalExcluir');
-    const btnExcluirOS = document.getElementById('btnExcluirOS');
-    const btnCancelarExclusao = document.getElementById('btnCancelarExclusao');
-    const btnConfirmarExclusao = document.getElementById('btnConfirmarExclusao');
-
-    if (btnExcluirOS && modalExcluir) {
-        btnExcluirOS.addEventListener('click', function () {
-            if (acessoNegado) return;
-            modalExcluir.style.display = 'flex';
-        });
-    }
-
-    if (btnCancelarExclusao && modalExcluir) {
-        btnCancelarExclusao.addEventListener('click', function () {
-            modalExcluir.style.display = 'none';
-        });
-    }
-
-    if (btnConfirmarExclusao) {
-        btnConfirmarExclusao.addEventListener('click', async function () {
-            const idParaExcluir = osAtual ? osAtual.id : idOS;
-            if (!idParaExcluir) return;
-            try {
-                const res = await fetch(`${API_BASE}/ordensServico/${idParaExcluir}`, { method: 'DELETE' });
-                if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
+            setTimeout(function () {
                 window.location.href = '/pages/16-ordens-servico.html';
-            } catch (erro) {
-                console.error('Erro ao excluir Ordem de Serviço:', erro);
-                if (modalExcluir) modalExcluir.style.display = 'none';
-                alertaSucessoExibir('Não foi possível excluir a ordem de serviço. Verifique se o json-server está rodando.', 'error');
-            }
-        });
-    }
+            }, 1200);
+        } catch (erro) {
+            console.error('Erro ao salvar ordem de serviço:', erro);
+            mostrarMensagem('Não foi possível salvar as alterações. Tente novamente em instantes.', 'error');
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = '<i class="bi bi-save-fill"></i> Salvar Alterações';
+        }
+    });
 });

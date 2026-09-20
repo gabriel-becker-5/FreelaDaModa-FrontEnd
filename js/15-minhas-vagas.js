@@ -215,11 +215,6 @@ function preencherLinha(vaga) {
     const tr = document.createElement('tr');
     const qtdCandidatos = contagemCandidatosPorVaga[vaga.id] || 0;
 
-    const tdId = document.createElement('td');
-    const strongId = document.createElement('strong');
-    strongId.textContent = `VG-${vaga.id}`;
-    tdId.appendChild(strongId);
-
     const tdTitulo = document.createElement('td');
     tdTitulo.textContent = vaga.titulo;
 
@@ -246,6 +241,9 @@ function preencherLinha(vaga) {
 
     const tdPrazo = document.createElement('td');
     tdPrazo.textContent = formatarData(vaga.prazo) || '—';
+
+    const tdPublicacao = document.createElement('td');
+    tdPublicacao.textContent = formatarData(vaga.dataPublicacao) || '—';
 
     const tdAcoes = document.createElement('td');
     const divAcoes = document.createElement('div');
@@ -278,13 +276,13 @@ function preencherLinha(vaga) {
 
     tdAcoes.appendChild(divAcoes);
 
-    tr.appendChild(tdId);
     tr.appendChild(tdTitulo);
-    tr.appendChild(tdValor);
     tr.appendChild(tdStatus);
-    tr.appendChild(tdCandidatos);
     tr.appendChild(tdLocal);
+    tr.appendChild(tdValor);
     tr.appendChild(tdPrazo);
+    tr.appendChild(tdPublicacao);
+    tr.appendChild(tdCandidatos);
     tr.appendChild(tdAcoes);
     tbody.appendChild(tr);
 }
