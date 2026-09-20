@@ -14,6 +14,7 @@ const estrelasMedia = document.querySelector('#estrelas-media');
 const textoAvaliacoes = document.querySelector('#texto-avaliacoes');
 const localizacaoFreelancer = document.querySelector('#localizacao-freelancer');
 const seloVerificado = document.querySelector('#selo-verificado');
+const seloContainer = document.querySelector('#selo-container');
 const descricaoFreelancer = document.querySelector('#descricao-freelancer');
 const listaEspecialidades = document.querySelector('#lista-especialidades');
 const listaMaquinas = document.querySelector('#lista-maquinas');
@@ -148,7 +149,9 @@ function preencherPerfil(dados, avaliacoes) {
 
     const referencias = Array.isArray(dados.referencias) ? dados.referencias : [];
     const elegivelSelo = !!dados.foto && referencias.length >= MIN_REFERENCIAS_SELO;
+    // O contêiner também é oculto para não sobrar barra vazia quando não há selo.
     if (seloVerificado) seloVerificado.hidden = !elegivelSelo;
+    if (seloContainer) seloContainer.hidden = !elegivelSelo;
 
     nomeFreelancer.textContent = dados.nome;
     // Só cidade/UF — bairro e endereço ficam restritos ao cadastro formal.

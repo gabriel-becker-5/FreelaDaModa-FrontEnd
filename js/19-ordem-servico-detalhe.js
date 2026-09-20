@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Renderiza o anexo de uma OS. Anexos são gravados por CAMINHO (/uploads/...);
-    // a miniatura usa placeholder quando o arquivo não está disponível.
+    // exibe apenas a imagem (sem o nome do arquivo), com ícone quando indisponível.
     function renderizarAnexo(elementoId, valor) {
         const el = document.getElementById(elementoId);
         if (!el) return;
@@ -66,36 +66,17 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (typeof valor === 'string' && valor.startsWith('/uploads/')) {
-            const nomeArquivo = (function () {
-                try {
-                    return decodeURIComponent(valor.split('/').pop() || 'arquivo');
-                } catch (erro) {
-                    return 'arquivo';
-                }
-            })();
-
-            const linha = document.createElement('div');
-            linha.style.cssText = 'display:flex; align-items:center; gap:10px;';
-
             const img = document.createElement('img');
             img.src = valor;
-            img.alt = nomeArquivo;
-            img.style.cssText = 'width:56px; height:56px; object-fit:cover; border-radius:8px; border:1px solid var(--border);';
+            img.alt = 'Imagem de referência';
+            img.className = 'anexo-os-imagem';
             img.onerror = function () {
                 const icone = document.createElement('i');
                 icone.className = 'bi bi-file-earmark-image';
-                icone.style.fontSize = '24px';
+                icone.style.cssText = 'font-size: 24px; display: block; margin: 0 auto;';
                 img.replaceWith(icone);
             };
-            linha.appendChild(img);
-
-            const infos = document.createElement('div');
-            const nome = document.createElement('div');
-            nome.textContent = nomeArquivo;
-            infos.appendChild(nome);
-
-            linha.appendChild(infos);
-            el.appendChild(linha);
+            el.appendChild(img);
             return;
         }
 

@@ -3466,11 +3466,39 @@ h2.section-title {
 }
 
 #lista-referencias .referencia-item img {
-    width: 120px;
-    height: 120px;
+    width: 220px;
+    height: 220px;
+    max-width: 100%;
 }
 
 #lista-referencias .imagem-placeholder {
-    width: 120px;
-    height: 120px;
+    width: 220px;
+    height: 220px;
+    max-width: 100%;
+}
+
+/* referências grandes nas telas de exibição (detalhe de vaga e OS) —
+   legíveis sem modal; max-width:100% preserva a responsividade */
+
+#lista-referencias-vaga .referencia-item img {
+    width: 200px;
+    height: 200px;
+    max-width: 100%;
+}
+
+#lista-referencias-vaga .imagem-placeholder {
+    width: 200px;
+    height: 200px;
+    max-width: 100%;
+}
+
+.anexo-os-imagem {
+    width: 200px;
+    height: 200px;
+    max-width: 100%;
+    display: block;
+    margin: 0 auto;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--border);
 }

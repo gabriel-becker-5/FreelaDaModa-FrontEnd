@@ -10,28 +10,22 @@ document.addEventListener('DOMContentLoaded', () => {
 /* -------------------------------------------------------------------------- */
 /* 1. SELEÇÃO DE PERFIL (FREELANCER / EMPRESA)                                */
 /* -------------------------------------------------------------------------- */
-function initRoleTabs() {
+function selecionarPerfil(role) {
     const tabFreela = document.getElementById('tab-freelancer');
     const tabEmpresa = document.getElementById('tab-empresa');
     const linkCadastro = document.getElementById('link-cadastro');
 
-    tabFreela.addEventListener('click', () => {
-        tabFreela.classList.add('active');
-        tabEmpresa.classList.remove('active');
-        roleAtual = 'freelancers';
-        linkCadastro.href = '/pages/05-cadastro-freelancer.html';
-        linkCadastro.innerText = 'Cadastre-se como Freelancer';
-        limparMensagem();
-    });
+    roleAtual = role;
+    tabFreela.classList.toggle('active', role === 'freelancers');
+    tabEmpresa.classList.toggle('active', role === 'empresas');
+    linkCadastro.href = role === 'empresas' ? '/pages/06-cadastro-empresa.html' : '/pages/05-cadastro-freelancer.html';
+    linkCadastro.innerText = role === 'empresas' ? 'Cadastre-se como Empresa' : 'Cadastre-se como Freelancer';
+    limparMensagem();
+}
 
-    tabEmpresa.addEventListener('click', () => {
-        tabEmpresa.classList.add('active');
-        tabFreela.classList.remove('active');
-        roleAtual = 'empresas';
-        linkCadastro.href = '/pages/06-cadastro-empresa.html';
-        linkCadastro.innerText = 'Cadastre-se como Empresa';
-        limparMensagem();
-    });
+function initRoleTabs() {
+    document.getElementById('tab-freelancer').addEventListener('click', () => selecionarPerfil('freelancers'));
+    document.getElementById('tab-empresa').addEventListener('click', () => selecionarPerfil('empresas'));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -102,8 +96,10 @@ function initLoginForm() {
 
                 if (lembrar) {
                     localStorage.setItem('emailLembrado', email);
+                    localStorage.setItem('perfilLembrado', roleAtual);
                 } else {
                     localStorage.removeItem('emailLembrado');
+                    localStorage.removeItem('perfilLembrado');
                 }
 
                 mostrarMensagem('Login realizado com sucesso! Redirecionando...', 'success');
@@ -168,6 +164,9 @@ function carregarEmailSalvo() {
     if (emailSalvo) {
         document.getElementById('email').value = emailSalvo;
         document.getElementById('lembrar-me').checked = true;
+        if (localStorage.getItem('perfilLembrado') === 'empresas') {
+            selecionarPerfil('empresas');
+        }
     }
 }
 

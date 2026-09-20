@@ -14,6 +14,7 @@ const estrelasMedia = document.querySelector('#estrelas-media');
 const textoAvaliacoes = document.querySelector('#texto-avaliacoes');
 const localizacaoEmpresa = document.querySelector('#localizacao-empresa');
 const seloVerificado = document.querySelector('#selo-verificado');
+const seloContainer = document.querySelector('#selo-container');
 const descricaoEmpresa = document.querySelector('#descricao-empresa');
 const ramoEmpresa = document.querySelector('#ramo-empresa');
 const listaReferencias = document.querySelector('#lista-referencias');
@@ -178,7 +179,10 @@ function preencherPerfil(dados, avaliacoes, vagas) {
 
     // Selo verificado: controlado pelo campo validado (a aprovação em si
     // seguirá pelo fluxo do Suporte; no back real o campo continua sendo a fonte).
-    if (seloVerificado) seloVerificado.hidden = dados.validado !== true;
+    // O contêiner também é oculto para não sobrar barra vazia no perfil.
+    const verificado = dados.validado === true;
+    if (seloVerificado) seloVerificado.hidden = !verificado;
+    if (seloContainer) seloContainer.hidden = !verificado;
 
     nomeEmpresa.textContent = dados.nomeFantasia;
     // Só cidade/UF — telefone, e-mail e endereço completo ficam restritos

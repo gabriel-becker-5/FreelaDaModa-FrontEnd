@@ -204,16 +204,13 @@ function renderizarFreelancers(freelancers) {
             freela.estadoResidencial
         ].filter(Boolean).join(' - ');
         const especialidadeCard = freela.especialidade || (freela.especialidades && freela.especialidades[0]) || 'Freelancer';
-        // Foto em background (com as iniciais como fallback caso o arquivo não
-        // exista no mock). Só caminhos /uploads/... são gravados no banco.
+        // Avatar: foto quando existe (fallback para as iniciais caso o arquivo
+        // não carregue) — só caminhos /uploads/... são gravados no banco.
         const foto = String(freela.foto || '').replace(/['\\]/g, '');
-        const avatarStyle = foto
-            ? ` style="background-image: url('${escapeHtml(foto)}'); background-size: cover; background-position: center;"`
-            : '';
 
         card.innerHTML = `
             ${plano ? `<span class="badge badge-primary-bg freelancer-badge-destaque"><i class="bi bi-star-fill"></i> Destaque ${escapeHtml(plano)}</span>` : ''}
-            <div class="profile-avatar-lg"${avatarStyle}>${escapeHtml(iniciais)}</div>
+            <div class="profile-avatar-lg"></div>
             <h3>${escapeHtml(freela.nome)}</h3>
             <span class="badge freelancer-especialidade">${escapeHtml(especialidadeCard)}</span>
             ${cidadeEstado ? `<p class="freelancer-local"><i class="bi bi-geo-alt"></i> ${escapeHtml(cidadeEstado)}</p>` : ''}
@@ -223,6 +220,19 @@ function renderizarFreelancers(freelancers) {
             </p>
             <a href="/pages/25-perfil-freelancer-publico.html?id=${encodeURIComponent(freela.id)}" class="btn btn-outline-primary w-full">Ver perfil</a>
         `;
+
+        const avatarEl = card.querySelector('.profile-avatar-lg');
+        if (foto) {
+            const img = document.createElement('img');
+            img.src = foto;
+            img.alt = `Foto de ${freela.nome}`;
+            img.onerror = function () {
+                avatarEl.textContent = iniciais;
+            };
+            avatarEl.appendChild(img);
+        } else {
+            avatarEl.textContent = iniciais;
+        }
 
         listaFreelancersEl.appendChild(card);
     });
