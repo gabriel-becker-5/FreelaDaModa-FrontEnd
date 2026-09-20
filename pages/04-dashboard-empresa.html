@@ -19,45 +19,11 @@
         <span class="hamburger-line"></span>
     </button>
     <div class="sidebar-overlay"></div>
-    <aside class="sidebar" role="navigation" aria-label="Menu principal">
-        <a href="/pages/01-homepage.html" class="brand">
-            <img src="/assets/logo-icone-branco-2048.png" alt="Logo Freela" class="brand-logo" />
-            <span class="brand-text">FREELA<span class="brand-sub">DA MODA</span></span>
-        </a>
-        <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Alternar tema claro e escuro">
-            <i class="bi bi-moon-stars" aria-hidden="true"></i>
-        </button>
-        <a class="active" href="/pages/04-dashboard-empresa.html" aria-current="page">Dashboard</a>
-        <a href="/pages/12-publicar-vaga.html">Publicar Vaga</a>
-        <a href="/pages/15-minhas-vagas.html">Minhas Vagas</a>
-        <a href="/pages/27-mural-freelancers.html">Buscar Freelancers</a>
-        <a href="/pages/11-chat.html">Chat</a>
-        <a href="/pages/16-ordens-servico.html">Ordens de Serviço</a>
-        <a href="/pages/09-perfil-empresa.html">Perfil</a>
-        <a href="/pages/21-assinatura.html">Assinatura</a>
-        <a href="/pages/24-suporte.html">Suporte</a>
-    </aside>
+    <aside class="sidebar" role="navigation" aria-label="Menu principal"></aside>
     <main class="main" role="main" aria-label="Conteúdo principal">
         <div class="header">
             <h2>Painel da Confecção</h2>
-            <div class="header-actions">
-                <div class="notif-bell-wrapper">
-                    <button class="btn btn-outline" id="btn-notificacoes" aria-label="Notificações" aria-haspopup="true" aria-expanded="false">
-                        <i class="bi bi-bell"></i>
-                        <span class="notif-badge" id="notif-badge" hidden>0</span>
-                    </button>
-                    <div class="notif-dropdown" id="notif-dropdown" hidden>
-                        <div class="notif-dropdown-header">
-                            <strong>Notificações</strong>
-                            <button type="button" id="btn-marcar-todas-lidas" class="btn btn-ghost" style="font-size: 12px; padding: 2px 6px;">Marcar todas como lidas</button>
-                        </div>
-                        <div id="notif-lista"></div>
-                    </div>
-                </div>
-                <button class="btn btn-outline" id="btn-logout">
-                    <i class="bi bi-box-arrow-right"></i> Sair
-                </button>
-            </div>
+            <div class="header-actions" id="header-acoes"></div>
         </div>
 
         <div id="mensagemStatus" class="alert" role="alert" aria-live="polite" hidden></div>
@@ -70,9 +36,9 @@
                 <span class="user-tag"><i class="bi bi-building-check"></i> Empresa Verificada</span>
             </div>
             <div>
-                <button class="btn btn-purple-bright" id="btn-abrir-modal-vaga">
+                <a href="/pages/12-publicar-vaga.html" class="btn btn-purple-bright">
                     <i class="bi bi-plus-lg"></i> Publicar Nova Vaga
-                </button>
+                </a>
             </div>
         </section>
 
@@ -106,7 +72,7 @@
                 <div class="metric-icon"><i class="bi bi-cash-stack"></i></div>
                 <div class="metric-info">
                     <strong id="metric-investimento">—</strong>
-                    <span>Investimento em freelas</span>
+                    <span>Investimento em Freelancers</span>
                 </div>
             </div>
         </section>
@@ -114,8 +80,19 @@
         <!-- CONTEÚDO PRINCIPAL EM 2 COLUNAS -->
         <div class="dash-layout">
             
-            <!-- Coluna Principal (Minhas Vagas) -->
+            <!-- Coluna Principal -->
             <div class="main-column">
+                <div class="section-box">
+                    <div class="box-title">
+                        <h2><i class="bi bi-gear-wide-connected"></i> Ordens de Serviço em Andamento</h2>
+                        <span id="contador-os-texto" style="font-size: 0.85rem; color: var(--color-primary); font-weight: 600;">Carregando...</span>
+                    </div>
+
+                    <div class="services-list" id="lista-os-ativas">
+                        <!-- Renderizado via dashboard-empresa.js -->
+                    </div>
+                </div>
+
                 <div class="section-box">
                     <div class="box-title">
                         <h2><i class="bi bi-list-task"></i> Vagas Publicadas pela sua Empresa</h2>
@@ -140,7 +117,7 @@
                 </div>
             </div>
 
-            <!-- Coluna Lateral (Dados Cadastrais da Empresa) -->
+            <!-- Coluna Lateral -->
             <div class="sidebar-column">
                 <div class="section-box">
                     <div class="box-title">
@@ -151,35 +128,6 @@
                         <p class="text-muted" style="font-size: 0.85rem;">Carregando...</p>
                     </div>
                 </div>
-
-                <div class="section-box company-profile-view">
-                    <div class="company-avatar-big" id="empresa-iniciais">SF</div>
-                    <h3 id="empresa-nome-fantasia">Silva Fashion</h3>
-                    <p id="empresa-razao-social">Confecção Silva & Cia</p>
-
-                    <div class="quick-info-list">
-                        <div class="quick-info-row">
-                            <span>CNPJ:</span>
-                            <strong id="empresa-cnpj">12.345.678/0001-90</strong>
-                        </div>
-                        <div class="quick-info-row">
-                            <span>E-mail:</span>
-                            <strong id="empresa-email">contato@silvafashion.com.br</strong>
-                        </div>
-                        <div class="quick-info-row">
-                            <span>Ramo:</span>
-                            <strong id="empresa-ramo">Moda Feminina</strong>
-                        </div>
-                        <div class="quick-info-row">
-                            <span>Localização:</span>
-                            <strong id="empresa-local">São Paulo / SP</strong>
-                        </div>
-                    </div>
-
-                    <a href="/pages/09-perfil-empresa.html" class="btn btn-outline-purple w-full">
-                        <i class="bi bi-building-gear"></i> Editar Dados da Empresa
-                    </a>
-                </div>
             </div>
 
         </div>
@@ -187,69 +135,9 @@
     </main>
     </div>
 
-    <!-- MODAL: PUBLICAR NOVA VAGA -->
-    <div class="modal-overlay" id="modal-nova-vaga">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Publicar Nova Vaga</h2>
-                <button class="btn-close-modal" id="btn-fechar-modal"><i class="bi bi-x-lg"></i></button>
-            </div>
-
-            <form id="form-nova-vaga">
-                <div class="field" style="margin-bottom: 14px;">
-                    <label for="vaga-titulo">Título da Vaga</label>
-                    <input type="text" id="vaga-titulo" placeholder="Ex: Costureira para Lote de Vestidos" required />
-                </div>
-
-                <div class="grid-2" style="margin-bottom: 14px;">
-                    <div class="field">
-                        <label for="vaga-especialidade">Especialidade</label>
-                        <select id="vaga-especialidade" required>
-                            <option value="">Selecione</option>
-                            <option value="Costura reta">Costura reta</option>
-                            <option value="Overloque">Overloque</option>
-                            <option value="Modelagem">Modelagem</option>
-                            <option value="Peça piloto">Peça piloto</option>
-                            <option value="Acabamento">Acabamento</option>
-                            <option value="Bordado">Bordado</option>
-                            <option value="Estamparia">Estamparia</option>
-                        </select>
-                    </div>
-
-                    <div class="field">
-                        <label for="vaga-valor">Orçamento / Valor</label>
-                        <input type="text" id="vaga-valor" placeholder="Ex: R$ 2.500,00" required />
-                    </div>
-                </div>
-
-                <div class="grid-2" style="margin-bottom: 14px;">
-                    <div class="field">
-                        <label for="vaga-prazo">Prazo Estimado</label>
-                        <input type="text" id="vaga-prazo" placeholder="Ex: 10 dias" required />
-                    </div>
-
-                    <div class="field">
-                        <label for="vaga-local">Localização / Formato</label>
-                        <input type="text" id="vaga-local" placeholder="Ex: São Paulo, SP ou Remoto" required />
-                    </div>
-                </div>
-
-                <div class="field" style="margin-bottom: 20px;">
-                    <label for="vaga-desc">Descrição Detalhada do Serviço</label>
-                    <textarea id="vaga-desc" rows="3" style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-family:inherit; outline:none;" placeholder="Detalhes sobre a quantidade de peças, tipo de tecido e acabamentos desejados..." required></textarea>
-                </div>
-
-                <div style="display: flex; justify-content: flex-end; gap: 12px;">
-                    <button type="button" class="btn btn-outline" id="btn-cancelar-modal">Cancelar</button>
-                    <button type="submit" class="btn btn-purple-bright" id="btn-salvar-vaga">
-                        Publicar Vaga <i class="bi bi-arrow-right"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <script src="/js/config.js"></script>
+    <script src="/js/ui.js"></script>
+    <script src="/js/nav.js"></script>
     <script src="/js/04-dashboard-empresa.js"></script>
 </body>
 </html>

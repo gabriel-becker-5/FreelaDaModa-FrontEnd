@@ -18,34 +18,13 @@
   <body>
     <div class="app">
       <button class="sidebar-toggle-btn" type="button" aria-label="Abrir menu" aria-expanded="false">
-  <span class="hamburger-line"></span>
-</button>
-<div class="sidebar-overlay"></div>
-<aside class="sidebar" role="navigation" aria-label="Menu principal">
-        <a href="/pages/01-homepage.html" class="brand">
-          <img
-            src="/assets/logo-icone-branco-2048.png"
-            alt="Logo Freela"
-            class="brand-logo"
-          /><span class="brand-text">FREELA<span class="brand-sub">DA MODA</span></span>
-        </a>
-        <button
-          class="theme-toggle"
-          type="button"
-          aria-label="Alternar tema claro e escuro"
-        ><i class="bi bi-moon-stars" aria-hidden="true"></i></button>
-        <a href="/pages/04-dashboard-empresa.html">Dashboard</a
-        ><a href="/pages/12-publicar-vaga.html">Publicar Vaga</a
-        ><a href="/pages/15-minhas-vagas.html">Minhas Vagas</a
-        ><a href="/pages/27-mural-freelancers.html">Buscar Freelancers</a
-        ><a href="/pages/11-chat.html">Chat</a
-        ><a href="/pages/16-ordens-servico.html">Ordens de Serviço</a
-        ><a class="active" href="/pages/09-perfil-empresa.html" aria-current="page">Perfil</a
-        ><a href="/pages/21-assinatura.html">Assinatura</a
-        ><a href="/pages/24-suporte.html">Suporte</a>
-      </aside>
+        <span class="hamburger-line"></span>
+      </button>
+      <div class="sidebar-overlay"></div>
+      <aside class="sidebar" role="navigation" aria-label="Menu principal"></aside>
       <main class="main" role="main" aria-label="Conteúdo principal">
-                <!-- Estado de carregamento -->
+
+        <!-- Estado de carregamento -->
         <div id="perfil-loading" class="text-center">
           <p>Carregando perfil...</p>
         </div>
@@ -57,129 +36,160 @@
 
         <!-- Conteúdo do perfil -->
         <div id="perfil-conteudo" hidden>
-        <div class="header">
-          <h2>Perfil da Empresa</h2>
-          <div class="header-actions">
-            <a href="/pages/04-dashboard-empresa.html" class="btn">Cancelar/Voltar</a
-            ><button class="btn btn-primary" type="submit" form="perfil-empresa">Salvar alterações</button>
+          <div class="header">
+            <h2>Perfil da Empresa</h2>
+            <div class="header-actions" id="header-acoes"></div>
           </div>
-        </div>
-        <form class="card" id="perfil-empresa">
-          <div class="alert alert-success" role="alert" aria-live="polite" hidden></div>
-          <div class="form-group"></div>
-          <section class="card">
-          <div class="section-title">Responsável legal</div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="pe-resp">Nome Completo</label
-              ><input id="pe-resp" class="input" required />
-            </div>
-            <div class="form-group">
-              <label for="pe-cpf">CPF do responsável</label
-              ><input
-                id="pe-cpf"
-                class="input"
-                placeholder="000.000.000-00"
-                required
-              />
-            </div>
-          </div>
-          </section>
-          <div class="form-group"></div>
-          <section class="card">
-          <div class="section-title">Dados da empresa</div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="pe-razao">Razão Social</label
-              ><input id="pe-razao" class="input" required />
-            </div>
-            <div class="form-group">
-              <label for="pe-fantasia">Nome Fantasia</label
-              ><input id="pe-fantasia" class="input" required />
-            </div>
-          </div>
-<div class="form-row">
+
+          <form class="card" id="perfil-empresa" novalidate>
+            <div class="alert alert-success" role="alert" aria-live="polite" id="alert-perfil-empresa" hidden></div>
+
+            <div class="section-title">Responsável legal</div>
+            <div class="form-row">
               <div class="form-group">
-              <label for="pe-cnpj">CNPJ</label
-              ><input
-                id="pe-cnpj"
-                class="input"
-                placeholder="00.000.000/0000-00"
-                required
-              />
-            </div>
-                        <div class="form-group">
-              <label for="pe-ramo">Ramo de atuação</label
-              ><input id="pe-ramo" class="input" required />
-            </div>
-</div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="pe-email">E-mail</label
-              ><input id="pe-email" type="email" class="input" required />
-            </div>
-            <div class="form-group">
-              <label for="pe-telefone">Telefone/Whatsapp</label>
-              <input id="pe-telefone" type="tel" class="input" placeholder="(00) 00000-0000" required/>
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="pe-descricao">Descrição do perfil</label
-            ><textarea id="pe-descricao" class="input"></textarea>
-            <span class="field-message">Opcional. Resuma as habilidades e experiências que você procura em até 500 caracteres.</span>
-          </div>
-          </section>
-          <section class="grid grid-1">
-          <div class="form-group"></div>
-            <div class="card">
-          <div class="section-title">Endereço comercial</div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="pe-cep">CEP</label
-                  ><input id="pe-cep" class="input" required />
-                </div>
-                <div class="form-group">
-                  <label for="pe-endereco">Endereço</label
-                  ><input id="pe-endereco" class="input" required />
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="pe-numero">Número</label
-                  ><input id="pe-numero" class="input" type="number" required />
-                </div>
-                <div class="form-group">
-                  <label for="pe-bairro">Bairro</label
-                  ><input id="pe-bairro" class="input" required />
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="pe-complemento">Complemento</label
-                  ><input id="pe-complemento" class="input" />
-                </div>
-                <div class="form-group">
-                  <label for="pe-cidade">Cidade</label
-                  ><input id="pe-cidade" class="input" required />
-                </div>
+                <label for="pe-resp">Nome Completo *</label
+                ><input id="pe-resp" class="input" required />
               </div>
               <div class="form-group">
-                <label for="pe-estado">Estado</label
-                ><input id="pe-estado" class="input" required />
+                <label for="pe-nascimento">Data de nascimento *</label
+                ><input id="pe-nascimento" type="date" class="input" required />
               </div>
             </div>
-          </section>
-          <div class="form-actions">
-            <a href="/pages/04-dashboard-empresa.html" class="btn">Cancelar/Voltar</a
-            ><button class="btn btn-primary" type="submit">
-              Salvar alterações
-            </button>
-          </div>
-        </form>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="pe-cpf">CPF do responsável *</label
+                ><input
+                  id="pe-cpf"
+                  class="input"
+                  placeholder="000.000.000-00"
+                  inputmode="numeric"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="section-title">Dados da empresa</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="pe-razao">Razão Social *</label
+                ><input id="pe-razao" class="input" required />
+              </div>
+              <div class="form-group">
+                <label for="pe-fantasia">Nome Fantasia *</label
+                ><input id="pe-fantasia" class="input" required />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="pe-cnpj">CNPJ *</label
+                ><input
+                  id="pe-cnpj"
+                  class="input"
+                  placeholder="00.000.000/0000-00"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="pe-ramo">Ramo de atuação *</label
+                ><input id="pe-ramo" class="input" required />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="pe-email">E-mail *</label
+                ><input id="pe-email" type="email" class="input" required />
+              </div>
+              <div class="form-group">
+                <label for="pe-telefone">Telefone/Whatsapp *</label>
+                <input id="pe-telefone" type="tel" class="input" placeholder="(00) 00000-0000" required/>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="pe-descricao">Descrição do perfil *</label
+              ><textarea id="pe-descricao" class="input" maxlength="500" required></textarea>
+              <span class="field-message">Resuma sua empresa e o tipo de serviço que ela oferece em até 500 caracteres.</span>
+            </div>
+
+            <div class="section-title">Endereço comercial</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="pe-cep">CEP *</label
+                ><input id="pe-cep" class="input" required />
+              </div>
+              <div class="form-group">
+                <label for="pe-endereco">Endereço *</label
+                ><input id="pe-endereco" class="input" readonly required />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="pe-numero">Número *</label
+                ><input id="pe-numero" class="input" type="number" min="0" required />
+              </div>
+              <div class="form-group">
+                <label for="pe-bairro">Bairro *</label
+                ><input id="pe-bairro" class="input" readonly required />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="pe-complemento">Complemento</label
+                ><input id="pe-complemento" class="input" />
+              </div>
+              <div class="form-group">
+                <label for="pe-cidade">Cidade *</label
+                ><input id="pe-cidade" class="input" readonly required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="pe-estado">Estado *</label
+              ><input id="pe-estado" class="input" readonly required />
+            </div>
+
+            <div class="section-title">Logo e referências</div>
+            <div class="form-group">
+              <label for="pe-logo">Logo da empresa</label>
+              <div class="upload-row">
+                <label class="btn btn-outline" for="pe-logo">
+                  <i class="bi bi-image"></i> Escolher logo
+                </label>
+                <input type="file" id="pe-logo" accept="image/*" hidden />
+                <button type="button" class="btn btn-outline" id="pe-logo-remover" hidden>
+                  <i class="bi bi-trash"></i> Remover
+                </button>
+              </div>
+              <div class="foto-preview" id="pe-logo-preview"></div>
+              <span class="field-message">Imagem PNG ou JPG de até 5MB.</span>
+            </div>
+            <div class="form-group">
+              <label for="pe-referencias">Fotos de referência da empresa (máximo 10)</label>
+              <div class="upload-row">
+                <label class="btn btn-outline" for="pe-referencias">
+                  <i class="bi bi-images"></i> Adicionar fotos
+                </label>
+                <input type="file" id="pe-referencias" accept="image/*" multiple hidden />
+              </div>
+              <div class="referencias-grid" id="pe-referencias-preview"></div>
+              <span class="field-message">Cada imagem deve ter até 5MB.</span>
+            </div>
+
+            <div class="section-title">Selo de verificação</div>
+            <div class="alert alert-warning" id="selo-status" role="status"></div>
+
+            <div class="form-actions">
+              <a href="/pages/04-dashboard-empresa.html" class="btn">Cancelar/Voltar</a
+              ><button class="btn btn-primary" type="submit">
+                Salvar alterações
+              </button>
+            </div>
+          </form>
         </div>
       </main>
     </div>
+
     <script src="/js/config.js"></script>
+    <script src="/js/ui.js"></script>
+    <script src="/js/nav.js"></script>
     <script src="/js/09-perfil-empresa.js"></script>
   </body>
 </html>
