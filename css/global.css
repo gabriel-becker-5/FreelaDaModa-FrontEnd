@@ -3080,6 +3080,16 @@ h2.section-title {
     outline: none;
 }
 
+/* Variante de 6 controles (usada na listagem de vagas da empresa) */
+.filter-bar.filter-bar--6 {
+    grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr auto;
+}
+
+/* Variante de 3 controles (usada na listagem de candidatos da empresa) */
+.filter-bar.filter-bar--3 {
+    grid-template-columns: 2fr 1fr auto;
+}
+
 .jobs-layout {
     display: grid;
     grid-template-columns: 1fr;
@@ -3176,6 +3186,8 @@ h2.section-title {
 
 @media (max-width: 768px) {
     .filter-bar { grid-template-columns: 1fr; }
+    .filter-bar.filter-bar--6 { grid-template-columns: 1fr; }
+    .filter-bar.filter-bar--3 { grid-template-columns: 1fr; }
     .job-card-header { flex-direction: column; gap: 8px; }
     .job-meta { flex-direction: column; align-items: flex-start; gap: 12px; }
 }

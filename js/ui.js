@@ -40,6 +40,19 @@ function aplicarMascaraMoeda(inputEl, maximo) {
     });
 }
 
+// Limites de data (AAAA-MM-DD) para prazos: mínimo = hoje, máximo = hoje + dias
+// Usa data LOCAL (não toISOString/UTC) para não recuar um dia no fuso do Brasil
+function limitesDataPrazo(dias) {
+    function paraISO(data) {
+        const mes = String(data.getMonth() + 1).padStart(2, '0');
+        const dia = String(data.getDate()).padStart(2, '0');
+        return `${data.getFullYear()}-${mes}-${dia}`;
+    }
+    const hoje = new Date();
+    const limite = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + (dias || 0));
+    return { min: paraISO(hoje), max: paraISO(limite) };
+}
+
 // 'Toast / Barra de mensagens (sucesso, erro, aviso, info)
 function toastMsg(texto, tipo, duracao) {
     const tiposValidos = ['success', 'error', 'warning', 'info'];
