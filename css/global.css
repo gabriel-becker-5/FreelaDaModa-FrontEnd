@@ -3184,10 +3184,20 @@ h2.section-title {
     color: var(--text-primary);
 }
 
+@media (max-width: 900px) {
+    .filter-bar,
+    .filter-bar.filter-bar--6,
+    .filter-bar.filter-bar--3 {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
 @media (max-width: 768px) {
-    .filter-bar { grid-template-columns: 1fr; }
-    .filter-bar.filter-bar--6 { grid-template-columns: 1fr; }
-    .filter-bar.filter-bar--3 { grid-template-columns: 1fr; }
+    .filter-bar,
+    .filter-bar.filter-bar--6,
+    .filter-bar.filter-bar--3 {
+        grid-template-columns: 1fr;
+    }
     .job-card-header { flex-direction: column; gap: 8px; }
     .job-meta { flex-direction: column; align-items: flex-start; gap: 12px; }
 }
@@ -3400,18 +3410,6 @@ h2.section-title {
     color: var(--text-secondary);
     font-size: 26px;
     background: var(--surface-alt);
-}
-
-@media (max-width: 900px) {
-    .filter-bar {
-        grid-template-columns: 1fr 1fr;
-    }
-}
-
-@media (max-width: 600px) {
-    .filter-bar {
-        grid-template-columns: 1fr;
-    }
 }
 
 /* perfil público — selo, avatar com foto e referências maiores */

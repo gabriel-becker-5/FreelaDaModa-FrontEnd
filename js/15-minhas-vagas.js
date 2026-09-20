@@ -1,235 +1,353 @@
-document.addEventListener('DOMContentLoaded', function () {
-    'use strict';
+// Minhas Vagas (empresa) — padrão da 20-minhas-candidaturas
 
-    // ── 2. Menu Lateral no Celular (Hambúrguer) ──
-    // esta página não tem o botão no HTML, então os ifs abaixo só não quebram
-    const sidebarToggleBtn = document.querySelector('.sidebar-toggle-btn');
-    const sidebar = document.querySelector('.sidebar');
-    const sidebarOverlay = document.querySelector('.sidebar-overlay');
+const API_URL = `${API_BASE}/vagas`;
 
-    if (sidebarToggleBtn && sidebar && sidebarOverlay) {
-        sidebarToggleBtn.addEventListener('click', function () {
-            const abrindo = !sidebar.classList.contains('open');
-            sidebar.classList.toggle('open', abrindo);
-            sidebarOverlay.classList.toggle('open', abrindo);
-            sidebarToggleBtn.setAttribute('aria-expanded', String(abrindo));
-        });
-        sidebarOverlay.addEventListener('click', function () {
-            sidebar.classList.remove('open');
-            sidebarOverlay.classList.remove('open');
-            sidebarToggleBtn.setAttribute('aria-expanded', 'false');
-        });
-    }
+const sessao = exigirTipo('empresas');
+if (!sessao) {
+    throw new Error('Sessão inválida');
+}
 
-    // ── 3. Proteção de Rota (só empresa logada) ──
-    const sessao = JSON.parse(sessionStorage.getItem('usuarioLogado') || 'null');
-    if (!sessao || sessao.tipo !== 'empresas') {
-        // Sem sessão de empresa, não há vagas para listar; volta para o login.
-        window.location.href = '/pages/02-login.html';
-        return;
-    }
+renderizarSidebar(document.querySelector('.sidebar'), 'empresas', '15-minhas-vagas');
+renderizarTopbar(document.querySelector('#header-acoes'), sessao);
+renderizarBannerValidacao(document.querySelector('.main'), sessao);
 
-    function mostrarMensagem(texto, tipo) {
-        const el = document.getElementById('mensagemStatus');
-        if (!el) return;
-        el.className = `alert alert-${tipo}`; // tipo: 'success' | 'error'
-        el.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
-        el.hidden = false;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+const loadingBar = document.querySelector('#perfil-loading');
+const erroBar = document.querySelector('#perfil-erro');
+const conteudoPerfil = document.querySelector('#perfil-conteudo');
+const filtroTitulo = document.querySelector('#filtroTitulo');
+const filtroStatus = document.querySelector('#filtroStatus');
+const filtroOrdenar = document.querySelector('#filtroOrdenar');
+const filtroEstado = document.querySelector('#filtroEstado');
+const filtroCidade = document.querySelector('#filtroCidade');
+const btnLimparFiltros = document.querySelector('#btnLimparFiltros');
+const tbody = document.querySelector('#tbodyVagas');
+const msgEmpty = document.querySelector('#msg-empty');
+const cardFiltros = document.querySelector('#cardFiltros');
+const cardTabela = document.querySelector('#cardTabela');
+const btnPaginaAnterior = document.querySelector('#btnPaginaAnterior');
+const btnPaginaProxima = document.querySelector('#btnPaginaProxima');
+const resumoPaginas = document.querySelector('#resumoPaginas');
 
-    // ── 4. Carregar Minhas Vagas ──
-    const tbody = document.querySelector('table.table tbody');
-    const paginationInfo = document.querySelector('.pagination span');
-    const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
-    let todasVagas = [];
-    let paginaAtual = 1;
-    let contagemCandidatosPorVaga = {};
+let todasVagas = [];
+let vagasFiltradas = [];
+let paginaAtual = 1;
+let contagemCandidatosPorVaga = {};
 
-    function escapeHtml(str) {
-        return String(str ?? '').replace(/[&<>"']/g, function (ch) {
-            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
-        });
-    }
+/* ------------------------- menu mobile ------------------------------------ */
 
-    function classeBadgeStatus(status) {
-        const statusNormalizado = (status || '').toLowerCase();
-        if (statusNormalizado.includes('aberta') || statusNormalizado === 'ativa') return 'badge-success';
-        if (statusNormalizado.includes('pausada')) return 'badge-warning';
-        if (statusNormalizado.includes('encerrada')) return 'badge-danger';
-        return 'badge-success';
-    }
+const sidebarToggleBtn = document.querySelector('.sidebar-toggle-btn');
+const sidebar = document.querySelector('.sidebar');
+const sidebarOverlay = document.querySelector('.sidebar-overlay');
 
-    function criarLinha(vaga) {
-        const tr = document.createElement('tr');
-        tr.dataset.id = vaga.id;
-        const qtdCandidatos = contagemCandidatosPorVaga[vaga.id] || 0;
-        tr.innerHTML = `
-            <td data-label="ID"><strong>VG-${escapeHtml(vaga.id)}</strong></td>
-            <td data-label="Título">${escapeHtml(vaga.titulo)}</td>
-            <td data-label="Valor">${escapeHtml(vaga.valor || '—')}</td>
-            <td data-label="Status"><span class="badge ${classeBadgeStatus(vaga.status)}">${escapeHtml(vaga.status || 'Aberta')}</span></td>
-            <td data-label="Candidatos"><a href="/pages/17-candidatos-vaga.html?id=${encodeURIComponent(vaga.id)}" class="text-primary"><strong>${qtdCandidatos} candidato${qtdCandidatos === 1 ? '' : 's'}</strong></a></td>
-            <td data-label="Ações">
-                <div class="table-actions">
-                    <a href="/pages/18-vaga-detalhe.html?id=${encodeURIComponent(vaga.id)}" class="btn btn-ghost" title="Ver Detalhes"><i class="bi bi-eye"></i></a>
-                    <a href="/pages/13-editar-vaga.html?id=${encodeURIComponent(vaga.id)}" class="btn btn-ghost" title="Editar"><i class="bi bi-pencil"></i></a>
-                    <button class="btn btn-ghost btnExcluir" title="Excluir"><i class="bi bi-trash" style="color: var(--danger);"></i></button>
-                </div>
-            </td>
-        `;
-        return tr;
-    }
+function abrirMenu() {
+    sidebar.classList.add('open');
+    sidebarOverlay.classList.add('open');
+    sidebarToggleBtn.classList.add('open');
+    sidebarToggleBtn.setAttribute('aria-expanded', 'true');
+}
 
-    function renderizarPagina() {
-        if (!tbody) return;
-        tbody.innerHTML = '';
+function fecharMenu() {
+    sidebar.classList.remove('open');
+    sidebarOverlay.classList.remove('open');
+    sidebarToggleBtn.classList.remove('open');
+    sidebarToggleBtn.setAttribute('aria-expanded', 'false');
+}
 
-        const inicio = (paginaAtual - 1) * PAGE_SIZE;
-        const pagina = todasVagas.slice(inicio, inicio + PAGE_SIZE);
+sidebarToggleBtn.addEventListener('click', () => {
+    sidebar.classList.contains('open') ? fecharMenu() : abrirMenu();
+});
+sidebarOverlay.addEventListener('click', fecharMenu);
 
-        if (pagina.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Nenhuma vaga encontrada.</td></tr>';
-        } else {
-            pagina.forEach(function (vaga) { tbody.appendChild(criarLinha(vaga)); });
-        }
+/* ------------------------- filtros de localidade -------------------------- */
 
-        if (paginationInfo) {
-            const fim = Math.min(inicio + PAGE_SIZE, todasVagas.length);
-            paginationInfo.textContent = todasVagas.length
-                ? `Mostrando ${inicio + 1}-${fim} de ${todasVagas.length} vagas`
-                : 'Nenhuma vaga publicada ainda.';
-        }
-    }
+if (filtroEstado) carregarUFs(filtroEstado);
+if (filtroEstado && filtroCidade) montarAutocompleteCidade(filtroCidade, filtroEstado);
 
-    async function carregarVagas() {
-        try {
-            const [resVagas, resCandidaturas] = await Promise.all([
-                fetch(`${API_BASE}/vagas?empresaId=${sessao.id}`),
-                fetch(`${API_BASE}/candidaturas?empresaId=${sessao.id}`)
-            ]);
-            if (!resVagas.ok) throw new Error('Falha ao carregar vagas.');
+/* ------------------------- helpers de exibição ---------------------------- */
 
-            todasVagas = await resVagas.json();
+function formatarData(str) {
+    if (!str) return '';
+    const data = new Date(str);
+    return isNaN(data.getTime()) ? String(str) : data.toLocaleDateString('pt-BR');
+}
 
-            contagemCandidatosPorVaga = {};
-            if (resCandidaturas.ok) {
-                const candidaturas = await resCandidaturas.json();
-                candidaturas.forEach(function (candidatura) {
-                    if (!candidatura.vagaId) return;
-                    contagemCandidatosPorVaga[candidatura.vagaId] = (contagemCandidatosPorVaga[candidatura.vagaId] || 0) + 1;
-                });
-            }
+/* ------------------------- badges ----------------------------------------- */
 
-            aplicarFiltros();
-        } catch (erro) {
-            console.error('Erro ao carregar minhas vagas:', erro);
-            if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center">Erro ao carregar vagas.</td></tr>';
-        }
-    }
+function classeBadgeStatus(status) {
+    const statusNormalizado = (status || '').toLowerCase();
+    if (statusNormalizado.includes('pausada')) return 'badge-warning';
+    if (statusNormalizado.includes('encerrada')) return 'badge-danger';
+    return 'badge-success';
+}
 
-    // ── 5. Filtros (status, título e ordenação) ──
-    const formFiltros = document.getElementById('formFiltros');
-    const selectStatus = document.getElementById('filtroStatus');
-    const inputBusca = document.getElementById('buscaTitulo');
-    const selectOrdenar = document.getElementById('ordenarPor');
+/* ------------------------- carregar dados --------------------------------- */
 
-    let vagasFiltradas = [];
+async function carregarVagas() {
+    msgEmpty.hidden = true;
+    loadingBar.removeAttribute('hidden');
+    erroBar.setAttribute('hidden', '');
+    conteudoPerfil.setAttribute('hidden', '');
 
-    function aplicarFiltros() {
-        const status = selectStatus ? selectStatus.value : 'todas';
-        const termo = inputBusca ? inputBusca.value.toLowerCase().trim() : '';
-        const ordenacao = selectOrdenar ? selectOrdenar.value : 'recentes';
+    try {
+        const [resVagas, resCandidaturas] = await Promise.all([
+            fetch(`${API_URL}?empresaId=${encodeURIComponent(sessao.id)}`),
+            fetch(`${API_BASE}/candidaturas?empresaId=${encodeURIComponent(sessao.id)}`)
+        ]);
+        if (!resVagas.ok) throw new Error('Erro ao carregar vagas.');
 
-        vagasFiltradas = todasVagas.filter(function (vaga) {
-            const bateStatus = status === 'todas' || (vaga.status || '').toLowerCase() === status;
-            const bateTermo = !termo || vaga.titulo.toLowerCase().includes(termo);
-            return bateStatus && bateTermo;
-        });
+        todasVagas = await resVagas.json();
 
-        if (ordenacao === 'valor') {
-            vagasFiltradas.sort(function (a, b) {
-                return parseFloat((b.valor || '0').replace(/\D/g, '')) - parseFloat((a.valor || '0').replace(/\D/g, ''));
+        contagemCandidatosPorVaga = {};
+        if (resCandidaturas.ok) {
+            const candidaturas = await resCandidaturas.json();
+            candidaturas.forEach(function (candidatura) {
+                if (!candidatura.vagaId) return;
+                // Só candidaturas ativas (Em análise/Selecionado) contam;
+                // canceladas/rejeitadas não inflam o número.
+                if (candidatura.status !== 'Em análise' && candidatura.status !== 'Selecionado') return;
+                contagemCandidatosPorVaga[candidatura.vagaId] = (contagemCandidatosPorVaga[candidatura.vagaId] || 0) + 1;
             });
         }
 
-        todasVagas = vagasFiltradas;
-        paginaAtual = 1;
-        renderizarPagina();
+        loadingBar.setAttribute('hidden', '');
+        conteudoPerfil.removeAttribute('hidden');
+
+        if (todasVagas.length === 0) {
+            cardFiltros.hidden = true;
+            cardTabela.hidden = true;
+            msgEmpty.textContent = 'Você ainda não publicou nenhuma vaga.';
+            msgEmpty.hidden = false;
+            return;
+        }
+
+        cardFiltros.hidden = false;
+        cardTabela.hidden = false;
+        aplicarFiltros();
+    } catch (erro) {
+        console.error('Erro ao carregar minhas vagas:', erro);
+        loadingBar.setAttribute('hidden', '');
+        erroBar.removeAttribute('hidden');
+    }
+}
+
+/* ------------------------- ordenação -------------------------------------- */
+
+function ordenarVagas(lista) {
+    const ordenacao = filtroOrdenar ? filtroOrdenar.value : 'recentes';
+
+    if (ordenacao === 'valor') {
+        lista.sort(function (a, b) {
+            return moedaParaNumero(b.valor) - moedaParaNumero(a.valor);
+        });
+        return;
     }
 
-    if (formFiltros) {
-        formFiltros.addEventListener('submit', function (e) {
-            e.preventDefault();
-            aplicarFiltros();
+    if (ordenacao === 'prazo') {
+        lista.sort(function (a, b) {
+            const da = a.prazo ? new Date(a.prazo).getTime() : NaN;
+            const db_ = b.prazo ? new Date(b.prazo).getTime() : NaN;
+            const va = isNaN(da) ? Infinity : da;
+            const vb = isNaN(db_) ? Infinity : db_;
+            return va - vb;
         });
+        return;
     }
 
-    // ── 6. Paginação ──
-    const botoesPagina = document.querySelectorAll('.pages .page-btn');
-    botoesPagina.forEach(function (btn, indice) {
-        btn.addEventListener('click', function () {
-            botoesPagina.forEach(function (b) { b.classList.remove('active'); });
-            btn.classList.add('active');
-            paginaAtual = indice + 1;
-            renderizarPagina();
-        });
+    // "Mais recentes": por data de publicação (fallback: ordem da API).
+    lista.sort(function (a, b) {
+        const da = a.dataPublicacao ? new Date(a.dataPublicacao).getTime() : 0;
+        const db_ = b.dataPublicacao ? new Date(b.dataPublicacao).getTime() : 0;
+        return db_ - da;
+    });
+}
+
+/* ------------------------- filtros e render ------------------------------- */
+
+function aplicarFiltros() {
+    const termo = removerAcentos(filtroTitulo.value.trim().toLowerCase());
+    const status = filtroStatus.value;
+    const uf = filtroEstado ? filtroEstado.value : '';
+    const cidade = filtroCidade ? removerAcentos(filtroCidade.value.trim().toLowerCase()) : '';
+
+    vagasFiltradas = todasVagas.filter(function (vaga) {
+        const bateTermo = !termo || removerAcentos(String(vaga.titulo || '')).toLowerCase().includes(termo);
+        const bateStatus = !status || String(vaga.status || '').toLowerCase() === status.toLowerCase();
+        const bateUf = !uf || String(vaga.estado || '').toUpperCase() === uf.toUpperCase();
+        const bateCidade = !cidade || removerAcentos(String(vaga.cidade || '')).toLowerCase().includes(cidade);
+        return bateTermo && bateStatus && bateUf && bateCidade;
     });
 
-    // ── 7. Excluir Vaga (modal de confirmação) ──
-    const modalExcluir = document.getElementById('modalExcluir');
-    const btnCancelarExclusao = document.getElementById('btnCancelarExclusao');
-    const btnConfirmarExclusao = document.getElementById('btnConfirmarExclusao');
-    let idParaExcluir = null;
+    ordenarVagas(vagasFiltradas);
 
-    function abrirModalExclusao(id) {
-        idParaExcluir = id;
-        if (modalExcluir) modalExcluir.style.display = 'flex';
+    paginaAtual = 1;
+    renderizarPagina();
+}
+
+function renderizarPagina() {
+    const totalPaginas = Math.max(1, Math.ceil(vagasFiltradas.length / PAGE_SIZE));
+    if (paginaAtual > totalPaginas) paginaAtual = totalPaginas;
+
+    const inicio = (paginaAtual - 1) * PAGE_SIZE;
+    const pagina = vagasFiltradas.slice(inicio, inicio + PAGE_SIZE);
+
+    tbody.innerHTML = '';
+
+    if (vagasFiltradas.length === 0) {
+        msgEmpty.textContent = 'Nenhuma vaga encontrada para os filtros selecionados.';
+        msgEmpty.hidden = false;
+        cardTabela.hidden = true;
+    } else {
+        msgEmpty.hidden = true;
+        cardTabela.hidden = false;
+        pagina.forEach(preencherLinha);
     }
 
-    function fecharModalExclusao() {
-        idParaExcluir = null;
-        if (modalExcluir) modalExcluir.style.display = 'none';
-    }
+    const total = vagasFiltradas.length;
+    const fim = Math.min(inicio + PAGE_SIZE, total);
+    resumoPaginas.textContent = total > 0 ? `Mostrando ${inicio + 1}-${fim} de ${total}` : 'Mostrando 0 de 0';
+    btnPaginaAnterior.disabled = paginaAtual <= 1;
+    btnPaginaProxima.disabled = paginaAtual >= totalPaginas;
+}
 
-    if (tbody) {
-        tbody.addEventListener('click', function (e) {
-            const botaoExcluir = e.target.closest('.btnExcluir');
-            if (!botaoExcluir) return;
-            const linha = botaoExcluir.closest('tr');
-            abrirModalExclusao(linha.dataset.id);
+function preencherLinha(vaga) {
+    const tr = document.createElement('tr');
+    const qtdCandidatos = contagemCandidatosPorVaga[vaga.id] || 0;
+
+    const tdId = document.createElement('td');
+    const strongId = document.createElement('strong');
+    strongId.textContent = `VG-${vaga.id}`;
+    tdId.appendChild(strongId);
+
+    const tdTitulo = document.createElement('td');
+    tdTitulo.textContent = vaga.titulo;
+
+    const tdValor = document.createElement('td');
+    tdValor.textContent = vaga.valor || '—';
+
+    const tdStatus = document.createElement('td');
+    const badge = document.createElement('span');
+    badge.className = `badge ${classeBadgeStatus(vaga.status)}`;
+    badge.textContent = vaga.status || 'Aberta';
+    tdStatus.appendChild(badge);
+
+    const tdCandidatos = document.createElement('td');
+    const linkCandidatos = document.createElement('a');
+    linkCandidatos.href = `/pages/17-candidatos-vaga.html?id=${encodeURIComponent(vaga.id)}`;
+    linkCandidatos.className = 'text-primary';
+    const strong = document.createElement('strong');
+    strong.textContent = `${qtdCandidatos} candidato${qtdCandidatos === 1 ? '' : 's'}`;
+    linkCandidatos.appendChild(strong);
+    tdCandidatos.appendChild(linkCandidatos);
+
+    const tdLocal = document.createElement('td');
+    tdLocal.textContent = [vaga.cidade, vaga.estado].filter(Boolean).join(' - ') || '—';
+
+    const tdPrazo = document.createElement('td');
+    tdPrazo.textContent = formatarData(vaga.prazo) || '—';
+
+    const tdAcoes = document.createElement('td');
+    const divAcoes = document.createElement('div');
+    divAcoes.className = 'table-actions';
+
+    const linkDetalhes = document.createElement('a');
+    linkDetalhes.href = `/pages/18-vaga-detalhe.html?id=${encodeURIComponent(vaga.id)}`;
+    linkDetalhes.className = 'btn btn-outline';
+    linkDetalhes.textContent = 'Detalhes';
+    divAcoes.appendChild(linkDetalhes);
+
+    const linkEditar = document.createElement('a');
+    linkEditar.href = `/pages/13-editar-vaga.html?id=${encodeURIComponent(vaga.id)}`;
+    linkEditar.className = 'btn btn-outline';
+    linkEditar.textContent = 'Editar';
+    divAcoes.appendChild(linkEditar);
+
+    if (vaga.status !== 'Encerrada') {
+        const botaoEncerrar = document.createElement('button');
+        botaoEncerrar.type = 'button';
+        botaoEncerrar.className = 'btn btn-outline';
+        botaoEncerrar.style.color = '#d93025';
+        botaoEncerrar.style.borderColor = '#ffc1bc';
+        botaoEncerrar.innerHTML = '<i class="bi bi-x-circle"></i> Encerrar';
+        botaoEncerrar.addEventListener('click', function () {
+            encerrarVaga(vaga);
         });
+        divAcoes.appendChild(botaoEncerrar);
     }
 
-    if (btnCancelarExclusao) btnCancelarExclusao.addEventListener('click', fecharModalExclusao);
+    tdAcoes.appendChild(divAcoes);
 
-    if (btnConfirmarExclusao) {
-        btnConfirmarExclusao.addEventListener('click', async function () {
-            if (!idParaExcluir) return;
+    tr.appendChild(tdId);
+    tr.appendChild(tdTitulo);
+    tr.appendChild(tdValor);
+    tr.appendChild(tdStatus);
+    tr.appendChild(tdCandidatos);
+    tr.appendChild(tdLocal);
+    tr.appendChild(tdPrazo);
+    tr.appendChild(tdAcoes);
+    tbody.appendChild(tr);
+}
 
-            // Não deixa excluir uma vaga que já recebeu candidaturas — isso
-            // deixaria registros órfãos apontando pra uma vaga inexistente.
-            if (contagemCandidatosPorVaga[idParaExcluir]) {
-                mostrarMensagem('Esta vaga já recebeu candidaturas e não pode ser excluída. Encerre a vaga em vez de excluir, para preservar o histórico.', 'error');
-                fecharModalExclusao();
-                return;
-            }
+/* ------------------------- encerrar vaga ---------------------------------- */
 
-            try {
-                const res = await fetch(`${API_BASE}/vagas/${idParaExcluir}`, { method: 'DELETE' });
-                if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
-            } catch (erro) {
-                console.error('Erro ao excluir vaga:', erro);
-                fecharModalExclusao();
-                mostrarMensagem('Não foi possível excluir a vaga. Verifique se o json-server está rodando.', 'error');
-                return;
-            }
-            todasVagas = todasVagas.filter(function (v) { return String(v.id) !== String(idParaExcluir); });
-            renderizarPagina();
-            fecharModalExclusao();
+async function encerrarVaga(vaga) {
+    const confirmou = await modalConfirmar({
+        titulo: 'Encerrar vaga',
+        mensagem: `Deseja encerrar a vaga "${vaga.titulo}"? Ela sairá do Mural de Vagas, mas o histórico será preservado.`,
+        textoConfirmar: 'Encerrar',
+        textoCancelar: 'Cancelar',
+        perigoso: true
+    });
+    if (!confirmou) return;
+
+    try {
+        const res = await fetch(`${API_URL}/${vaga.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'Encerrada' })
         });
-    }
+        if (!res.ok) throw new Error('Falha ao encerrar vaga.');
 
-    carregarVagas();
+        carregarVagas();
+    } catch (erro) {
+        console.error('Erro ao encerrar vaga:', erro);
+        erroBar.textContent = 'Não foi possível encerrar a vaga. Tente novamente em instantes.';
+        erroBar.removeAttribute('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+}
+
+/* ------------------------- eventos de filtro ------------------------------ */
+
+filtroTitulo.addEventListener('input', aplicarFiltros);
+filtroStatus.addEventListener('change', aplicarFiltros);
+filtroOrdenar.addEventListener('change', aplicarFiltros);
+if (filtroEstado) filtroEstado.addEventListener('change', aplicarFiltros);
+if (filtroCidade) filtroCidade.addEventListener('input', aplicarFiltros);
+
+btnLimparFiltros.addEventListener('click', function () {
+    filtroTitulo.value = '';
+    filtroStatus.value = '';
+    filtroOrdenar.value = 'recentes';
+    if (filtroEstado) filtroEstado.value = '';
+    if (filtroCidade) filtroCidade.value = '';
+    aplicarFiltros();
 });
+
+btnPaginaAnterior.addEventListener('click', function () {
+    if (paginaAtual > 1) {
+        paginaAtual--;
+        renderizarPagina();
+    }
+});
+
+btnPaginaProxima.addEventListener('click', function () {
+    const totalPaginas = Math.ceil(vagasFiltradas.length / PAGE_SIZE);
+    if (paginaAtual < totalPaginas) {
+        paginaAtual++;
+        renderizarPagina();
+    }
+});
+
+carregarVagas();
