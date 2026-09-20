@@ -6,6 +6,9 @@ document.addEventListener('DOMContentLoaded', function () {
     renderizarTopbar(document.getElementById('header-acoes'), sessao);
     renderizarBannerValidacao(document.querySelector('.main'), sessao);
 
+    const badgeVerificada = document.getElementById('badge-verificada');
+    if (badgeVerificada && sessao.validado === true) badgeVerificada.removeAttribute('hidden');
+
     initMenuMobile();
     carregarDadosEmpresa(sessao);
     carregarOsAtivas(sessao);
@@ -35,18 +38,6 @@ function initMenuMobile() {
         sidebarOverlay.classList.remove('open');
         sidebarToggleBtn.setAttribute('aria-expanded', 'false');
     });
-}
-
-/* -------------------------------------------------------------------------- */
-/* 2. MENSAGENS                                                               */
-/* -------------------------------------------------------------------------- */
-function mostrarMensagem(texto, tipo) {
-    const el = document.getElementById('mensagemStatus');
-    if (!el) return;
-    el.className = `alert mb-md ${tipo === 'success' ? 'alert-success' : 'alert-error'}`;
-    el.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
-    el.removeAttribute('hidden');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 /* -------------------------------------------------------------------------- */
@@ -96,8 +87,7 @@ async function carregarOsAtivas(sessao) {
         ativas.forEach(function (os) {
             let prazo = 'A definir';
             if (os.prazo) {
-                const data = new Date(os.prazo);
-                prazo = isNaN(data.getTime()) ? String(os.prazo) : data.toLocaleDateString('pt-BR');
+                prazo = formatarData(os.prazo);
             }
             const valorNumerico = moedaParaNumero(os.valor);
             const valor = valorNumerico > 0 ? formatarMoeda(valorNumerico) : 'A combinar';

@@ -72,6 +72,33 @@ function exigirTipo(tipo) {
     return sessao;
 }
 
+// Menu mobile (hambúrguer) único — substitui os blocos locais duplicados.
+// Prende os listeners de abrir/fechar em .sidebar-toggle-btn e .sidebar-overlay.
+function configurarMenuMobile() {
+    const botao = document.querySelector('.sidebar-toggle-btn');
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+    if (!botao || !sidebar || !overlay) return;
+
+    function abrir() {
+        sidebar.classList.add('open');
+        overlay.classList.add('open');
+        botao.classList.add('open');
+        botao.setAttribute('aria-expanded', 'true');
+    }
+    function fechar() {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('open');
+        botao.classList.remove('open');
+        botao.setAttribute('aria-expanded', 'false');
+    }
+
+    botao.addEventListener('click', function () {
+        sidebar.classList.contains('open') ? fechar() : abrir();
+    });
+    overlay.addEventListener('click', fechar);
+}
+
 // Função para renderizar o menu lateral (sidebar) com base no tipo de usuário e na página ativa
 function renderizarSidebar(el, tipo, paginaAtiva) {
     const itens = MENUS[tipo] || [];

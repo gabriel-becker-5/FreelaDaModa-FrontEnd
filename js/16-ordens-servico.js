@@ -68,9 +68,9 @@ if (filtroEstado && filtroCidade) montarAutocompleteCidade(filtroCidade, filtroE
 /* ------------------------- badges ----------------------------------------- */
 
 function formatarData(str) {
-    if (!str) return '';
-    const data = new Date(str);
-    return isNaN(data.getTime()) ? String(str) : data.toLocaleDateString('pt-BR');
+    if (!str) return '—';
+    const data = new Date(str + 'T00:00:00');
+    return isNaN(data.getTime()) ? str : data.toLocaleDateString('pt-BR');
 }
 
 function classeBadgeStatus(status) {
@@ -307,7 +307,7 @@ async function alterarStatus(os, novoStatus) {
     try {
         const novoHistorico = (os.historico || []).concat([
             {
-                data: new Date().toISOString().slice(0, 10),
+                data: hojeLocalISO(),
                 evento: finalizando ? 'OS finalizada pela empresa.' : 'OS cancelada pela empresa.'
             }
         ]);
@@ -334,6 +334,7 @@ async function alterarStatus(os, novoStatus) {
             });
         }
 
+        toastMsg(finalizando ? 'Ordem de serviço finalizada com sucesso.' : 'Ordem de serviço cancelada.', 'success');
         carregarOrdens();
     } catch (erro) {
         console.error('Erro ao atualizar status da ordem de serviço:', erro);

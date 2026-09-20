@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
     renderizarSidebar(document.querySelector('.sidebar'), 'freelancers', '03-dashboard-freelancer');
     renderizarTopbar(document.getElementById('header-acoes'), sessao);
     renderizarBannerValidacao(document.querySelector('.main'), sessao);
+    configurarMenuMobile();
 
     carregarPainel(sessao);
 });
@@ -206,8 +207,7 @@ async function carregarMetricasEProducoes(freelancerId) {
 
             let prazo = 'A definir';
             if (os.prazo) {
-                const data = new Date(os.prazo);
-                prazo = isNaN(data.getTime()) ? String(os.prazo) : data.toLocaleDateString('pt-BR');
+                prazo = formatarData(os.prazo);
             }
             const valorNumerico = moedaParaNumero(os.valor);
             const valor = valorNumerico > 0 ? formatarMoeda(valorNumerico) : 'A combinar';

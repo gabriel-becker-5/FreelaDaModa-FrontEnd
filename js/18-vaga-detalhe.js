@@ -43,14 +43,6 @@ document.addEventListener('DOMContentLoaded', function () {
     /* ------------------------- mensagens ----------------------------------- */
     const mensagemStatus = document.getElementById('mensagemStatus');
 
-    function mostrarMensagem(texto, tipo) {
-        if (!mensagemStatus) return;
-        mensagemStatus.className = `alert mb-md ${tipo === 'success' ? 'alert-success' : 'alert-error'}`;
-        mensagemStatus.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
-        mensagemStatus.removeAttribute('hidden');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
     function limparMensagem() {
         if (mensagemStatus) mensagemStatus.setAttribute('hidden', '');
     }
@@ -64,12 +56,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const listaReferencias = document.getElementById('lista-referencias-vaga');
 
     let vagaAtual = null;
-
-    function formatarData(str) {
-        if (!str) return '—';
-        const data = new Date(str + 'T00:00:00');
-        return isNaN(data.getTime()) ? str : data.toLocaleDateString('pt-BR');
-    }
 
     function criarImagemComFallback(container, src, alt) {
         const img = document.createElement('img');
@@ -167,15 +153,6 @@ document.addEventListener('DOMContentLoaded', function () {
             linkEditar.innerHTML = '<i class="bi bi-pencil"></i> Editar';
             acoesVaga.appendChild(linkEditar);
 
-            if (vagaAtual.status !== 'Encerrada') {
-                const botaoEncerrar = document.createElement('button');
-                botaoEncerrar.type = 'button';
-                botaoEncerrar.className = 'btn btn-outline';
-                botaoEncerrar.style.cssText = 'color: #d93025; border-color: #ffc1bc;';
-                botaoEncerrar.innerHTML = '<i class="bi bi-x-circle"></i> Encerrar Vaga';
-                botaoEncerrar.addEventListener('click', encerrarVaga);
-                acoesVaga.appendChild(botaoEncerrar);
-            }
             return;
         }
 
@@ -304,33 +281,6 @@ document.addEventListener('DOMContentLoaded', function () {
             mostrarMensagem('Não foi possível enviar sua candidatura. Tente novamente em instantes.', 'error');
             botao.disabled = false;
             botao.innerHTML = textoOriginal;
-        }
-    }
-
-    /* ------------------------- encerrar vaga (dona) ------------------------ */
-    async function encerrarVaga() {
-        const confirmou = await modalConfirmar({
-            titulo: 'Encerrar vaga',
-            mensagem: 'Deseja encerrar esta vaga? Ela sairá do Mural de Vagas, mas o histórico será preservado.',
-            textoConfirmar: 'Encerrar',
-            textoCancelar: 'Cancelar',
-            perigoso: true
-        });
-        if (!confirmou) return;
-
-        try {
-            const res = await fetch(`${API_BASE}/vagas/${vagaAtual.id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: 'Encerrada' })
-            });
-            if (!res.ok) throw new Error('Falha ao encerrar vaga.');
-
-            mostrarMensagem('Vaga encerrada com sucesso.', 'success');
-            carregarVaga();
-        } catch (erro) {
-            console.error('Erro ao encerrar vaga:', erro);
-            mostrarMensagem('Não foi possível encerrar a vaga. Tente novamente em instantes.', 'error');
         }
     }
 

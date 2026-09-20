@@ -57,14 +57,6 @@ sidebarOverlay.addEventListener('click', fecharMenu);
 
 /* ------------------------- mensagens -------------------------------------- */
 
-function mostrarMensagem(texto, tipo) {
-    if (!mensagemStatus) return;
-    mensagemStatus.className = `alert mb-md ${tipo === 'success' ? 'alert-success' : 'alert-error'}`;
-    mensagemStatus.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
-    mensagemStatus.removeAttribute('hidden');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
 function iniciais(nome) {
     const partes = String(nome || '').trim().split(' ').filter(Boolean);
     if (partes.length === 0) return '--';
@@ -195,7 +187,7 @@ function preencherLinha({ candidatura, freela }) {
     strongNome.textContent = nome;
     const divAvaliacao = document.createElement('div');
     divAvaliacao.style.cssText = 'font-size: 12px; color: var(--text-secondary);';
-    divAvaliacao.innerHTML = `<i class="bi bi-star-fill" style="color: #f2bb55;"></i> ${media} (${totalAvaliacoes} avaliações)`;
+    divAvaliacao.innerHTML = `<i class="bi bi-star-fill" style="color: #f2bb55;"></i> ${media} (${escapeHtml(totalAvaliacoes)} avaliações)`;
     divInfo.appendChild(strongNome);
     divInfo.appendChild(divAvaliacao);
     divProfissional.appendChild(avatar);
@@ -375,14 +367,16 @@ async function selecionarCandidato(candidatura, freela) {
 
     // Vaga preenchida: encerra para não receber novas candidaturas.
     try {
-        await fetch(`${API_BASE}/vagas/${vagaAtual.id}`, {
+        const resVaga = await fetch(`${API_BASE}/vagas/${vagaAtual.id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: 'Encerrada' })
         });
+        if (!resVaga.ok) throw new Error(`Erro HTTP: ${resVaga.status}`);
         vagaAtual.status = 'Encerrada';
     } catch (erro) {
         console.error('Erro ao encerrar a vaga após o match:', erro);
+        mostrarMensagem('O candidato foi selecionado, mas não foi possível encerrar a vaga. Encerre-a manualmente em "Minhas Vagas".', 'warning');
     }
 
     // Rejeita os demais candidatos ainda "Em análise" (por dado, não por DOM).
@@ -416,7 +410,7 @@ async function selecionarCandidato(candidatura, freela) {
         referenciaBriefing: '',
         referenciaEntrega: '',
         historico: [
-            { data: new Date().toISOString().slice(0, 10), evento: 'OS criada a partir da seleção do candidato.' }
+            { data: hojeLocalISO(), evento: 'OS criada a partir da seleção do candidato.' }
         ]
     };
 
@@ -437,6 +431,16 @@ async function selecionarCandidato(candidatura, freela) {
         }, 2000);
     } catch (erro) {
         console.error('Erro ao criar Ordem de Serviço:', erro);
+        // Devolve a candidatura para "Em análise" para permitir nova tentativa.
+        try {
+            await fetch(`${API_BASE}/candidaturas/${candidatura.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'Em análise' })
+            });
+        } catch (erroRevert) {
+            console.error('Erro ao reverter status da candidatura:', erroRevert);
+        }
         mostrarMensagem('A candidatura foi aprovada, mas não foi possível gerar a Ordem de Serviço. Tente novamente em instantes.', 'error');
         carregarCandidatos();
     }

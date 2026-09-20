@@ -119,10 +119,16 @@ document.querySelectorAll('.faq-item').forEach((item) => {
         if (modoAtual === 'freelancers') {
             const freelancers = await buscarFreelancers();
             return freelancers
-                .filter(function (f) { return bateTermo(f.nome, termo) || bateTermo(f.especialidade, termo); })
+                .filter(function (f) {
+                    const espec = Array.isArray(f.especialidades) ? f.especialidades.join(' ') : '';
+                    return bateTermo(f.nome, termo) || bateTermo(espec, termo);
+                })
                 .slice(0, 6)
                 .map(function (f) {
-                    return { titulo: f.nome, subtitulo: f.especialidade || 'Freelancer', valor: f.nome };
+                    const subtitulo = Array.isArray(f.especialidades) && f.especialidades.length
+                        ? f.especialidades.join(', ')
+                        : 'Freelancer';
+                    return { titulo: f.nome, subtitulo: subtitulo, valor: f.nome };
                 });
         }
         const vagas = await buscarVagas();
@@ -200,4 +206,99 @@ document.querySelectorAll('.faq-item').forEach((item) => {
 
         window.location.href = alvo;
     });
+})();
+
+/* -------------------------------------------------------------------------- */
+/* PLANOS E PREÇOS — catálogo vem da API (entidade `planos`, fonte de verdade) */
+/* -------------------------------------------------------------------------- */
+(function initPlanosHomepage() {
+    function escapeHtml(str) {
+        return String(str ?? '').replace(/[&<>"']/g, function (ch) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+        });
+    }
+
+    const grade = document.getElementById('pricing-grid');
+    if (!grade) return;
+
+    // Ação (CTA) de cada plano varia pelo nome; os valores vêm do back.
+    function montarAcao(nome) {
+        if (nome === 'Empresarial') {
+            return { href: 'https://wa.me/5547996654584', alvo: '_blank', classe: 'btn btn-outline-purple w-full', rotulo: 'Falar com vendas' };
+        }
+        if (nome === 'Básico') {
+            return { href: '/pages/05-cadastro-freelancer.html', alvo: '_self', classe: 'btn btn-outline-purple w-full', rotulo: 'Começar grátis' };
+        }
+        return { href: '/pages/21-assinatura.html', alvo: '_self', classe: 'btn btn-purple w-full', rotulo: `Assinar ${nome}` };
+    }
+
+    fetch(`${API_BASE}/planos?tipo=assinatura`)
+        .then(function (res) {
+            if (!res.ok) throw new Error('Erro HTTP: ' + res.status);
+            return res.json();
+        })
+        .then(function (planos) {
+            grade.innerHTML = '';
+            planos.forEach(function (plano) {
+                const card = document.createElement('div');
+                card.className = plano.destaque ? 'pricing-card featured' : 'pricing-card';
+
+                if (plano.destaque) {
+                    const badge = document.createElement('div');
+                    badge.className = 'badge-featured';
+                    badge.textContent = 'Mais Popular';
+                    card.appendChild(badge);
+                }
+
+                const nome = document.createElement('div');
+                nome.className = 'pricing-name';
+                nome.textContent = plano.nome;
+                card.appendChild(nome);
+
+                const preco = document.createElement('div');
+                preco.className = 'pricing-price';
+                const amount = document.createElement('span');
+                amount.className = 'amount';
+                amount.textContent = plano.valor || 'Sob consulta';
+                preco.appendChild(amount);
+                if (plano.valor) {
+                    const periodo = document.createElement('span');
+                    periodo.className = 'period';
+                    periodo.textContent = '/mês';
+                    preco.appendChild(periodo);
+                }
+                card.appendChild(preco);
+
+                const descricao = document.createElement('p');
+                descricao.className = 'pricing-desc';
+                descricao.textContent = plano.descricao || '';
+                card.appendChild(descricao);
+
+                const lista = document.createElement('ul');
+                lista.className = 'pricing-features';
+                (plano.beneficios || []).forEach(function (beneficio) {
+                    const item = document.createElement('li');
+                    item.innerHTML = `<i class="bi bi-check-circle-fill"></i> ${escapeHtml(beneficio)}`;
+                    lista.appendChild(item);
+                });
+                card.appendChild(lista);
+
+                const acao = montarAcao(plano.nome);
+                const link = document.createElement('a');
+                link.href = acao.href;
+                link.className = acao.classe;
+                link.textContent = acao.rotulo;
+                if (acao.alvo === '_blank') {
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                }
+                card.appendChild(link);
+
+                grade.appendChild(card);
+            });
+        })
+        .catch(function (erro) {
+            console.error('Erro ao carregar planos:', erro);
+            grade.innerHTML = '<p class="text-muted">Não foi possível carregar os planos.</p>';
+        });
 })();

@@ -196,15 +196,10 @@ function renderizarPagina() {
 }
 
 function obterClasseBadgeStatus(status) {
-    if (status === 'Em análise' || status === 'Cancelada' || status === 'Rejeitado') return 'badge-danger';
+    if (status === 'Em análise') return 'badge-warning';
+    if (status === 'Cancelada' || status === 'Rejeitado') return 'badge-danger';
     if (status === 'Selecionado') return 'badge-success';
     return 'badge';
-}
-
-function formatarData(str) {
-    if (!str) return '';
-    const data = new Date(str);
-    return isNaN(data.getTime()) ? String(str) : data.toLocaleDateString('pt-BR');
 }
 
 function preencherLinha(candidatura) {
@@ -344,6 +339,7 @@ btnConfirmarCancelamento.addEventListener('click', async function () {
 
         modalCancelamento.hidden = true;
         candidaturaParaCancelar = null;
+        toastMsg('Candidatura cancelada.', 'success');
         carregarDadosFreelancer();
     } catch (erro) {
         console.error('Erro ao cancelar candidatura:', erro);
@@ -431,6 +427,7 @@ async function recusarConvite(conviteId) {
             body: JSON.stringify({ status: 'Recusado' })
         });
         if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
+        toastMsg('Convite recusado.', 'success');
         carregarConvites();
     } catch (erro) {
         console.error('Erro ao recusar convite:', erro);
@@ -460,8 +457,43 @@ if (btnConfirmarAceiteConvite) {
         btnConfirmarAceiteConvite.innerHTML = '<span class="spinner"></span> Processando...';
 
         try {
+            // Revalida o estado atual antes de executar o match: o convite deve
+            // continuar "Pendente" e a vaga "Aberta" (evita duplicar OS e gravar
+            // OS sem cidade/estado quando a vaga não é encontrada).
+            const respConviteAtual = await fetch(`${API_URL_CONVITES}/${convite.id}`);
+            if (!respConviteAtual.ok) throw new Error('Convite não encontrado.');
+            const conviteAtual = await respConviteAtual.json();
+            if (conviteAtual.status !== 'Pendente') {
+                mensagemErro.textContent = 'Este convite não está mais pendente. Recarregue a página.';
+                mensagemErro.hidden = false;
+                btnConfirmarAceiteConvite.disabled = false;
+                btnConfirmarAceiteConvite.innerHTML = textoOriginal;
+                return;
+            }
+
             const respVaga = await fetch(`${API_BASE}/vagas/${convite.vagaId}`);
-            const vaga = respVaga.ok ? await respVaga.json() : {};
+            if (!respVaga.ok) throw new Error('Vaga não encontrada.');
+            const vaga = await respVaga.json();
+            if (vaga.status !== 'Aberta') {
+                mensagemErro.textContent = 'Esta vaga não está mais aberta para receber candidaturas.';
+                mensagemErro.hidden = false;
+                btnConfirmarAceiteConvite.disabled = false;
+                btnConfirmarAceiteConvite.innerHTML = textoOriginal;
+                return;
+            }
+
+            const respOSExistentes = await fetch(`${API_BASE}/ordensServico`);
+            const osExistentes = respOSExistentes.ok ? await respOSExistentes.json() : [];
+            const jaTemOS = osExistentes.some(function (o) {
+                return String(o.freelancerId) === String(freelancerId) && o.titulo === convite.vagaTitulo;
+            });
+            if (jaTemOS) {
+                mensagemErro.textContent = 'Uma ordem de serviço para esta vaga já foi criada. Recarregue a página.';
+                mensagemErro.hidden = false;
+                btnConfirmarAceiteConvite.disabled = false;
+                btnConfirmarAceiteConvite.innerHTML = textoOriginal;
+                return;
+            }
 
             const respCandidaturas = await fetch(`${API_BASE}/candidaturas?empresaId=${convite.empresaId}`);
             const candidaturasDaEmpresa = respCandidaturas.ok ? await respCandidaturas.json() : [];
@@ -583,7 +615,7 @@ if (btnConfirmarAceiteConvite) {
                 referenciaBriefing: '',
                 referenciaEntrega: '',
                 historico: [
-                    { data: new Date().toISOString().slice(0, 10), evento: 'OS criada a partir da aceitação do convite.' }
+                    { data: hojeLocalISO(), evento: 'OS criada a partir da aceitação do convite.' }
                 ]
             };
 

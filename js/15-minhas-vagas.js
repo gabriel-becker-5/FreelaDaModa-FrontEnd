@@ -67,12 +67,6 @@ if (filtroEstado && filtroCidade) montarAutocompleteCidade(filtroCidade, filtroE
 
 /* ------------------------- helpers de exibição ---------------------------- */
 
-function formatarData(str) {
-    if (!str) return '';
-    const data = new Date(str);
-    return isNaN(data.getTime()) ? String(str) : data.toLocaleDateString('pt-BR');
-}
-
 /* ------------------------- badges ----------------------------------------- */
 
 function classeBadgeStatus(status) {
@@ -317,6 +311,7 @@ async function encerrarVaga(vaga) {
         });
         if (!res.ok) throw new Error('Falha ao encerrar vaga.');
 
+        toastMsg('Vaga encerrada com sucesso.', 'success');
         carregarVagas();
     } catch (erro) {
         console.error('Erro ao encerrar vaga:', erro);

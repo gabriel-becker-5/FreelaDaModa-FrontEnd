@@ -33,7 +33,7 @@ const msgSenhasDiferentes = document.querySelector('#msg-senhas-diferentes');
 function mostrarMensagem(texto, tipo) {
     if (!alertBar) return;
     alertBar.className = `alert mb-md ${tipo === 'success' ? 'alert-success' : 'alert-error'}`;
-    alertBar.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
+    alertBar.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${escapeHtml(texto)}`;
     alertBar.removeAttribute('hidden');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -352,4 +352,4 @@ form.addEventListener('submit', async function (evento) {
 
 /* ------------------------- data máxima (hoje) ------------------------------ */
 
-inputDataNascimento.max = new Date().toISOString().split('T')[0];
+inputDataNascimento.max = hojeLocalISO();

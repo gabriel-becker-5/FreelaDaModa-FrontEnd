@@ -52,26 +52,6 @@ function configurarNav() {
     }
 }
 
-function configurarMenuMobile() {
-    const sidebarToggleBtn = document.querySelector('.sidebar-toggle-btn');
-    const sidebar = document.querySelector('.sidebar');
-    const sidebarOverlay = document.querySelector('.sidebar-overlay');
-    if (!sidebarToggleBtn || !sidebar || !sidebarOverlay) return;
-
-    sidebarToggleBtn.addEventListener('click', function () {
-        const abrindo = !sidebar.classList.contains('open');
-        sidebar.classList.toggle('open', abrindo);
-        sidebarOverlay.classList.toggle('open', abrindo);
-        sidebarToggleBtn.setAttribute('aria-expanded', String(abrindo));
-    });
-
-    sidebarOverlay.addEventListener('click', function () {
-        sidebar.classList.remove('open');
-        sidebarOverlay.classList.remove('open');
-        sidebarToggleBtn.setAttribute('aria-expanded', 'false');
-    });
-}
-
 /* -------------------------------------------------------------------------- */
 /* 2. FILTROS DE LOCALIDADE (estado IBGE + cidade com autocomplete)           */
 /* -------------------------------------------------------------------------- */
@@ -218,21 +198,27 @@ function renderizarFreelancers(freelancers) {
         const plano = impulsoPorFreelancer[freela.id];
         card.className = 'freelancer-card' + (plano ? ' freelancer-card-destaque' : '');
 
-        const iniciais = iniciaisDoNome(freela.nome);
+        const iniciais = calcularIniciais(freela.nome);
         const cidadeEstado = [
             freela.cidadeResidencial,
             freela.estadoResidencial
         ].filter(Boolean).join(' - ');
         const especialidadeCard = freela.especialidade || (freela.especialidades && freela.especialidades[0]) || 'Freelancer';
+        // Foto em background (com as iniciais como fallback caso o arquivo não
+        // exista no mock). Só caminhos /uploads/... são gravados no banco.
+        const foto = String(freela.foto || '').replace(/['\\]/g, '');
+        const avatarStyle = foto
+            ? ` style="background-image: url('${escapeHtml(foto)}'); background-size: cover; background-position: center;"`
+            : '';
 
         card.innerHTML = `
             ${plano ? `<span class="badge badge-primary-bg freelancer-badge-destaque"><i class="bi bi-star-fill"></i> Destaque ${escapeHtml(plano)}</span>` : ''}
-            <div class="profile-avatar-lg">${escapeHtml(iniciais)}</div>
+            <div class="profile-avatar-lg"${avatarStyle}>${escapeHtml(iniciais)}</div>
             <h3>${escapeHtml(freela.nome)}</h3>
             <span class="badge freelancer-especialidade">${escapeHtml(especialidadeCard)}</span>
             ${cidadeEstado ? `<p class="freelancer-local"><i class="bi bi-geo-alt"></i> ${escapeHtml(cidadeEstado)}</p>` : ''}
             <p class="freelancer-rating">
-                <i class="bi bi-star-fill"></i> ${(freela.mediaAvaliacoes ?? 0).toFixed(1)}
+                <i class="bi bi-star-fill"></i> ${Number(freela.mediaAvaliacoes || 0).toFixed(1)}
                 <span>(${freela.totalAvaliacoes || 0} avaliações)</span>
             </p>
             <a href="/pages/25-perfil-freelancer-publico.html?id=${encodeURIComponent(freela.id)}" class="btn btn-outline-primary w-full">Ver perfil</a>
@@ -240,11 +226,4 @@ function renderizarFreelancers(freelancers) {
 
         listaFreelancersEl.appendChild(card);
     });
-}
-
-function iniciaisDoNome(nome) {
-    const partes = (nome || '').trim().split(' ');
-    return partes.length > 1
-        ? (partes[0][0] + partes[1][0]).toUpperCase()
-        : (nome || '??').substring(0, 2).toUpperCase();
 }

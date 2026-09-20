@@ -1,15 +1,6 @@
 const API_URL = `${API_BASE}/vagas`;
 let todasVagas = [];
 
-function mostrarMensagem(texto, tipo) {
-    const el = document.getElementById('mensagemStatus');
-    if (!el) return;
-    el.className = `alert mb-md alert-${tipo}`;
-    el.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${escapeHtml(texto)}`;
-    el.hidden = false;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
 document.addEventListener('DOMContentLoaded', () => {
     const sessao = obterSessao();
 
@@ -342,7 +333,7 @@ function initBotoesCandidatura() {
                 btn.style.backgroundColor = '#e6f4ea';
                 btn.style.color = '#137333';
 
-                mostrarMensagem(`Parabéns, ${escapeHtml(sessao.nome.split(' ')[0])}! Sua proposta para "${escapeHtml(vaga.titulo)}" foi enviada para a confecção.`, 'success');
+                mostrarMensagem(`Parabéns, ${sessao.nome.split(' ')[0]}! Sua proposta para "${vaga.titulo}" foi enviada para a confecção.`, 'success');
             } catch (error) {
                 console.error('Erro ao enviar candidatura:', error);
                 mostrarMensagem('Não foi possível enviar sua candidatura. Tente novamente.', 'error');

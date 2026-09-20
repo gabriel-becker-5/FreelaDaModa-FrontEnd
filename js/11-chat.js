@@ -31,15 +31,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const meuId = sessao.id;
     const meuNome = sessao.nome;
 
-    function mostrarMensagem(texto, tipo) {
-        const el = document.getElementById('mensagemStatus');
-        if (!el) return;
-        el.className = `alert mb-md alert-${tipo}`;
-        el.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${escapeHtml(texto)}`;
-        el.hidden = false;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
     function renderizarIniciais(nome) {
         const partes = (nome || '').trim().split(' ');
         return partes.length > 1 ? (partes[0][0] + partes[1][0]).toUpperCase() : (nome || '??').substring(0, 2).toUpperCase();

@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function mostrarMensagem(texto, tipo) {
         if (!alertBar) return;
         alertBar.className = `alert mb-md ${tipo === 'success' ? 'alert-success' : 'alert-error'}`;
-        alertBar.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
+        alertBar.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${escapeHtml(texto)}`;
         alertBar.removeAttribute('hidden');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -261,18 +261,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const vagaCriada = await res.json();
 
+            let referenciasSalvas = true;
             if (referenciasPreviewUrls.length) {
-                const caminhos = referenciasPreviewUrls.map(function (_, indice) {
-                    return `/uploads/vagas/${vagaCriada.id}/referencia-${indice + 1}.jpg`;
-                });
-                await fetch(`${API_BASE}/vagas/${vagaCriada.id}`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ referencias: caminhos })
-                });
+                try {
+                    const caminhos = referenciasPreviewUrls.map(function (_, indice) {
+                        return `/uploads/vagas/${vagaCriada.id}/referencia-${indice + 1}.jpg`;
+                    });
+                    const resRef = await fetch(`${API_BASE}/vagas/${vagaCriada.id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ referencias: caminhos })
+                    });
+                    if (!resRef.ok) throw new Error(`Erro HTTP: ${resRef.status}`);
+                } catch (erroRef) {
+                    console.error('Erro ao salvar referências da vaga:', erroRef);
+                    referenciasSalvas = false;
+                }
             }
 
-            mostrarMensagem('Vaga publicada com sucesso! Redirecionando...', 'success');
+            mostrarMensagem(
+                referenciasSalvas
+                    ? 'Vaga publicada com sucesso! Redirecionando...'
+                    : 'Vaga publicada, mas as imagens de referência não puderam ser salvas. Redirecionando...',
+                referenciasSalvas ? 'success' : 'warning'
+            );
 
             setTimeout(function () {
                 window.location.href = '/pages/15-minhas-vagas.html';

@@ -46,19 +46,6 @@ document.addEventListener('DOMContentLoaded', function () {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function formatarDataHora(iso) {
-        if (!iso) return '—';
-        const data = new Date(iso);
-        if (isNaN(data)) return iso;
-        return data.toLocaleDateString('pt-BR') + ' ' + data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    }
-
-    function formatarData(str) {
-        if (!str) return '—';
-        const data = new Date(str + 'T00:00:00');
-        return isNaN(data) ? str : data.toLocaleDateString('pt-BR');
-    }
-
     function classeBadgeStatus(status) {
         if (status === 'Concluída') return 'badge-success';
         if (status === 'Cancelada') return 'badge-danger';
@@ -79,7 +66,13 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (typeof valor === 'string' && valor.startsWith('/uploads/')) {
-            const nomeArquivo = decodeURIComponent(valor.split('/').pop() || 'arquivo');
+            const nomeArquivo = (function () {
+                try {
+                    return decodeURIComponent(valor.split('/').pop() || 'arquivo');
+                } catch (erro) {
+                    return 'arquivo';
+                }
+            })();
 
             const linha = document.createElement('div');
             linha.style.cssText = 'display:flex; align-items:center; gap:10px;';
@@ -230,7 +223,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             try {
                 const novoHistorico = (osAtual.historico || []).concat([
-                    { data: new Date().toISOString().slice(0, 10), evento: 'OS finalizada pela empresa.' }
+                    { data: hojeLocalISO(), evento: 'OS finalizada pela empresa.' }
                 ]);
 
                 const res = await fetch(`${API_BASE}/ordensServico/${osAtual.id}`, {

@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', function () {
             btnEnviar.disabled = true;
             btnEnviar.innerHTML = '<span class="spinner"></span> Enviando...';
 
-            const hoje = new Date().toISOString().slice(0, 10);
+            const hoje = hojeLocalISO();
 
             const novoChamado = {
                 assunto: selectAssunto.value,
@@ -230,9 +230,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 // chamado e um PATCH grava a lista com o id retornado.
                 if (anexosSelecionados.length) {
                     const caminhos = anexosSelecionados.map(function (anexo, indice) {
-                        const partes = anexo.arquivo.name.split('.');
-                        const extensao = (partes.length > 1 ? partes.pop() : 'jpg')
-                            .toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+                        const tipo = anexo.arquivo.type || '';
+                        let extensao = '';
+                        if (tipo.includes('pdf')) {
+                            extensao = 'pdf';
+                        } else if (tipo.includes('png')) {
+                            extensao = 'png';
+                        } else if (tipo.includes('jpeg') || tipo.includes('jpg')) {
+                            extensao = 'jpg';
+                        } else {
+                            const partes = anexo.arquivo.name.split('.');
+                            extensao = (partes.length > 1 ? partes.pop() : '')
+                                .toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+                        }
                         return `/uploads/chamados/${chamadoCriado.id}/anexo-${Date.now()}-${indice + 1}.${extensao}`;
                     });
 

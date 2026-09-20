@@ -193,12 +193,6 @@ function obterClasseBadgeStatus(status) {
     return 'badge';
 }
 
-function formatarData(str) {
-    if (!str) return '';
-    const data = new Date(str);
-    return isNaN(data.getTime()) ? String(str) : data.toLocaleDateString('pt-BR');
-}
-
 function preencherLinha(os) {
     const tableRow = document.createElement('tr');
 
@@ -330,19 +324,23 @@ btnConfirmarCancelamento.addEventListener('click', async function () {
     if (!osParaCancelar) return;
 
     try {
+        const novoHistorico = (osParaCancelar.historico || []).concat([
+            { data: hojeLocalISO(), evento: 'OS cancelada pelo freelancer.' }
+        ]);
         const resposta = await fetch(`${API_URL_OS}/${osParaCancelar.id}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ status: 'Cancelada' })
+            body: JSON.stringify({ status: 'Cancelada', historico: novoHistorico })
         });
 
         if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
 
         modalCancelamento.hidden = true;
         osParaCancelar = null;
+        toastMsg('Ordem de serviço cancelada.', 'success');
         carregarDadosFreelancer();
     } catch (erro) {
         console.error('Erro ao cancelar ordem de serviço:', erro);

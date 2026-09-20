@@ -371,6 +371,129 @@ function criarNotificacao(opcoes) {
     }).catch(function (erro) { console.error('Erro ao criar notificação:', erro); });
 }
 
+// Mensagem inline única no topo (substitui os "mostrarMensagem" locais).
+// Escapa o texto (XSS) e mantém a classe utilitária mb-md para não colar no
+// conteúdo vizinho. Usa o elemento #mensagemStatus, presente nas telas logadas.
+function mostrarMensagem(texto, tipo) {
+    const el = document.getElementById('mensagemStatus');
+    if (!el) return;
+    const tipoClasse = ['success', 'error', 'warning'].includes(tipo) ? tipo : 'error';
+    const icones = {
+        success: 'bi-check-circle-fill',
+        error: 'bi-exclamation-circle-fill',
+        warning: 'bi-exclamation-triangle-fill'
+    };
+    el.className = `alert mb-md alert-${tipoClasse}`;
+    el.innerHTML = `<i class="bi ${icones[tipoClasse]}"></i> ${escapeHtml(texto)}`;
+    el.removeAttribute('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Data no formato AAAA-MM-DD usando o fuso LOCAL (evita o recuo de um dia
+// causado por toISOString/UTC no Brasil).
+function dataLocalISO(data) {
+    const mes = String(data.getMonth() + 1).padStart(2, '0');
+    const dia = String(data.getDate()).padStart(2, '0');
+    return `${data.getFullYear()}-${mes}-${dia}`;
+}
+
+function hojeLocalISO() {
+    return dataLocalISO(new Date());
+}
+
+// Formata data (AAAA-MM-DD ou ISO) em pt-BR usando data LOCAL (sem recuar um
+// dia no fuso do Brasil). Fallback '—' para vazio/inválido.
+function formatarData(str) {
+    if (!str) return '—';
+    const data = new Date(String(str).length === 10 ? str + 'T00:00:00' : str);
+    return isNaN(data.getTime()) ? String(str) : data.toLocaleDateString('pt-BR');
+}
+
+// Formata data + hora (ISO) em pt-BR. Fallback '—'.
+function formatarDataHora(iso) {
+    if (!iso) return '—';
+    const data = new Date(iso);
+    if (isNaN(data.getTime())) return String(iso);
+    return data.toLocaleDateString('pt-BR') + ' ' + data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+
+// Cria uma <img> com placeholder caso o arquivo (caminho /uploads/...) não
+// exista no mock. Imagens/anexos são gravados somente por CAMINHO no banco.
+function criarImagemComFallback(container, src, alt) {
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = alt || '';
+    img.onerror = function () {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'imagem-placeholder';
+        placeholder.innerHTML = '<i class="bi bi-image"></i>';
+        container.replaceChild(placeholder, img);
+    };
+    container.appendChild(img);
+}
+
+// Iniciais a partir do nome (robusto a espaços duplos/vazios).
+function calcularIniciais(nome) {
+    const partes = String(nome || '').trim().split(/\s+/).filter(Boolean);
+    if (!partes.length) return '--';
+    return partes.length > 1
+        ? `${partes[0][0]}${partes[1][0]}`.toUpperCase()
+        : partes[0].substring(0, 2).toUpperCase();
+}
+
+/* ------------------------- máscaras (inputs) ------------------------------ */
+
+function aplicarMascaraTelefone(input) {
+    input.addEventListener('input', function () {
+        const numeros = input.value.replace(/\D/g, '').slice(0, 11);
+        if (numeros.length <= 10) {
+            input.value = numeros.replace(/(\d{2})(\d{0,4})(\d{0,4})/, function (_, ddd, inicio, fim) {
+                if (!inicio) return `(${ddd}`;
+                if (!fim) return `(${ddd}) ${inicio}`;
+                return `(${ddd}) ${inicio}-${fim}`;
+            });
+            return;
+        }
+        input.value = numeros.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+    });
+}
+
+function aplicarMascaraCEP(input) {
+    input.addEventListener('input', function () {
+        const numeros = input.value.replace(/\D/g, '').slice(0, 8);
+        input.value = numeros.length > 5 ? `${numeros.slice(0, 5)}-${numeros.slice(5)}` : numeros;
+    });
+}
+
+function aplicarMascaraCPF(input) {
+    input.addEventListener('input', function () {
+        const numeros = input.value.replace(/\D/g, '').slice(0, 11);
+        if (numeros.length <= 3) input.value = numeros;
+        else if (numeros.length <= 6) input.value = `${numeros.slice(0, 3)}.${numeros.slice(3)}`;
+        else if (numeros.length <= 9) input.value = `${numeros.slice(0, 3)}.${numeros.slice(3, 6)}.${numeros.slice(6)}`;
+        else input.value = `${numeros.slice(0, 3)}.${numeros.slice(3, 6)}.${numeros.slice(6, 9)}-${numeros.slice(9)}`;
+    });
+}
+
+// Validação de CPF (11 dígitos + dígitos verificadores).
+function validarCPF(cpf) {
+    const digitos = String(cpf || '').replace(/\D/g, '');
+    if (digitos.length !== 11) return false;
+    if (/^(\d)\1{10}$/.test(digitos)) return false;
+
+    function calcularDigito(base) {
+        let soma = 0;
+        for (let i = 0; i < base.length; i++) {
+            soma += Number(base[i]) * (base.length + 1 - i);
+        }
+        const resto = (soma * 10) % 11;
+        return resto === 10 ? 0 : resto;
+    }
+
+    return calcularDigito(digitos.slice(0, 9)) === Number(digitos[9]) &&
+           calcularDigito(digitos.slice(0, 10)) === Number(digitos[10]);
+}
+
 // Buscar localidade pela API do ViaCEP
 async function buscarCep(cep) {
     const apenasDigitos = String(cep || '').replace(/\D/g, '');

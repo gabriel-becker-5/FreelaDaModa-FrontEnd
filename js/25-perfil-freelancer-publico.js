@@ -228,16 +228,6 @@ async function carregarPerfil() {
 
 carregarPerfil();
 
-// Mensagem inline
-function mostrarMensagem(texto, tipo) {
-    const el = document.getElementById('mensagemStatus');
-    if (!el) return;
-    el.className = `alert mb-md alert-${tipo}`;
-    el.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${escapeHtml(texto)}`;
-    el.hidden = false;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
 // Confere se a empresa tem uma assinatura com status "ativo" — convidar um
 // freelancer é um recurso pago.
 async function empresaTemAssinaturaAtiva(empresaId) {
