@@ -98,7 +98,7 @@ async function carregarCandidatos() {
             return;
         }
 
-        tituloVagaEl.textContent = `${vagaAtual.titulo} (VG-${vagaAtual.id})`;
+        tituloVagaEl.textContent = vagaAtual.titulo;
 
         // O json-server beta não filtra de forma confiável por "?vagaId="
         // (a coleção mistura ids e quebra a indexação), então filtramos no cliente.

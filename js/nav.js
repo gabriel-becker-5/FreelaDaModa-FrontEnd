@@ -104,13 +104,19 @@ function renderizarSidebar(el, tipo, paginaAtiva) {
     const itens = MENUS[tipo] || [];
     const dashboard = DASHBOARDS[tipo] || '/pages/01-homepage.html';
 
+    // Ícone conforme o tema já restaurado pelo theme.js (no <head>) — evita
+    // ficar "lua" fixa em páginas que renderizam a sidebar dentro do
+    // DOMContentLoaded, depois do sync do theme.js.
+    const temaAtual = document.documentElement.getAttribute('data-theme');
+    const iconeTema = temaAtual === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-stars';
+
     let html = `
         <a href="${dashboard}" class="brand">
             <img src="/assets/logo-icone-branco-2048.png" alt="Logo Freela" class="brand-logo" />
             <span class="brand-text">FREELA<span class="brand-sub">DA MODA</span></span>
         </a>
         <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Alternar tema claro e escuro">
-            <i class="bi bi-moon-stars" aria-hidden="true"></i>
+            <i class="${iconeTema}" aria-hidden="true"></i>
         </button>`;
 
     itens.forEach(function (item) {

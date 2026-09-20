@@ -67,12 +67,6 @@ if (filtroEstado && filtroCidade) montarAutocompleteCidade(filtroCidade, filtroE
 
 /* ------------------------- badges ----------------------------------------- */
 
-function formatarData(str) {
-    if (!str) return '—';
-    const data = new Date(str + 'T00:00:00');
-    return isNaN(data.getTime()) ? str : data.toLocaleDateString('pt-BR');
-}
-
 function classeBadgeStatus(status) {
     if (status === 'Concluída') return 'badge-success';
     if (status === 'Cancelada') return 'badge-danger';
