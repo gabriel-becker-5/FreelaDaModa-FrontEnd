@@ -284,6 +284,16 @@ function preencherLinha(vaga) {
     tr.appendChild(tdPublicacao);
     tr.appendChild(tdCandidatos);
     tr.appendChild(tdAcoes);
+
+    tdTitulo.setAttribute('data-label', 'Título');
+    tdStatus.setAttribute('data-label', 'Status');
+    tdLocal.setAttribute('data-label', 'Local');
+    tdValor.setAttribute('data-label', 'Valor');
+    tdPrazo.setAttribute('data-label', 'Prazo');
+    tdPublicacao.setAttribute('data-label', 'Publicação');
+    tdCandidatos.setAttribute('data-label', 'Candidatos');
+    tdAcoes.setAttribute('data-label', 'Ações');
+
     tbody.appendChild(tr);
 }
 

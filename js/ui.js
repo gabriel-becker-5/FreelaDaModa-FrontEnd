@@ -350,6 +350,27 @@ function montarAutocompleteCidade(inputEl, ufSelectEl) {
     atualizarLista();
 }
 
+// Cria uma notificação no sino (usuarioId + usuarioTipo + link).
+// Falha aqui nunca bloqueia o fluxo principal (log silencioso).
+function criarNotificacao(opcoes) {
+    return fetch(`${API_BASE}/notificacoes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            usuarioId: opcoes.usuarioId,
+            usuarioTipo: opcoes.usuarioTipo,
+            tipo: opcoes.tipo || 'geral',
+            titulo: opcoes.titulo,
+            mensagem: opcoes.mensagem,
+            lida: opcoes.lida === true,
+            criadoEm: new Date().toISOString(),
+            link: opcoes.link || null
+        })
+    }).then(function (res) {
+        if (!res.ok) console.error('Falha ao criar notificação (HTTP ' + res.status + ').');
+    }).catch(function (erro) { console.error('Erro ao criar notificação:', erro); });
+}
+
 // Buscar localidade pela API do ViaCEP
 async function buscarCep(cep) {
     const apenasDigitos = String(cep || '').replace(/\D/g, '');

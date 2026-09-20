@@ -4,7 +4,7 @@ let todasVagas = [];
 function mostrarMensagem(texto, tipo) {
     const el = document.getElementById('mensagemStatus');
     if (!el) return;
-    el.className = `alert alert-${tipo}`;
+    el.className = `alert mb-md alert-${tipo}`;
     el.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${escapeHtml(texto)}`;
     el.hidden = false;
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -80,7 +80,7 @@ async function carregarVagas() {
             if (inputBusca) inputBusca.value = termoDaUrl;
             aplicarFiltros();
         } else {
-            renderizarVagas(todasVagas);
+            renderizarVagas(ordenarVagas(todasVagas));
         }
     } catch (error) {
         console.error('Erro ao carregar vagas:', error);
@@ -168,6 +168,36 @@ function renderizarVagas(vagas) {
 /* -------------------------------------------------------------------------- */
 let selectEstado = null;
 let inputCidade = null;
+let selectOrdenar = null;
+
+function ordenarVagas(vagas) {
+    const ordenacao = selectOrdenar ? selectOrdenar.value : 'recentes';
+    const copia = vagas.slice();
+
+    if (ordenacao === 'valor') {
+        copia.sort(function (a, b) { return moedaParaNumero(b.valor) - moedaParaNumero(a.valor); });
+        return copia;
+    }
+
+    if (ordenacao === 'prazo') {
+        copia.sort(function (a, b) {
+            const da = a.prazo ? new Date(a.prazo).getTime() : NaN;
+            const db_ = b.prazo ? new Date(b.prazo).getTime() : NaN;
+            const va = isNaN(da) ? Infinity : da;
+            const vb = isNaN(db_) ? Infinity : db_;
+            return va - vb;
+        });
+        return copia;
+    }
+
+    // "Mais recentes": por data de publicação (fallback: ordem da API).
+    copia.sort(function (a, b) {
+        const da = a.dataPublicacao ? new Date(a.dataPublicacao).getTime() : 0;
+        const db_ = b.dataPublicacao ? new Date(b.dataPublicacao).getTime() : 0;
+        return db_ - da;
+    });
+    return copia;
+}
 
 function initFiltros() {
     const inputBusca = document.getElementById('filtro-busca');
@@ -175,21 +205,24 @@ function initFiltros() {
     const btnLimpar = document.getElementById('btn-limpar-filtros');
     selectEstado = document.getElementById('filtro-estado');
     inputCidade = document.getElementById('filtro-cidade');
+    selectOrdenar = document.getElementById('filtro-ordenar');
 
     if (selectEstado) carregarUFs(selectEstado);
     if (selectEstado && inputCidade) montarAutocompleteCidade(inputCidade, selectEstado);
 
     inputBusca.addEventListener('input', aplicarFiltros);
     selectEspecialidade.addEventListener('change', aplicarFiltros);
+    if (selectOrdenar) selectOrdenar.addEventListener('change', aplicarFiltros);
     if (selectEstado) selectEstado.addEventListener('change', aplicarFiltros);
     if (inputCidade) inputCidade.addEventListener('input', aplicarFiltros);
 
     btnLimpar.addEventListener('click', () => {
         inputBusca.value = '';
         selectEspecialidade.value = '';
+        if (selectOrdenar) selectOrdenar.value = 'recentes';
         if (selectEstado) selectEstado.value = '';
         if (inputCidade) inputCidade.value = '';
-        renderizarVagas(todasVagas);
+        aplicarFiltros();
     });
 }
 
@@ -218,7 +251,7 @@ function aplicarFiltros() {
         return bateTermo && bateEsp && bateUf && bateCidade;
     });
 
-    renderizarVagas(filtradas);
+    renderizarVagas(ordenarVagas(filtradas));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -276,6 +309,9 @@ function initBotoesCandidatura() {
                     titulo: vaga.titulo,
                     cidade: vaga.cidade || '',
                     estado: vaga.estado || '',
+                    valor: vaga.valor || '',
+                    prazo: vaga.prazo || '',
+                    dataCandidatura: new Date().toISOString(),
                     freelancerId: sessao.id,
                     freelancerNome: sessao.nome,
                     status: 'Em análise',
@@ -290,6 +326,16 @@ function initBotoesCandidatura() {
                 });
 
                 if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
+
+                // Avisa a empresa dona da vaga sobre a nova candidatura.
+                criarNotificacao({
+                    usuarioId: vaga.empresaId,
+                    usuarioTipo: 'empresas',
+                    tipo: 'candidatura',
+                    titulo: 'Nova candidatura recebida',
+                    mensagem: `${sessao.nome} se candidatou à vaga "${vaga.titulo}".`,
+                    link: `/pages/17-candidatos-vaga.html?id=${encodeURIComponent(vaga.id)}`
+                });
 
                 btn.classList.replace('btn-purple', 'btn-light-purple');
                 btn.innerHTML = 'Candidatura Enviada! <i class="bi bi-check2"></i>';

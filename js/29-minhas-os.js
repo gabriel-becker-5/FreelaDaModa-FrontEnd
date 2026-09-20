@@ -20,6 +20,7 @@ const erroBar = document.querySelector('#perfil-erro');
 const conteudoPerfil = document.querySelector('#perfil-conteudo');
 const filtroTituloVaga = document.querySelector('#filterTituloVaga');
 const filtroStatusVaga = document.querySelector('#filterStatusVaga');
+const filtroOrdenar = document.querySelector('#filtroOrdenar');
 const filtroEstado = document.querySelector('#filterEstado');
 const filtroCidade = document.querySelector('#filterCidade');
 const btnLimparFiltros = document.querySelector('#btnLimparFiltros');
@@ -112,6 +113,33 @@ async function carregarDadosFreelancer() {
 
 /* ------------------------- filtros e render ------------------------------- */
 
+function ordenarOS(lista) {
+    const ordenacao = filtroOrdenar ? filtroOrdenar.value : 'recentes';
+
+    if (ordenacao === 'valor') {
+        lista.sort(function (a, b) { return moedaParaNumero(b.valor) - moedaParaNumero(a.valor); });
+        return;
+    }
+
+    if (ordenacao === 'prazo') {
+        lista.sort(function (a, b) {
+            const da = a.prazo ? new Date(a.prazo).getTime() : NaN;
+            const db_ = b.prazo ? new Date(b.prazo).getTime() : NaN;
+            const va = isNaN(da) ? Infinity : da;
+            const vb = isNaN(db_) ? Infinity : db_;
+            return va - vb;
+        });
+        return;
+    }
+
+    // "Mais recentes": por data de início (dataPublicacao).
+    lista.sort(function (a, b) {
+        const da = a.dataPublicacao ? new Date(a.dataPublicacao).getTime() : 0;
+        const db_ = b.dataPublicacao ? new Date(b.dataPublicacao).getTime() : 0;
+        return db_ - da;
+    });
+}
+
 function aplicarFiltros() {
     const termo = removerAcentos(filtroTituloVaga.value.trim().toLowerCase());
     const status = filtroStatusVaga.value;
@@ -125,6 +153,8 @@ function aplicarFiltros() {
         const bateCidade = !cidade || removerAcentos(String(os.cidade || '')).toLowerCase().includes(cidade);
         return bateTermo && bateStatus && bateUf && bateCidade;
     });
+
+    ordenarOS(itensFiltrados);
 
     paginaAtual = 1;
     renderizarPagina();
@@ -176,7 +206,15 @@ function preencherLinha(os) {
     tdTitulo.textContent = os.titulo;
 
     const tdEmpresa = document.createElement('td');
-    tdEmpresa.textContent = os.empresaNome || '';
+    if (os.empresaId) {
+        const linkEmpresa = document.createElement('a');
+        linkEmpresa.href = `/pages/26-perfil-empresa-publico.html?id=${encodeURIComponent(os.empresaId)}`;
+        linkEmpresa.className = 'text-primary';
+        linkEmpresa.textContent = os.empresaNome || '';
+        tdEmpresa.appendChild(linkEmpresa);
+    } else {
+        tdEmpresa.textContent = os.empresaNome || '';
+    }
 
     const tdLocal = document.createElement('td');
     tdLocal.textContent = [os.cidade, os.estado].filter(Boolean).join(' - ') || '—';
@@ -235,6 +273,16 @@ function preencherLinha(os) {
     tableRow.appendChild(tdPrazo);
     tableRow.appendChild(tdDataInicio);
     tableRow.appendChild(tdAcoes);
+
+    tdTitulo.setAttribute('data-label', 'Título');
+    tdStatus.setAttribute('data-label', 'Status');
+    tdEmpresa.setAttribute('data-label', 'Empresa');
+    tdLocal.setAttribute('data-label', 'Local');
+    tdValor.setAttribute('data-label', 'Valor');
+    tdPrazo.setAttribute('data-label', 'Prazo');
+    tdDataInicio.setAttribute('data-label', 'Data Início');
+    tdAcoes.setAttribute('data-label', 'Ações');
+
     bodyLista.appendChild(tableRow);
 }
 
@@ -243,12 +291,14 @@ function preencherLinha(os) {
 // Filtros aplicados em tempo real, no mesmo padrão do mural de vagas (07).
 filtroTituloVaga.addEventListener('input', aplicarFiltros);
 filtroStatusVaga.addEventListener('change', aplicarFiltros);
+if (filtroOrdenar) filtroOrdenar.addEventListener('change', aplicarFiltros);
 if (filtroEstado) filtroEstado.addEventListener('change', aplicarFiltros);
 if (filtroCidade) filtroCidade.addEventListener('input', aplicarFiltros);
 
 btnLimparFiltros.addEventListener('click', function () {
     filtroTituloVaga.value = '';
     filtroStatusVaga.value = '';
+    if (filtroOrdenar) filtroOrdenar.value = 'recentes';
     if (filtroEstado) filtroEstado.value = '';
     if (filtroCidade) filtroCidade.value = '';
     aplicarFiltros();

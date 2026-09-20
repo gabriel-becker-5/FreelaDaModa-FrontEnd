@@ -43,7 +43,7 @@ function initMenuMobile() {
 function mostrarMensagem(texto, tipo) {
     const el = document.getElementById('mensagemStatus');
     if (!el) return;
-    el.className = `alert ${tipo === 'success' ? 'alert-success' : 'alert-error'}`;
+    el.className = `alert mb-md ${tipo === 'success' ? 'alert-success' : 'alert-error'}`;
     el.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
     el.removeAttribute('hidden');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -109,12 +109,24 @@ async function carregarOsAtivas(sessao) {
             info.className = 'service-info';
 
             const titulo = document.createElement('h3');
-            titulo.textContent = `${os.titulo} — ${os.freelancerNome || 'Freelancer'}`;
+            titulo.textContent = os.titulo;
 
             const detalhes = document.createElement('span');
             detalhes.textContent = `Prazo: ${prazo} • Valor: ${valor}`;
 
             info.appendChild(titulo);
+            if (os.freelancerId) {
+                const linkFreelancer = document.createElement('a');
+                linkFreelancer.href = `/pages/25-perfil-freelancer-publico.html?id=${encodeURIComponent(os.freelancerId)}`;
+                linkFreelancer.textContent = os.freelancerNome || 'Freelancer';
+                linkFreelancer.style.cssText = 'color: var(--color-primary); font-size: 0.85rem; font-weight: 600;';
+                info.appendChild(linkFreelancer);
+            } else if (os.freelancerNome) {
+                const nomeFreelancer = document.createElement('span');
+                nomeFreelancer.textContent = os.freelancerNome;
+                nomeFreelancer.style.cssText = 'font-size: 0.85rem;';
+                info.appendChild(nomeFreelancer);
+            }
             info.appendChild(detalhes);
 
             const botao = document.createElement('a');
@@ -163,7 +175,12 @@ async function carregarMinhasVagas(sessao) {
         metricVagas.textContent = ativas.length;
         contadorTexto.textContent = `${ativas.length} vaga(s) ativa(s)`;
 
-        if (!vagas.length) {
+        // O preview do dashboard não exibe vagas encerradas.
+        const vagasVisiveis = vagas.filter(function (vaga) {
+            return vaga.status !== 'Encerrada';
+        });
+
+        if (!vagasVisiveis.length) {
             const vazio = document.createElement('div');
             vazio.style.textAlign = 'center';
             vazio.style.padding = '30px';
@@ -171,13 +188,13 @@ async function carregarMinhasVagas(sessao) {
             vazio.innerHTML = '<i class="bi bi-inbox" style="font-size: 2rem; color: var(--primary-bright);"></i>';
             const texto = document.createElement('p');
             texto.style.marginTop = '8px';
-            texto.textContent = 'Você ainda não publicou nenhuma vaga.';
+            texto.textContent = 'Nenhuma vaga aberta ou pausada no momento.';
             vazio.appendChild(texto);
             container.appendChild(vazio);
             return;
         }
 
-        vagas.forEach(function (vaga) {
+        vagasVisiveis.forEach(function (vaga) {
             const vagaItem = document.createElement('div');
             vagaItem.className = 'company-job-item';
 
@@ -339,7 +356,14 @@ async function carregarMetricasEcandidaturas(sessao) {
             detalhes.className = 'job-details';
 
             const titulo = document.createElement('h3');
-            titulo.textContent = candidatura.freelancerNome || 'Freelancer';
+            if (candidatura.freelancerId) {
+                const linkFreelancer = document.createElement('a');
+                linkFreelancer.href = `/pages/25-perfil-freelancer-publico.html?id=${encodeURIComponent(candidatura.freelancerId)}`;
+                linkFreelancer.textContent = candidatura.freelancerNome || 'Freelancer';
+                titulo.appendChild(linkFreelancer);
+            } else {
+                titulo.textContent = candidatura.freelancerNome || 'Freelancer';
+            }
             const badge = document.createElement('span');
             badge.className = 'badge ' + classeBadgeCandidatura(candidatura.status);
             badge.style.fontSize = '0.8rem';

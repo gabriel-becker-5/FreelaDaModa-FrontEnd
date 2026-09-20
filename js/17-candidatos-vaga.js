@@ -59,7 +59,7 @@ sidebarOverlay.addEventListener('click', fecharMenu);
 
 function mostrarMensagem(texto, tipo) {
     if (!mensagemStatus) return;
-    mensagemStatus.className = `alert ${tipo === 'success' ? 'alert-success' : 'alert-error'}`;
+    mensagemStatus.className = `alert mb-md ${tipo === 'success' ? 'alert-success' : 'alert-error'}`;
     mensagemStatus.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
     mensagemStatus.removeAttribute('hidden');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -362,6 +362,16 @@ async function selecionarCandidato(candidatura, freela) {
     if (!aprovou) return;
 
     await garantirConversaDoMatch(candidatura.freelancerId, nomeCandidato, sessao.id, sessao.nome);
+
+    // Avisa o freelancer selecionado.
+    criarNotificacao({
+        usuarioId: candidatura.freelancerId,
+        usuarioTipo: 'freelancers',
+        tipo: 'candidatura',
+        titulo: 'Candidatura aceita',
+        mensagem: `Sua candidatura para a vaga "${vagaAtual.titulo}" foi aceita.`,
+        link: '/pages/29-minhas-os.html'
+    });
 
     // Vaga preenchida: encerra para não receber novas candidaturas.
     try {

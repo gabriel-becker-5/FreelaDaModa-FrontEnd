@@ -52,13 +52,18 @@
               <h1>Minhas Ordens de Serviço</h1>
               <p>Acompanhe suas ordens de serviço e avalie os serviços concluídos.</p>
 
-              <div class="filter-bar">
+              <div class="filter-bar filter-bar--6">
                 <input type="text" id="filterTituloVaga" placeholder="Buscar por título..." />
                 <select id="filterStatusVaga">
                   <option value="" selected>Todos os status</option>
                   <option>Em andamento</option>
                   <option>Concluída</option>
                   <option>Cancelada</option>
+                </select>
+                <select id="filtroOrdenar">
+                  <option value="recentes" selected>Mais recentes</option>
+                  <option value="valor">Maior valor</option>
+                  <option value="prazo">Prazo mais próximo</option>
                 </select>
                 <select id="filterEstado">
                   <option value="">Todos os estados</option>
@@ -74,7 +79,7 @@
           </div>
 
           <div class="card table-responsive" id="cardTabela">
-            <table class="table" aria-label="Tabela de ordens de serviço" id="tableOS">
+            <table class="table table-card" aria-label="Tabela de ordens de serviço" id="tableOS">
               <thead>
                 <tr>
                   <th>Título</th>

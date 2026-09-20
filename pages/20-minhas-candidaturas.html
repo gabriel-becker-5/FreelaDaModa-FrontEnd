@@ -58,7 +58,7 @@
               <h1>Minhas Candidaturas</h1>
               <p>Acompanhe as vagas às quais você se candidatou e os convites recebidos.</p>
 
-              <div class="filter-bar">
+              <div class="filter-bar filter-bar--6">
                 <input type="text" id="filterTituloVaga" placeholder="Buscar por título..." />
                 <select id="filterStatusVaga">
                   <option value="" selected>Todos os status</option>
@@ -66,6 +66,11 @@
                   <option>Selecionado</option>
                   <option>Rejeitado</option>
                   <option>Cancelada</option>
+                </select>
+                <select id="filtroOrdenar">
+                  <option value="recentes" selected>Mais recentes</option>
+                  <option value="valor">Maior valor</option>
+                  <option value="prazo">Prazo mais próximo</option>
                 </select>
                 <select id="filterEstado">
                   <option value="">Todos os estados</option>
@@ -81,7 +86,7 @@
           </div>
 
           <div class="card table-responsive" id="cardTabela">
-            <table class="table" aria-label="Tabela de candidaturas" id="tableCandidaturas">
+            <table class="table table-card" aria-label="Tabela de candidaturas" id="tableCandidaturas">
               <thead>
                 <tr>
                   <th>Título</th>

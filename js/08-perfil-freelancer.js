@@ -11,6 +11,11 @@ if (!sessao) {
 const freelancerId = sessao.id;
 let token;
 
+const btnVerPerfilPublico = document.querySelector('#btn-ver-perfil-publico');
+if (btnVerPerfilPublico) {
+    btnVerPerfilPublico.href = `/pages/25-perfil-freelancer-publico.html?id=${encodeURIComponent(freelancerId)}`;
+}
+
 renderizarSidebar(document.querySelector('.sidebar'), 'freelancers', '08-perfil-freelancer');
 renderizarTopbar(document.querySelector('#header-acoes'), sessao);
 renderizarBannerValidacao(document.querySelector('.main'), sessao);
@@ -85,7 +90,7 @@ sidebarOverlay.addEventListener('click', fecharMenu);
 
 function mostrarMensagem(texto, tipo) {
     if (!alertBar) return;
-    alertBar.className = `alert ${tipo === 'success' ? 'alert-success' : 'alert-error'}`;
+    alertBar.className = `alert mb-md ${tipo === 'success' ? 'alert-success' : 'alert-error'}`;
     alertBar.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
     alertBar.removeAttribute('hidden');
     window.scrollTo({ top: 0, behavior: 'smooth' });

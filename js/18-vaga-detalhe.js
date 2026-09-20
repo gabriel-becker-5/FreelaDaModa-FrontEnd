@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function mostrarMensagem(texto, tipo) {
         if (!mensagemStatus) return;
-        mensagemStatus.className = `alert ${tipo === 'success' ? 'alert-success' : 'alert-error'}`;
+        mensagemStatus.className = `alert mb-md ${tipo === 'success' ? 'alert-success' : 'alert-error'}`;
         mensagemStatus.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
         mensagemStatus.removeAttribute('hidden');
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -100,7 +100,16 @@ document.addEventListener('DOMContentLoaded', function () {
             vagaAtual = await res.json();
 
             document.getElementById('vaga-titulo').textContent = vagaAtual.titulo || 'Vaga';
-            document.getElementById('vaga-empresa').textContent = vagaAtual.empresaNome || 'Confecção Parceira';
+            const empresaEl = document.getElementById('vaga-empresa');
+            empresaEl.textContent = '';
+            if (vagaAtual.empresaId) {
+                const linkEmpresa = document.createElement('a');
+                linkEmpresa.href = `/pages/26-perfil-empresa-publico.html?id=${encodeURIComponent(vagaAtual.empresaId)}`;
+                linkEmpresa.textContent = vagaAtual.empresaNome || 'Confecção Parceira';
+                empresaEl.appendChild(linkEmpresa);
+            } else {
+                empresaEl.textContent = vagaAtual.empresaNome || 'Confecção Parceira';
+            }
             document.getElementById('vaga-local').textContent =
                 [vagaAtual.cidade, vagaAtual.estado].filter(Boolean).join(' - ') || vagaAtual.local || 'Não informado';
             document.getElementById('vaga-especialidade-modalidade').textContent =
@@ -258,6 +267,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 titulo: vagaAtual.titulo,
                 cidade: vagaAtual.cidade || '',
                 estado: vagaAtual.estado || '',
+                valor: vagaAtual.valor || '',
+                prazo: vagaAtual.prazo || '',
+                dataCandidatura: new Date().toISOString(),
                 freelancerId: sessaoAtual.id,
                 freelancerNome: sessaoAtual.nome,
                 status: 'Em análise',
@@ -271,6 +283,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 body: JSON.stringify(novaCandidatura)
             });
             if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
+
+            // Avisa a empresa dona da vaga sobre a nova candidatura.
+            criarNotificacao({
+                usuarioId: vagaAtual.empresaId,
+                usuarioTipo: 'empresas',
+                tipo: 'candidatura',
+                titulo: 'Nova candidatura recebida',
+                mensagem: `${sessaoAtual.nome} se candidatou à vaga "${vagaAtual.titulo}".`,
+                link: `/pages/17-candidatos-vaga.html?id=${encodeURIComponent(vagaAtual.id)}`
+            });
 
             mostrarMensagem('Sua candidatura foi enviada com sucesso! A empresa entrará em contato se houver interesse.', 'success');
             botao.disabled = true;

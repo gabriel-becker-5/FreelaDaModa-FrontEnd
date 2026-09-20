@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function mostrarMensagem(texto, tipo) {
         const el = document.getElementById('mensagemStatus');
         if (!el) return;
-        el.className = `alert alert-${tipo}`;
+        el.className = `alert mb-md alert-${tipo}`;
         el.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${escapeHtml(texto)}`;
         el.hidden = false;
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -119,7 +119,15 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('os-id-display').textContent = `OS-${os.id}`;
         document.getElementById('os-categoria-display').textContent = os.categoria || '—';
         document.getElementById('os-modalidade-display').textContent = os.modalidade || '—';
-        document.getElementById('os-empresa-display').textContent = os.empresaNome || '—';
+        document.getElementById('os-empresa-display').textContent = '';
+        if (os.empresaId) {
+            const linkEmpresa = document.createElement('a');
+            linkEmpresa.href = `/pages/26-perfil-empresa-publico.html?id=${encodeURIComponent(os.empresaId)}`;
+            linkEmpresa.textContent = os.empresaNome || '—';
+            document.getElementById('os-empresa-display').appendChild(linkEmpresa);
+        } else {
+            document.getElementById('os-empresa-display').textContent = os.empresaNome || '—';
+        }
         document.getElementById('os-local-display').textContent = [os.cidade, os.estado].filter(Boolean).join(' - ') || '—';
         document.getElementById('os-data-display').textContent = formatarDataHora(os.dataPublicacao);
         document.getElementById('os-valor-display').textContent = os.valor || '—';
@@ -134,7 +142,15 @@ document.addEventListener('DOMContentLoaded', function () {
         badgeStatus.className = `badge ${classeBadgeStatus(os.status)}`;
         badgeStatus.textContent = os.status;
 
-        document.getElementById('os-freelancer-display').textContent = os.freelancerNome || '—';
+        document.getElementById('os-freelancer-display').textContent = '';
+        if (os.freelancerId) {
+            const linkFreelancer = document.createElement('a');
+            linkFreelancer.href = `/pages/25-perfil-freelancer-publico.html?id=${encodeURIComponent(os.freelancerId)}`;
+            linkFreelancer.textContent = os.freelancerNome || '—';
+            document.getElementById('os-freelancer-display').appendChild(linkFreelancer);
+        } else {
+            document.getElementById('os-freelancer-display').textContent = os.freelancerNome || '—';
+        }
         document.getElementById('os-prazo-display').textContent = formatarData(os.prazo);
         document.getElementById('os-previsao-display').textContent = formatarData(os.previsaoConclusao);
         document.getElementById('os-avaliacao-freela-display').textContent = os.avaliacaoFreelancer || 'Pendente';
@@ -223,6 +239,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     body: JSON.stringify({ status: 'Concluída', historico: novoHistorico })
                 });
                 if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
+
+                // Avisa o freelancer sobre a finalização da OS.
+                if (osAtual.freelancerId) {
+                    criarNotificacao({
+                        usuarioId: osAtual.freelancerId,
+                        usuarioTipo: 'freelancers',
+                        tipo: 'os',
+                        titulo: 'Ordem de serviço atualizada',
+                        mensagem: `A OS "${osAtual.titulo}" foi finalizada pela empresa.`,
+                        link: `/pages/19-ordem-servico-detalhe.html?id=${encodeURIComponent(osAtual.id)}`
+                    });
+                }
 
                 const badgeStatus = document.getElementById('os-status-badge');
                 badgeStatus.className = 'badge badge-success';

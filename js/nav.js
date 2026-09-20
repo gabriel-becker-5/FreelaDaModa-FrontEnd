@@ -5,9 +5,9 @@
 const MENUS = {
     freelancers: [
         { pagina: '03-dashboard-freelancer', href: '/pages/03-dashboard-freelancer.html', rotulo: 'Dashboard', icone: 'bi-grid-1x2' },
-        { pagina: '07-vagas', href: '/pages/07-vagas.html', rotulo: 'Vagas', icone: 'bi-briefcase' },
+        { pagina: '07-vagas', href: '/pages/07-vagas.html', rotulo: 'Minhas Vagas', icone: 'bi-briefcase' },
         { pagina: '20-minhas-candidaturas', href: '/pages/20-minhas-candidaturas.html', rotulo: 'Minhas Candidaturas', icone: 'bi-clipboard-check' },
-        { pagina: '29-minhas-os', href: '/pages/29-minhas-os.html', rotulo: 'Minhas Ordens de Serviço', icone: 'bi-clipboard-data' },
+        { pagina: '29-minhas-os', href: '/pages/29-minhas-os.html', rotulo: 'Minhas OSs', icone: 'bi-clipboard-data' },
         { pagina: '08-perfil-freelancer', href: '/pages/08-perfil-freelancer.html', rotulo: 'Perfil', icone: 'bi-person' },
         { pagina: '11-chat', href: '/pages/11-chat.html', rotulo: 'Chat', icone: 'bi-chat-dots' },
         { pagina: '10-impulsionamento', href: '/pages/10-impulsionamento.html', rotulo: 'Impulsionamento', icone: 'bi-rocket-takeoff' },
@@ -15,11 +15,11 @@ const MENUS = {
     ],
     empresas: [
         { pagina: '04-dashboard-empresa', href: '/pages/04-dashboard-empresa.html', rotulo: 'Dashboard', icone: 'bi-grid-1x2' },
-        { pagina: '12-publicar-vaga', href: '/pages/12-publicar-vaga.html', rotulo: 'Publicar Vaga', icone: 'bi-plus-circle' },
         { pagina: '15-minhas-vagas', href: '/pages/15-minhas-vagas.html', rotulo: 'Minhas Vagas', icone: 'bi-briefcase' },
+        { pagina: '16-ordens-servico', href: '/pages/16-ordens-servico.html', rotulo: 'Ordens de Serviço', icone: 'bi-clipboard-data' },
+        { pagina: '12-publicar-vaga', href: '/pages/12-publicar-vaga.html', rotulo: 'Publicar Vaga', icone: 'bi-plus-circle' },
         { pagina: '27-mural-freelancers', href: '/pages/27-mural-freelancers.html', rotulo: 'Buscar Freelancers', icone: 'bi-search' },
         { pagina: '11-chat', href: '/pages/11-chat.html', rotulo: 'Chat', icone: 'bi-chat-dots' },
-        { pagina: '16-ordens-servico', href: '/pages/16-ordens-servico.html', rotulo: 'Ordens de Serviço', icone: 'bi-clipboard-data' },
         { pagina: '09-perfil-empresa', href: '/pages/09-perfil-empresa.html', rotulo: 'Perfil', icone: 'bi-person' },
         { pagina: '21-assinatura', href: '/pages/21-assinatura.html', rotulo: 'Assinatura', icone: 'bi-credit-card' },
         { pagina: '24-suporte', href: '/pages/24-suporte.html', rotulo: 'Suporte', icone: 'bi-headset' }
@@ -119,9 +119,20 @@ function montarSinoNotificacoes(wrapperEl, sessao) {
 
     async function carregar() {
         try {
-            const res = await fetch(`${API_BASE}/notificacoes?usuarioId=${encodeURIComponent(sessao.id)}&usuarioTipo=${encodeURIComponent(sessao.tipo)}&_sort=criadoEm&_order=desc&_limit=10`);
+            // O json-server beta não filtra de forma confiável por múltiplos
+            // parâmetros (?usuarioId=...&usuarioTipo=...), então buscamos todas
+            // e filtramos/ordenamos no cliente (mesmo padrão do chat/candidaturas).
+            const res = await fetch(`${API_BASE}/notificacoes`);
             if (!res.ok) throw new Error('Falha ao carregar notificações');
-            notificacoes = await res.json();
+            const todas = await res.json();
+            notificacoes = todas
+                .filter(function (n) {
+                    return String(n.usuarioId) === String(sessao.id) && n.usuarioTipo === sessao.tipo;
+                })
+                .sort(function (a, b) {
+                    return new Date(b.criadoEm || 0) - new Date(a.criadoEm || 0);
+                })
+                .slice(0, 10);
         } catch (erro) {
             console.error('Erro ao carregar notificações:', erro);
             notificacoes = [];

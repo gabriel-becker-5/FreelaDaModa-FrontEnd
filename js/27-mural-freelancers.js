@@ -1,3 +1,5 @@
+// Mural de Freelancers — padrão da 07 (público + logado) com nav.js
+
 const API_URL = `${API_BASE}/freelancers`;
 let todosFreelancers = [];
 
@@ -6,59 +8,85 @@ let impulsoPorFreelancer = {};
 
 // Quanto maior, mais destaque no mural — é o que as empresas pagam pra ter
 // quando assinam Impulsionamento (ver pages/10-impulsionamento.html).
-const PRIORIDADE_IMPULSO = { 'Pro': 2, 'Premium': 1 };
+// Premium é o topo da escala (21-assinatura), então vale mais que o Pro.
+const PRIORIDADE_IMPULSO = { 'Premium': 2, 'Pro': 1 };
 
 function prioridadeDoFreelancer(freela) {
     return PRIORIDADE_IMPULSO[impulsoPorFreelancer[freela.id]] || 0;
 }
 
-function escapeHtml(str) {
-    return String(str ?? '').replace(/[&<>"']/g, function (ch) {
-        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
-    });
-}
+const listaFreelancersEl = document.getElementById('lista-freelancers');
+const inputBusca = document.getElementById('filtro-busca');
+const selectEspecialidade = document.getElementById('filtro-especialidade');
+const selectEstado = document.getElementById('filtro-estado');
+const inputCidade = document.getElementById('filtro-cidade');
+const btnLimpar = document.getElementById('btn-limpar-filtros');
 
 document.addEventListener('DOMContentLoaded', () => {
-    verificarUsuarioLogado();
+    configurarNav();
+    configurarFiltrosLocalidade();
     carregarFreelancers();
-    initFiltros();
+    configurarEventosFiltros();
 });
 
 /* -------------------------------------------------------------------------- */
-/* 1. VERIFICAR AUTENTICAÇÃO DO USUÁRIO                                      */
+/* 1. NAVEGAÇÃO POR SESSÃO (padrão da 07)                                     */
 /* -------------------------------------------------------------------------- */
-function verificarUsuarioLogado() {
-    const sessao = JSON.parse(sessionStorage.getItem('usuarioLogado'));
-    const greeting = document.getElementById('user-greeting');
-    const btnAuth = document.getElementById('btn-auth');
-    const linkDashboard = document.getElementById('link-dashboard');
+
+function configurarNav() {
+    const sessao = obterSessao();
 
     if (sessao) {
-        greeting.textContent = `Olá, ${sessao.nome.split(' ')[0]}!`;
-        btnAuth.textContent = 'Sair';
-        btnAuth.href = '#';
-        btnAuth.addEventListener('click', (e) => {
-            e.preventDefault();
-            sessionStorage.removeItem('usuarioLogado');
-            window.location.reload();
-        });
-
-        linkDashboard.href = sessao.tipo === 'empresas'
-            ? '/pages/04-dashboard-empresa.html'
-            : '/pages/03-dashboard-freelancer.html';
+        // Empresa e freelancer podem navegar no mural; cada um com o próprio
+        // menu (o item "Buscar Freelancers" só existe no menu da empresa).
+        renderizarSidebar(document.querySelector('.sidebar'), sessao.tipo, '27-mural-freelancers');
+        renderizarTopbar(document.getElementById('header-acoes'), sessao);
+        renderizarBannerValidacao(document.querySelector('.main'), sessao);
+        configurarMenuMobile();
     } else {
-        greeting.textContent = '';
-        btnAuth.textContent = 'Entrar';
-        btnAuth.href = '/pages/02-login.html';
+        // Página pública: sem menu lateral, apenas o botão Entrar no topo.
+        document.querySelector('.sidebar').setAttribute('hidden', '');
+        document.querySelector('.sidebar-toggle-btn').setAttribute('hidden', '');
+        document.querySelector('.sidebar-overlay').setAttribute('hidden', '');
+        renderizarHeaderPublico(document.getElementById('header-acoes'));
     }
 }
 
+function configurarMenuMobile() {
+    const sidebarToggleBtn = document.querySelector('.sidebar-toggle-btn');
+    const sidebar = document.querySelector('.sidebar');
+    const sidebarOverlay = document.querySelector('.sidebar-overlay');
+    if (!sidebarToggleBtn || !sidebar || !sidebarOverlay) return;
+
+    sidebarToggleBtn.addEventListener('click', function () {
+        const abrindo = !sidebar.classList.contains('open');
+        sidebar.classList.toggle('open', abrindo);
+        sidebarOverlay.classList.toggle('open', abrindo);
+        sidebarToggleBtn.setAttribute('aria-expanded', String(abrindo));
+    });
+
+    sidebarOverlay.addEventListener('click', function () {
+        sidebar.classList.remove('open');
+        sidebarOverlay.classList.remove('open');
+        sidebarToggleBtn.setAttribute('aria-expanded', 'false');
+    });
+}
+
 /* -------------------------------------------------------------------------- */
-/* 2. CARREGAR FREELANCERS DA API (GET)                                      */
+/* 2. FILTROS DE LOCALIDADE (estado IBGE + cidade com autocomplete)           */
 /* -------------------------------------------------------------------------- */
+
+function configurarFiltrosLocalidade() {
+    if (selectEstado) carregarUFs(selectEstado);
+    if (selectEstado && inputCidade) montarAutocompleteCidade(inputCidade, selectEstado);
+}
+
+/* -------------------------------------------------------------------------- */
+/* 3. CARREGAR FREELANCERS DA API (GET)                                       */
+/* -------------------------------------------------------------------------- */
+
 async function carregarFreelancers() {
-    const container = document.getElementById('lista-freelancers');
-    container.innerHTML = '<div class="empty-state"><i class="bi bi-hourglass-split"></i><p>Carregando freelancers...</p></div>';
+    listaFreelancersEl.innerHTML = '<div class="empty-state"><i class="bi bi-hourglass-split"></i><p>Carregando freelancers...</p></div>';
 
     try {
         const [response, respostaImpulsionamentos] = await Promise.all([
@@ -81,26 +109,22 @@ async function carregarFreelancers() {
 
         // vindo da lupa da Home via ?busca=
         const termoDaUrl = new URLSearchParams(window.location.search).get('busca');
-        if (termoDaUrl) {
-            const inputBusca = document.getElementById('filtro-busca');
-            if (inputBusca) inputBusca.value = termoDaUrl;
-            renderizarFreelancers(filtrarPorTermo(todosFreelancers, termoDaUrl));
-        } else {
-            renderizarFreelancers(todosFreelancers);
-        }
+        if (termoDaUrl && inputBusca) inputBusca.value = termoDaUrl;
+
+        aplicarFiltros();
     } catch (error) {
         console.error(error);
-        container.innerHTML = `
+        listaFreelancersEl.innerHTML = `
             <div class="empty-state">
                 <i class="bi bi-exclamation-triangle"></i>
-                <p>Não foi possível carregar os freelancers. Certifique-se de que a API (json-server) está ativa.</p>
+                <p>Não foi possível carregar os freelancers. Tente novamente em instantes.</p>
             </div>
         `;
     }
 }
 
 function popularFiltroEspecialidades(freelancers) {
-    const select = document.getElementById('filtro-especialidade');
+    const select = selectEspecialidade;
     if (!select) return;
 
     const especialidades = [...new Set(
@@ -115,26 +139,60 @@ function popularFiltroEspecialidades(freelancers) {
     });
 }
 
-function filtrarPorTermo(freelancers, termoBruto) {
-    const termo = (termoBruto || '').toLowerCase().trim();
-    if (!termo) return freelancers;
+/* -------------------------------------------------------------------------- */
+/* 4. FILTROS E RENDERIZAÇÃO                                                  */
+/* -------------------------------------------------------------------------- */
 
-    return freelancers.filter(f =>
-        f.nome.toLowerCase().includes(termo) ||
-        (f.especialidade || '').toLowerCase().includes(termo) ||
-        (f.especialidades || []).some(e => e.toLowerCase().includes(termo))
-    );
+function aplicarFiltros() {
+    const termo = removerAcentos((inputBusca ? inputBusca.value : '').trim().toLowerCase());
+    const esp = selectEspecialidade ? selectEspecialidade.value : '';
+    const uf = selectEstado ? selectEstado.value : '';
+    const cidade = removerAcentos((inputCidade ? inputCidade.value : '').trim().toLowerCase());
+
+    const filtrados = todosFreelancers.filter(freela => {
+        const nomeNormalizado = removerAcentos(String(freela.nome || '').toLowerCase());
+        const especialidadesFreela = (freela.especialidades && freela.especialidades.length)
+            ? freela.especialidades
+            : [freela.especialidade];
+
+        const bateTermo =
+            !termo ||
+            nomeNormalizado.includes(termo) ||
+            removerAcentos(String(freela.especialidade || '').toLowerCase()).includes(termo) ||
+            especialidadesFreela.some(e => removerAcentos(String(e || '').toLowerCase()).includes(termo));
+
+        const bateEsp = !esp || especialidadesFreela.includes(esp);
+        const bateUf = !uf || String(freela.estadoResidencial || '').toUpperCase() === uf.toUpperCase();
+        const bateCidade = !cidade || removerAcentos(String(freela.cidadeResidencial || '').toLowerCase()).includes(cidade);
+
+        return bateTermo && bateEsp && bateUf && bateCidade;
+    });
+
+    renderizarFreelancers(filtrados);
 }
 
-/* -------------------------------------------------------------------------- */
-/* 3. RENDERIZAR CARDS NO HTML                                                */
-/* -------------------------------------------------------------------------- */
+function configurarEventosFiltros() {
+    if (inputBusca) inputBusca.addEventListener('input', aplicarFiltros);
+    if (selectEspecialidade) selectEspecialidade.addEventListener('change', aplicarFiltros);
+    if (selectEstado) selectEstado.addEventListener('change', aplicarFiltros);
+    if (inputCidade) inputCidade.addEventListener('input', aplicarFiltros);
+
+    if (btnLimpar) {
+        btnLimpar.addEventListener('click', function () {
+            if (inputBusca) inputBusca.value = '';
+            if (selectEspecialidade) selectEspecialidade.value = '';
+            if (selectEstado) selectEstado.value = '';
+            if (inputCidade) inputCidade.value = '';
+            aplicarFiltros();
+        });
+    }
+}
+
 function renderizarFreelancers(freelancers) {
-    const container = document.getElementById('lista-freelancers');
-    container.innerHTML = '';
+    listaFreelancersEl.innerHTML = '';
 
     if (freelancers.length === 0) {
-        container.innerHTML = `
+        listaFreelancersEl.innerHTML = `
             <div class="empty-state">
                 <i class="bi bi-inbox"></i>
                 <h3>Nenhum freelancer encontrado</h3>
@@ -162,15 +220,16 @@ function renderizarFreelancers(freelancers) {
 
         const iniciais = iniciaisDoNome(freela.nome);
         const cidadeEstado = [
-            freela.enderecoResidencial && freela.enderecoResidencial.cidade,
-            freela.enderecoResidencial && freela.enderecoResidencial.estado
+            freela.cidadeResidencial,
+            freela.estadoResidencial
         ].filter(Boolean).join(' - ');
+        const especialidadeCard = freela.especialidade || (freela.especialidades && freela.especialidades[0]) || 'Freelancer';
 
         card.innerHTML = `
             ${plano ? `<span class="badge badge-primary-bg freelancer-badge-destaque"><i class="bi bi-star-fill"></i> Destaque ${escapeHtml(plano)}</span>` : ''}
             <div class="profile-avatar-lg">${escapeHtml(iniciais)}</div>
             <h3>${escapeHtml(freela.nome)}</h3>
-            <span class="badge freelancer-especialidade">${escapeHtml(freela.especialidade || 'Freelancer')}</span>
+            <span class="badge freelancer-especialidade">${escapeHtml(especialidadeCard)}</span>
             ${cidadeEstado ? `<p class="freelancer-local"><i class="bi bi-geo-alt"></i> ${escapeHtml(cidadeEstado)}</p>` : ''}
             <p class="freelancer-rating">
                 <i class="bi bi-star-fill"></i> ${(freela.mediaAvaliacoes ?? 0).toFixed(1)}
@@ -179,7 +238,7 @@ function renderizarFreelancers(freelancers) {
             <a href="/pages/25-perfil-freelancer-publico.html?id=${encodeURIComponent(freela.id)}" class="btn btn-outline-primary w-full">Ver perfil</a>
         `;
 
-        container.appendChild(card);
+        listaFreelancersEl.appendChild(card);
     });
 }
 
@@ -188,41 +247,4 @@ function iniciaisDoNome(nome) {
     return partes.length > 1
         ? (partes[0][0] + partes[1][0]).toUpperCase()
         : (nome || '??').substring(0, 2).toUpperCase();
-}
-
-/* -------------------------------------------------------------------------- */
-/* 4. FILTROS DE BUSCA E ESPECIALIDADE                                        */
-/* -------------------------------------------------------------------------- */
-function initFiltros() {
-    const inputBusca = document.getElementById('filtro-busca');
-    const selectEspecialidade = document.getElementById('filtro-especialidade');
-    const btnLimpar = document.getElementById('btn-limpar-filtros');
-
-    const aplicarFiltros = () => {
-        const termo = inputBusca.value.toLowerCase().trim();
-        const esp = selectEspecialidade.value;
-
-        const filtrados = todosFreelancers.filter(freela => {
-            const bateTermo =
-                !termo ||
-                freela.nome.toLowerCase().includes(termo) ||
-                (freela.especialidade || '').toLowerCase().includes(termo) ||
-                (freela.especialidades || []).some(e => e.toLowerCase().includes(termo));
-
-            const bateEsp = esp === '' || (freela.especialidades || [freela.especialidade]).includes(esp);
-
-            return bateTermo && bateEsp;
-        });
-
-        renderizarFreelancers(filtrados);
-    };
-
-    inputBusca.addEventListener('input', aplicarFiltros);
-    selectEspecialidade.addEventListener('change', aplicarFiltros);
-
-    btnLimpar.addEventListener('click', () => {
-        inputBusca.value = '';
-        selectEspecialidade.value = '';
-        renderizarFreelancers(todosFreelancers);
-    });
 }

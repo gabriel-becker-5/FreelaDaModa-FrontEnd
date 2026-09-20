@@ -32,7 +32,7 @@ const msgSenhasDiferentes = document.querySelector('#msg-senhas-diferentes');
 
 function mostrarMensagem(texto, tipo) {
     if (!alertBar) return;
-    alertBar.className = `alert ${tipo === 'success' ? 'alert-success' : 'alert-error'}`;
+    alertBar.className = `alert mb-md ${tipo === 'success' ? 'alert-success' : 'alert-error'}`;
     alertBar.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
     alertBar.removeAttribute('hidden');
     window.scrollTo({ top: 0, behavior: 'smooth' });

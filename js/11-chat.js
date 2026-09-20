@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function mostrarMensagem(texto, tipo) {
         const el = document.getElementById('mensagemStatus');
         if (!el) return;
-        el.className = `alert alert-${tipo}`;
+        el.className = `alert mb-md alert-${tipo}`;
         el.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${escapeHtml(texto)}`;
         el.hidden = false;
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -164,7 +164,25 @@ document.addEventListener('DOMContentLoaded', function () {
             b.classList.toggle('btn-primary', b.dataset.conversaId === String(conversa.id));
         });
 
-        if (tituloThread) tituloThread.textContent = `Conversa com ${outraParteAtual.nome || 'contato'}`;
+        if (tituloThread) {
+            tituloThread.textContent = '';
+            tituloThread.appendChild(document.createTextNode(`Conversa com ${outraParteAtual.nome || 'contato'}`));
+            if (outraParteAtual.tipo === 'empresas') {
+                const linkPerfil = document.createElement('a');
+                linkPerfil.href = `/pages/26-perfil-empresa-publico.html?id=${encodeURIComponent(outraParteAtual.id)}`;
+                linkPerfil.className = 'text-primary';
+                linkPerfil.textContent = 'Ver perfil';
+                linkPerfil.style.cssText = 'margin-left: 8px; font-size: 12px; font-weight: 600;';
+                tituloThread.appendChild(linkPerfil);
+            } else if (outraParteAtual.tipo === 'freelancers') {
+                const linkPerfil = document.createElement('a');
+                linkPerfil.href = `/pages/25-perfil-freelancer-publico.html?id=${encodeURIComponent(outraParteAtual.id)}`;
+                linkPerfil.className = 'text-primary';
+                linkPerfil.textContent = 'Ver perfil';
+                linkPerfil.style.cssText = 'margin-left: 8px; font-size: 12px; font-weight: 600;';
+                tituloThread.appendChild(linkPerfil);
+            }
+        }
         if (emptyStateThread) emptyStateThread.hidden = true;
         if (areaEnvioMensagem) areaEnvioMensagem.hidden = false;
 
@@ -227,6 +245,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 body: JSON.stringify(novaMensagem)
             });
             if (!resPost.ok) throw new Error(`Erro HTTP: ${resPost.status}`);
+
+            // Avisa o destinatário no sino de notificações.
+            criarNotificacao({
+                usuarioId: outraParteAtual.id,
+                usuarioTipo: outraParteAtual.tipo,
+                tipo: 'mensagem',
+                titulo: 'Nova mensagem',
+                mensagem: `${meuNome}: ${texto}`,
+                link: `/pages/11-chat.html?conversaId=${encodeURIComponent(conversaAtual.id)}`
+            });
 
             // Mantém a conversa com o preview da última mensagem atualizado.
             // Falha aqui é cosmética: a mensagem já foi gravada, então a bolha

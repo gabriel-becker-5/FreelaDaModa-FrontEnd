@@ -21,6 +21,7 @@ const erroBar = document.querySelector('#perfil-erro');
 const conteudoPerfil = document.querySelector('#perfil-conteudo');
 const filtroTituloVaga = document.querySelector('#filterTituloVaga');
 const filtroStatusVaga = document.querySelector('#filterStatusVaga');
+const filtroOrdenar = document.querySelector('#filtroOrdenar');
 const filtroEstado = document.querySelector('#filterEstado');
 const filtroCidade = document.querySelector('#filterCidade');
 const btnLimparFiltros = document.querySelector('#btnLimparFiltros');
@@ -121,6 +122,33 @@ async function carregarDadosFreelancer() {
 
 /* ------------------------- filtros e render ------------------------------- */
 
+function ordenarCandidaturas(lista) {
+    const ordenacao = filtroOrdenar ? filtroOrdenar.value : 'recentes';
+
+    if (ordenacao === 'valor') {
+        lista.sort(function (a, b) { return moedaParaNumero(b.valor) - moedaParaNumero(a.valor); });
+        return;
+    }
+
+    if (ordenacao === 'prazo') {
+        lista.sort(function (a, b) {
+            const da = a.prazo ? new Date(a.prazo).getTime() : NaN;
+            const db_ = b.prazo ? new Date(b.prazo).getTime() : NaN;
+            const va = isNaN(da) ? Infinity : da;
+            const vb = isNaN(db_) ? Infinity : db_;
+            return va - vb;
+        });
+        return;
+    }
+
+    // "Mais recentes": por data de candidatura.
+    lista.sort(function (a, b) {
+        const da = a.dataCandidatura ? new Date(a.dataCandidatura).getTime() : 0;
+        const db_ = b.dataCandidatura ? new Date(b.dataCandidatura).getTime() : 0;
+        return db_ - da;
+    });
+}
+
 function aplicarFiltros() {
     const termo = removerAcentos(filtroTituloVaga.value.trim().toLowerCase());
     const status = filtroStatusVaga.value;
@@ -134,6 +162,8 @@ function aplicarFiltros() {
         const bateCidade = !cidade || removerAcentos(String(candidatura.cidade || '')).toLowerCase().includes(cidade);
         return bateTermo && bateStatus && bateUf && bateCidade;
     });
+
+    ordenarCandidaturas(itensFiltrados);
 
     paginaAtual = 1;
     renderizarPagina();
@@ -184,7 +214,16 @@ function preencherLinha(candidatura) {
     tdTitulo.textContent = candidatura.titulo;
 
     const tdEmpresa = document.createElement('td');
-    tdEmpresa.textContent = candidatura.nomeEmpresa || candidatura.empresaNome || '';
+    const nomeEmpresaCandidatura = candidatura.nomeEmpresa || candidatura.empresaNome || '';
+    if (candidatura.empresaId) {
+        const linkEmpresa = document.createElement('a');
+        linkEmpresa.href = `/pages/26-perfil-empresa-publico.html?id=${encodeURIComponent(candidatura.empresaId)}`;
+        linkEmpresa.className = 'text-primary';
+        linkEmpresa.textContent = nomeEmpresaCandidatura;
+        tdEmpresa.appendChild(linkEmpresa);
+    } else {
+        tdEmpresa.textContent = nomeEmpresaCandidatura;
+    }
 
     const tdLocal = document.createElement('td');
     tdLocal.textContent = [candidatura.cidade, candidatura.estado].filter(Boolean).join(' - ') || '—';
@@ -235,6 +274,16 @@ function preencherLinha(candidatura) {
     tableRow.appendChild(tdPrazo);
     tableRow.appendChild(tdDataCandidatura);
     tableRow.appendChild(tdAcoes);
+
+    tdTitulo.setAttribute('data-label', 'Título');
+    tdStatus.setAttribute('data-label', 'Status');
+    tdEmpresa.setAttribute('data-label', 'Empresa');
+    tdLocal.setAttribute('data-label', 'Local');
+    tdValor.setAttribute('data-label', 'Valor');
+    tdPrazo.setAttribute('data-label', 'Prazo');
+    tdDataCandidatura.setAttribute('data-label', 'Data Candidatura');
+    tdAcoes.setAttribute('data-label', 'Ações');
+
     bodyLista.appendChild(tableRow);
 }
 
@@ -243,12 +292,14 @@ function preencherLinha(candidatura) {
 // Filtros aplicados em tempo real, no mesmo padrão do mural de vagas (07).
 filtroTituloVaga.addEventListener('input', aplicarFiltros);
 filtroStatusVaga.addEventListener('change', aplicarFiltros);
+if (filtroOrdenar) filtroOrdenar.addEventListener('change', aplicarFiltros);
 if (filtroEstado) filtroEstado.addEventListener('change', aplicarFiltros);
 if (filtroCidade) filtroCidade.addEventListener('input', aplicarFiltros);
 
 btnLimparFiltros.addEventListener('click', function () {
     filtroTituloVaga.value = '';
     filtroStatusVaga.value = '';
+    if (filtroOrdenar) filtroOrdenar.value = 'recentes';
     if (filtroEstado) filtroEstado.value = '';
     if (filtroCidade) filtroCidade.value = '';
     aplicarFiltros();
@@ -326,7 +377,14 @@ async function carregarConvites() {
             const detalhes = document.createElement('div');
             detalhes.className = 'job-details';
             const nomeEmpresa = document.createElement('h3');
-            nomeEmpresa.textContent = convite.empresaNome || 'Empresa';
+            if (convite.empresaId) {
+                const linkEmpresa = document.createElement('a');
+                linkEmpresa.href = `/pages/26-perfil-empresa-publico.html?id=${encodeURIComponent(convite.empresaId)}`;
+                linkEmpresa.textContent = convite.empresaNome || 'Empresa';
+                nomeEmpresa.appendChild(linkEmpresa);
+            } else {
+                nomeEmpresa.textContent = convite.empresaNome || 'Empresa';
+            }
             const textoVaga = document.createElement('span');
             textoVaga.textContent = `Convidou você para a vaga: ${convite.vagaTitulo}`;
             detalhes.appendChild(nomeEmpresa);
@@ -489,6 +547,16 @@ if (btnConfirmarAceiteConvite) {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: 'Aceito' })
+            });
+
+            // Avisa a empresa que o freelancer aceitou o convite.
+            criarNotificacao({
+                usuarioId: convite.empresaId,
+                usuarioTipo: 'empresas',
+                tipo: 'convite',
+                titulo: 'Convite aceito',
+                mensagem: `${convite.freelancerNome} aceitou seu convite para a vaga "${convite.vagaTitulo}".`,
+                link: '/pages/16-ordens-servico.html'
             });
 
             // Gera a Ordem de Serviço (com cidade/estado da vaga).

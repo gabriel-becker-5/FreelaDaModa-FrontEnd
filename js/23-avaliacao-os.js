@@ -65,8 +65,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
             osAtual = os;
             document.getElementById('resumo-projeto').textContent = os.titulo;
-            document.getElementById('resumo-empresa').textContent = os.empresaNome || '—';
-            document.getElementById('resumo-freelancer').textContent = os.freelancerNome || '—';
+            const resumoEmpresa = document.getElementById('resumo-empresa');
+            resumoEmpresa.textContent = '';
+            if (os.empresaId) {
+                const linkEmpresa = document.createElement('a');
+                linkEmpresa.href = `/pages/26-perfil-empresa-publico.html?id=${encodeURIComponent(os.empresaId)}`;
+                linkEmpresa.textContent = os.empresaNome || '—';
+                resumoEmpresa.appendChild(linkEmpresa);
+            } else {
+                resumoEmpresa.textContent = os.empresaNome || '—';
+            }
+            const resumoFreelancer = document.getElementById('resumo-freelancer');
+            resumoFreelancer.textContent = '';
+            if (os.freelancerId) {
+                const linkFreelancer = document.createElement('a');
+                linkFreelancer.href = `/pages/25-perfil-freelancer-publico.html?id=${encodeURIComponent(os.freelancerId)}`;
+                linkFreelancer.textContent = os.freelancerNome || '—';
+                resumoFreelancer.appendChild(linkFreelancer);
+            } else {
+                resumoFreelancer.textContent = os.freelancerNome || '—';
+            }
             document.getElementById('resumo-status').textContent = os.status;
             atualizarLinksVoltar();
 
@@ -114,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function mostrarMensagem(texto, tipo) {
         if (!alertaAvaliacao) return;
-        alertaAvaliacao.className = `alert alert-${tipo}`;
+        alertaAvaliacao.className = `alert mb-md alert-${tipo}`;
         alertaAvaliacao.textContent = texto;
         alertaAvaliacao.hidden = false;
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -193,6 +211,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // Atualiza a média no perfil do avaliado
                 await atualizarMediaDoAlvo();
+
+                // Avisa a parte avaliada sobre a nova avaliação.
+                const linkAvaliado = alvoTipo === 'freelancers'
+                    ? `/pages/25-perfil-freelancer-publico.html?id=${encodeURIComponent(alvoId)}`
+                    : `/pages/26-perfil-empresa-publico.html?id=${encodeURIComponent(alvoId)}`;
+                criarNotificacao({
+                    usuarioId: alvoId,
+                    usuarioTipo: alvoTipo,
+                    tipo: 'avaliacao',
+                    titulo: 'Nova avaliação recebida',
+                    mensagem: `${autorAvaliacao} avaliou você com nota ${notaSelecionada()} de 5.`,
+                    link: linkAvaliado
+                });
 
                 mostrarMensagem(`Avaliação enviada! Nota ${notaSelecionada()} de 5.`, 'success');
 

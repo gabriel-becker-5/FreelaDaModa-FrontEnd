@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function mostrarMensagem(texto, tipo) {
         const el = document.getElementById('mensagemStatus');
         if (!el) return;
-        el.className = `alert alert-${tipo}`;
+        el.className = `alert mb-md alert-${tipo}`;
         el.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
         el.hidden = false;
         window.scrollTo({ top: 0, behavior: 'smooth' });

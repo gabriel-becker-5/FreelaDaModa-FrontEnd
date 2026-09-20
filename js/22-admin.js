@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function mostrarMensagem(texto, tipo) {
         if (!elMensagemStatus) return;
-        elMensagemStatus.className = `alert alert-${tipo}`;
+        elMensagemStatus.className = `alert mb-md alert-${tipo}`;
         elMensagemStatus.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${escapeHtml(texto)}`;
         elMensagemStatus.hidden = false;
         window.scrollTo({ top: 0, behavior: 'smooth' });

@@ -202,7 +202,15 @@ function preencherLinha(os) {
     tdTitulo.textContent = os.titulo || '—';
 
     const tdFreelancer = document.createElement('td');
-    tdFreelancer.textContent = os.freelancerNome || '—';
+    if (os.freelancerId) {
+        const linkFreelancer = document.createElement('a');
+        linkFreelancer.href = `/pages/25-perfil-freelancer-publico.html?id=${encodeURIComponent(os.freelancerId)}`;
+        linkFreelancer.className = 'text-primary';
+        linkFreelancer.textContent = os.freelancerNome || '—';
+        tdFreelancer.appendChild(linkFreelancer);
+    } else {
+        tdFreelancer.textContent = os.freelancerNome || '—';
+    }
 
     const tdLocal = document.createElement('td');
     tdLocal.textContent = [os.cidade, os.estado].filter(Boolean).join(' - ') || '—';
@@ -268,6 +276,16 @@ function preencherLinha(os) {
     tr.appendChild(tdDataInicio);
     tr.appendChild(tdFreelancer);
     tr.appendChild(tdAcoes);
+
+    tdTitulo.setAttribute('data-label', 'Título');
+    tdStatus.setAttribute('data-label', 'Status');
+    tdLocal.setAttribute('data-label', 'Local');
+    tdValor.setAttribute('data-label', 'Valor');
+    tdPrazo.setAttribute('data-label', 'Prazo');
+    tdDataInicio.setAttribute('data-label', 'Data Início');
+    tdFreelancer.setAttribute('data-label', 'Freelancer');
+    tdAcoes.setAttribute('data-label', 'Ações');
+
     tbody.appendChild(tr);
 }
 
@@ -303,6 +321,18 @@ async function alterarStatus(os, novoStatus) {
             body: JSON.stringify({ status: novoStatus, historico: novoHistorico })
         });
         if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
+
+        // Avisa o freelancer sobre a mudança de status da OS.
+        if (os.freelancerId) {
+            criarNotificacao({
+                usuarioId: os.freelancerId,
+                usuarioTipo: 'freelancers',
+                tipo: 'os',
+                titulo: 'Ordem de serviço atualizada',
+                mensagem: `A OS "${os.titulo}" foi ${finalizando ? 'finalizada' : 'cancelada'} pela empresa.`,
+                link: `/pages/19-ordem-servico-detalhe.html?id=${encodeURIComponent(os.id)}`
+            });
+        }
 
         carregarOrdens();
     } catch (erro) {

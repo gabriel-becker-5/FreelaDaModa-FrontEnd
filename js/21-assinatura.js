@@ -53,7 +53,7 @@ sidebarOverlay.addEventListener('click', fecharMenu);
 // sem toast duplicado.
 function mostrarMensagem(texto, tipo) {
     if (!mensagemStatus) return;
-    mensagemStatus.className = `alert alert-${tipo}`;
+    mensagemStatus.className = `alert mb-md alert-${tipo}`;
     mensagemStatus.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
     mensagemStatus.hidden = false;
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -178,20 +178,14 @@ cardsPlanos.forEach(function (card) {
             }
 
             // Avisa a empresa sobre a cobrança confirmada.
-            fetch(`${API_BASE}/notificacoes`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    usuarioId: empresaId,
-                    usuarioTipo: 'empresas',
-                    tipo: 'pagamento',
-                    titulo: 'Pagamento confirmado',
-                    mensagem: `Pagamento de ${valorPlano} do plano ${nomeDoPlano} confirmado. Próxima cobrança em ${proximaCobranca.toLocaleDateString('pt-BR')}.`,
-                    lida: false,
-                    criadoEm: hoje.toISOString(),
-                    link: '/pages/21-assinatura.html'
-                })
-            }).catch(function (erro) { console.error('Erro ao criar notificação de pagamento:', erro); });
+            criarNotificacao({
+                usuarioId: empresaId,
+                usuarioTipo: 'empresas',
+                tipo: 'pagamento',
+                titulo: 'Pagamento confirmado',
+                mensagem: `Pagamento de ${valorPlano} do plano ${nomeDoPlano} confirmado. Próxima cobrança em ${proximaCobranca.toLocaleDateString('pt-BR')}.`,
+                link: '/pages/21-assinatura.html'
+            });
 
             mostrarMensagem(`Plano ${nomeDoPlano} contratado com sucesso!`, 'success');
         } catch (erro) {

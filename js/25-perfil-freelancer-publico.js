@@ -232,7 +232,7 @@ carregarPerfil();
 function mostrarMensagem(texto, tipo) {
     const el = document.getElementById('mensagemStatus');
     if (!el) return;
-    el.className = `alert alert-${tipo}`;
+    el.className = `alert mb-md alert-${tipo}`;
     el.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${escapeHtml(texto)}`;
     el.hidden = false;
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -383,20 +383,14 @@ if (btnConfirmarConvite) {
             if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
 
             // Avisa o freelancer que ele recebeu um convite.
-            fetch(`${API_BASE}/notificacoes`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    usuarioId: freelancerId,
-                    usuarioTipo: 'freelancers',
-                    tipo: 'convite',
-                    titulo: 'Novo convite de vaga',
-                    mensagem: `${sessao.nome} convidou você para a vaga "${novoConvite.vagaTitulo}".`,
-                    lida: false,
-                    criadoEm: new Date().toISOString(),
-                    link: '/pages/20-minhas-candidaturas.html'
-                })
-            }).catch(function (erro) { console.error('Erro ao criar notificação de convite:', erro); });
+            criarNotificacao({
+                usuarioId: freelancerId,
+                usuarioTipo: 'freelancers',
+                tipo: 'convite',
+                titulo: 'Novo convite de vaga',
+                mensagem: `${sessao.nome} convidou você para a vaga "${novoConvite.vagaTitulo}".`,
+                link: '/pages/20-minhas-candidaturas.html'
+            });
 
             fecharModalConvidar();
             mostrarMensagem(`Convite para a vaga "${novoConvite.vagaTitulo}" enviado ao freelancer!`, 'success');

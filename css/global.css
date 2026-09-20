@@ -1599,8 +1599,12 @@ a:focus-visible {
   display: block;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   /* B12 - Tabelas como cards no mobile */
+  .table.table-card {
+    min-width: 0;
+    width: 100%;
+  }
   .table-card thead { display: none; }
   .table-card tr {
     display: block;
@@ -1615,6 +1619,7 @@ a:focus-visible {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 12px;
     padding: 7px 0;
     border: none;
     border-bottom: 1px solid var(--surface-alt);
@@ -1627,6 +1632,7 @@ a:focus-visible {
     color: var(--text-secondary);
     margin-right: 8px;
     font-size: 12px;
+    flex-shrink: 0;
   }
 }
 
@@ -2870,6 +2876,7 @@ h2.section-title {
 .job-actions {
     display: flex;
     gap: 8px;
+    flex-wrap: wrap;
 }
 
 .status-badge {
@@ -3078,6 +3085,18 @@ h2.section-title {
     color: var(--text-primary);
     font-size: 14px;
     outline: none;
+    min-width: 0;
+    width: 100%;
+}
+
+.filter-bar .autocomplete-wrapper {
+    min-width: 0;
+}
+
+.filter-bar > .btn {
+    position: relative;
+    z-index: 20;
+    white-space: nowrap;
 }
 
 /* Variante de 6 controles (usada na listagem de vagas da empresa) */
@@ -3190,6 +3209,10 @@ h2.section-title {
     .filter-bar.filter-bar--3 {
         grid-template-columns: 1fr 1fr;
     }
+    .filter-bar > .btn {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
 }
 
 @media (max-width: 768px) {
@@ -3198,8 +3221,22 @@ h2.section-title {
     .filter-bar.filter-bar--3 {
         grid-template-columns: 1fr;
     }
+    .filter-bar > .btn {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
     .job-card-header { flex-direction: column; gap: 8px; }
     .job-meta { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .mural-header {
+        padding: 20px 16px;
+        margin-bottom: 20px;
+    }
+    .mural-header h1 {
+        font-size: 1.6rem;
+    }
+    .mural-header p {
+        font-size: 0.9rem;
+    }
 }
 
 /* mural de freelancers — reaproveita .mural-header/.filter-bar do mural de vagas */
@@ -3224,16 +3261,18 @@ h2.section-title {
 /* Perfil com Impulsionamento ativo (Pro/Premium) — aparece primeiro no mural
    e ganha esse destaque visual (ver js/27-mural-freelancers.js). */
 .freelancer-card-destaque {
+  z-index: 1;
+  padding-top: 48px;
     border-color: var(--color-primary);
     box-shadow: 0 0 0 1px var(--color-primary), var(--shadow-lg);
 }
 
 .freelancer-badge-destaque {
     position: absolute;
-    top: -10px;
+  top: 14px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 11px;
+  font-size: calc(11px * 1.15);
     white-space: nowrap;
 }
 

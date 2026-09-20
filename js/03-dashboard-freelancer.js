@@ -110,7 +110,16 @@ async function carregarVagasRecomendadas(freela) {
             titulo.textContent = vaga.titulo;
 
             const detalhes = document.createElement('span');
-            detalhes.textContent = `${vaga.empresaNome || 'Confecção'} • ${vaga.valor || 'A combinar'}`;
+            if (vaga.empresaId) {
+                const linkEmpresa = document.createElement('a');
+                linkEmpresa.href = `/pages/26-perfil-empresa-publico.html?id=${encodeURIComponent(vaga.empresaId)}`;
+                linkEmpresa.textContent = vaga.empresaNome || 'Confecção';
+                linkEmpresa.style.cssText = 'color: var(--color-primary); font-weight: 600;';
+                detalhes.appendChild(linkEmpresa);
+                detalhes.appendChild(document.createTextNode(` • ${vaga.valor || 'A combinar'}`));
+            } else {
+                detalhes.textContent = `${vaga.empresaNome || 'Confecção'} • ${vaga.valor || 'A combinar'}`;
+            }
 
             info.appendChild(titulo);
             info.appendChild(detalhes);
@@ -207,12 +216,24 @@ async function carregarMetricasEProducoes(freelancerId) {
             info.className = 'service-info';
 
             const titulo = document.createElement('h3');
-            titulo.textContent = `${os.titulo} — ${os.empresaNome || 'Confecção'}`;
+            titulo.textContent = os.titulo;
 
             const detalhes = document.createElement('span');
             detalhes.textContent = `Prazo: ${prazo} • Valor: ${valor}`;
 
             info.appendChild(titulo);
+            if (os.empresaId) {
+                const linkEmpresa = document.createElement('a');
+                linkEmpresa.href = `/pages/26-perfil-empresa-publico.html?id=${encodeURIComponent(os.empresaId)}`;
+                linkEmpresa.textContent = os.empresaNome || 'Confecção';
+                linkEmpresa.style.cssText = 'color: var(--color-primary); font-size: 0.85rem; font-weight: 600;';
+                info.appendChild(linkEmpresa);
+            } else if (os.empresaNome) {
+                const nomeEmpresa = document.createElement('span');
+                nomeEmpresa.textContent = os.empresaNome;
+                nomeEmpresa.style.cssText = 'font-size: 0.85rem;';
+                info.appendChild(nomeEmpresa);
+            }
             info.appendChild(detalhes);
 
             const badge = document.createElement('span');

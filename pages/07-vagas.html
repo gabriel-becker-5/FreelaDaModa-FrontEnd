@@ -26,7 +26,7 @@
             <div class="header-actions" id="header-acoes"></div>
         </div>
 
-        <div id="mensagemStatus" class="alert" role="alert" aria-live="polite" hidden></div>
+        <div id="mensagemStatus" class="alert mb-md" role="alert" aria-live="polite" hidden></div>
 
         <!-- CABEÇALHO COM FILTROS -->
         <section class="mural-header">
@@ -34,7 +34,7 @@
             <h1>Mural de Vagas para Confecção</h1>
             <p>Encontre trabalhos sob demanda ou contratos fixos com confecções de todo o Brasil.</p>
 
-            <div class="filter-bar">
+            <div class="filter-bar filter-bar--6">
                 <input type="text" id="filtro-busca" placeholder="Buscar por título, descrição ou confecção..." />
                 <select id="filtro-especialidade">
                     <option value="">Todas as especialidades</option>
@@ -45,6 +45,11 @@
                     <option value="Acabamento">Acabamento</option>
                     <option value="Bordado">Bordado</option>
                     <option value="Estamparia">Estamparia</option>
+                </select>
+                <select id="filtro-ordenar">
+                    <option value="recentes" selected>Mais recentes</option>
+                    <option value="valor">Maior valor</option>
+                    <option value="prazo">Prazo mais próximo</option>
                 </select>
                 <select id="filtro-estado">
                     <option value="">Todos os estados</option>
