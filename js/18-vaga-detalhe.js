@@ -103,6 +103,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('vaga-valor').textContent = vagaAtual.valor || '—';
             document.getElementById('vaga-prazo').textContent = formatarData(vagaAtual.prazo);
             document.getElementById('vaga-descricao').textContent = vagaAtual.descricao || 'Sem descrição informada.';
+            document.getElementById('vaga-data-publicacao').textContent = formatarData(vagaAtual.dataPublicacao);
 
             const statusBadge = document.getElementById('vaga-status-badge');
             const status = vagaAtual.status || 'Aberta';
@@ -203,15 +204,16 @@ document.addEventListener('DOMContentLoaded', function () {
         const sessaoAtual = obterSessao();
         if (!sessaoAtual) return false;
         try {
-            const res = await fetch(`${API_BASE}/candidaturas?freelancerId=${encodeURIComponent(sessaoAtual.id)}`);
-            const candidaturas = res.ok ? await res.json() : [];
-            return candidaturas.some(function (c) {
-                return String(c.vagaId) === String(vagaAtual.id) && c.status !== 'Cancelada';
-            });
-        } catch (erro) {
-            console.error('Erro ao verificar candidatura existente:', erro);
-            return false;
-        }
+            const [resCand, resOS] = await Promise.all([
+                fetch(`${API_BASE}/candidaturas?freelancerId=${encodeURIComponent(sessaoAtual.id)}`),
+                fetch(`${API_BASE}/ordensServico?freelancerId=${encodeURIComponent(sessaoAtual.id)}`)
+            ]);
+            const candidaturas = resCand.ok ? await resCand.json() : [];
+            const oss = resOS.ok ? await resOS.json() : [];
+            const jaCandidatado = candidaturas.some(c => String(c.vagaId) === String(vagaAtual.id) && c.status !== 'Cancelada');
+            const osAtiva = oss.some(o => String(o.titulo) === String(vagaAtual.titulo) && o.status === 'Em andamento');
+            return jaCandidatado || osAtiva;
+        } catch (erro) { return false; }
     }
 
     /* ------------------------- candidatar-se ------------------------------- */

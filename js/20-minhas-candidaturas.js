@@ -1,7 +1,4 @@
-// npx json-server --watch db.json --port 3000
-// Pendências
-// 1. Token JWT
-
+// Minhas Candidaturas (Freelancer)
 const API_URL = `${API_BASE}/candidaturas`;
 const API_URL_CONVITES = `${API_BASE}/convites`;
 
@@ -30,9 +27,6 @@ const mensagemErro = document.querySelector('#msg-error');
 const mensagemVazio = document.querySelector('#msg-empty');
 const cardFiltros = document.querySelector('#cardFiltros');
 const cardTabela = document.querySelector('#cardTabela');
-const modalCancelamento = document.querySelector('#modalCancelamento');
-const btnConfirmarCancelamento = document.querySelector('#btnConfirmarCancelamento');
-const btnFecharCancelamento = document.querySelector('#btnFecharCancelamento');
 const btnPaginaAnterior = document.querySelector('#btnPaginaAnterior');
 const btnPaginaProxima = document.querySelector('#btnPaginaProxima');
 const resumoPaginas = document.querySelector('#resumoPaginas');
@@ -49,7 +43,6 @@ const PAGE_SIZE = 10;
 let todasCandidaturas = [];
 let itensFiltrados = [];
 let paginaAtual = 1;
-let candidaturaParaCancelar = null;
 let conviteSelecionado = null;
 
 /* ------------------------- menu mobile ------------------------------------ */
@@ -250,12 +243,40 @@ function preencherLinha(candidatura) {
 
     if (candidatura.status === 'Em análise') {
         const botaoCancelar = document.createElement('button');
-        botaoCancelar.className = 'btn btn-danger';
+        botaoCancelar.className = 'btn btn-outline';
+        botaoCancelar.style.color = '#d93025';
+        botaoCancelar.style.borderColor = '#ffc1bc';
+        botaoCancelar.innerHTML = '<i class="bi bi-x-circle"></i> Encerrar';
         botaoCancelar.type = 'button';
         botaoCancelar.textContent = 'Cancelar';
-        botaoCancelar.addEventListener('click', function () {
-            candidaturaParaCancelar = candidatura;
-            modalCancelamento.hidden = false;
+        botaoCancelar.addEventListener('click', async function () {
+            const confirmou = await modalConfirmar({
+                titulo: 'Confirmar cancelamento',
+                mensagem: 'Você tem certeza que deseja cancelar a sua candidatura? Essa ação não poderá ser desfeita.',
+                textoConfirmar: 'Confirmar cancelamento',
+                textoCancelar: 'Cancelar',
+                perigoso: true
+            });
+            if (!confirmou) return;
+
+            try {
+                const resposta = await fetch(`${API_URL}/${candidatura.id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ status: 'Cancelada' })
+                });
+
+                if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
+
+                mostrarMensagem('Candidatura cancelada.', 'success');
+                carregarDadosFreelancer();
+            } catch (erro) {
+                console.error('Erro ao cancelar candidatura:', erro);
+                mensagemErro.hidden = false;
+            }
         });
         divAcoes.appendChild(botaoCancelar);
     }
@@ -312,38 +333,6 @@ btnPaginaProxima.addEventListener('click', function () {
     if (paginaAtual < totalPaginas) {
         paginaAtual++;
         renderizarPagina();
-    }
-});
-
-/* ------------------------- cancelamento ------------------------------------ */
-
-btnFecharCancelamento.addEventListener('click', function () {
-    modalCancelamento.hidden = true;
-    candidaturaParaCancelar = null;
-});
-
-btnConfirmarCancelamento.addEventListener('click', async function () {
-    if (!candidaturaParaCancelar) return;
-
-    try {
-        const resposta = await fetch(`${API_URL}/${candidaturaParaCancelar.id}`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ status: 'Cancelada' })
-        });
-
-        if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
-
-        modalCancelamento.hidden = true;
-        candidaturaParaCancelar = null;
-        toastMsg('Candidatura cancelada.', 'success');
-        carregarDadosFreelancer();
-    } catch (erro) {
-        console.error('Erro ao cancelar candidatura:', erro);
-        mensagemErro.hidden = false;
     }
 });
 
@@ -427,7 +416,7 @@ async function recusarConvite(conviteId) {
             body: JSON.stringify({ status: 'Recusado' })
         });
         if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
-        toastMsg('Convite recusado.', 'success');
+        mostrarMensagem('Convite recusado.', 'success');
         carregarConvites();
     } catch (erro) {
         console.error('Erro ao recusar convite:', erro);

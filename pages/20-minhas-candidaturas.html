@@ -39,6 +39,8 @@
             <div class="header-actions" id="header-acoes"></div>
           </div>
 
+          <div id="mensagemStatus" class="alert mb-md" role="alert" aria-live="polite" hidden></div>
+
           <section class="card mb-md" id="cardConvites" hidden>
             <div class="section-title">Convites Recebidos</div>
             <p class="text-muted" style="font-size: 13px; margin-top: -6px;">Empresas que querem contratar você diretamente para uma vaga aberta.</p>
@@ -106,14 +108,6 @@
               <button class="btn" type="button" id="btnPaginaAnterior" disabled>Anterior</button>
               <span id="resumoPaginas">Mostrando 0 de 0</span>
               <button class="btn" type="button" id="btnPaginaProxima" disabled>Próxima</button>
-            </div>
-            <div class="modal-static" role="alert" aria-live="polite" hidden id="modalCancelamento">
-              <div class="modal-static-title">Confirmação de Cancelamento</div>
-              <p>Você tem certeza que deseja cancelar a sua candidatura? Essa ação não poderá ser desfeita.</p>
-              <div class="cluster mt-sm">
-                <button class="btn btn-danger" type="button" id="btnConfirmarCancelamento">Confirmar cancelamento</button>
-                <button class="btn" type="button" id="btnFecharCancelamento">Cancelar</button>
-              </div>
             </div>
           </div>
 

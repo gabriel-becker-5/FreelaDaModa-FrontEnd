@@ -44,11 +44,19 @@
 
         <!-- 4 CARDS DE MÉTRICAS -->
         <section class="dash-metrics">
+                        <div class="metric-card">
+                <div class="metric-icon"><i class="bi bi-gear-wide-connected"></i></div>
+                <div class="metric-info">
+                    <strong id="metric-lotes-producao">—</strong>
+                    <span>Ordens de Serviço em andamento</span>
+                </div>
+            </div>
+            
             <div class="metric-card">
                 <div class="metric-icon"><i class="bi bi-briefcase"></i></div>
                 <div class="metric-info">
                     <strong id="metric-vagas-abertas">0</strong>
-                    <span>Vagas ativas</span>
+                    <span>Vagas Ativas</span>
                 </div>
             </div>
 
@@ -56,15 +64,7 @@
                 <div class="metric-icon"><i class="bi bi-people"></i></div>
                 <div class="metric-info">
                     <strong id="metric-candidatos">—</strong>
-                    <span>Candidatos recebidos</span>
-                </div>
-            </div>
-
-            <div class="metric-card">
-                <div class="metric-icon"><i class="bi bi-gear-wide-connected"></i></div>
-                <div class="metric-info">
-                    <strong id="metric-lotes-producao">—</strong>
-                    <span>Lotes em produção</span>
+                    <span>Candidatos Recebidos</span>
                 </div>
             </div>
 
@@ -85,7 +85,7 @@
                 <div class="section-box">
                     <div class="box-title">
                         <h2><i class="bi bi-gear-wide-connected"></i> Ordens de Serviço em Andamento</h2>
-                        <span id="contador-os-texto" style="font-size: 0.85rem; color: var(--color-primary); font-weight: 600;">Carregando...</span>
+                        <a href="/pages/16-ordens-servico.html" style="font-size: 0.88rem; color: var(--color-primary); text-decoration: none; font-weight: 600;">Ver todas <i class="bi bi-arrow-right"></i></a>                        
                     </div>
 
                     <div class="services-list" id="lista-os-ativas">
@@ -96,7 +96,8 @@
                 <div class="section-box">
                     <div class="box-title">
                         <h2><i class="bi bi-list-task"></i> Vagas Publicadas pela sua Empresa</h2>
-                        <span id="contador-vagas-texto" style="font-size: 0.85rem; color: var(--color-primary); font-weight: 600;">Carregando...</span>
+                        
+                        <a href="/pages/15-minhas-vagas.html" style="font-size: 0.88rem; color: var(--color-primary); text-decoration: none; font-weight: 600;">Ver todas <i class="bi bi-arrow-right"></i></a>                        
                     </div>
 
                     <div class="company-jobs-list" id="lista-minhas-vagas">

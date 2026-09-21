@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        if (typeof valor === 'string' && valor.startsWith('/uploads/')) {
+        if (typeof valor === 'string' && (valor.startsWith('/uploads/') || valor.startsWith('blob:'))) {
             const img = document.createElement('img');
             img.src = valor;
             img.alt = 'Imagem de referência';
@@ -158,6 +158,9 @@ document.addEventListener('DOMContentLoaded', function () {
             linkAvaliar.hidden = !podeAvaliar;
             linkAvaliar.href = `/pages/23-avaliacao-os.html?id=${os.id}`;
         }
+
+        const uploadEntrega = document.getElementById('os-entrega-upload');
+        if (uploadEntrega) uploadEntrega.hidden = !(ehFreelancerDono && os.status === 'Em andamento');
     }
 
     async function carregarOS() {
@@ -183,6 +186,76 @@ document.addEventListener('DOMContentLoaded', function () {
 
     carregarOS();
 
+    // ── Registro visual da entrega (freelancer dono, OS em andamento) ──
+    const LIMITE_FOTO_MB = 5;
+
+    function configurarUploadEntrega() {
+        const input = document.getElementById('entregaInput');
+        if (!input) return;
+        input.addEventListener('change', async function () {
+            if (!osAtual) return;
+
+            if (osAtual.status !== 'Em andamento') {
+                mostrarMensagem('Só é possível enviar o registro da entrega com a ordem de serviço em andamento.', 'error');
+                input.value = '';
+                return;
+            }
+
+            const arquivo = input.files && input.files[0];
+            if (!arquivo) return;
+            if (!arquivo.type.startsWith('image/')) {
+                mostrarMensagem('O registro deve ser uma imagem (PNG ou JPG).', 'error');
+                input.value = '';
+                return;
+            }
+            if (arquivo.size > LIMITE_FOTO_MB * 1024 * 1024) {
+                mostrarMensagem(`O registro deve ter no máximo ${LIMITE_FOTO_MB}MB.`, 'error');
+                input.value = '';
+                return;
+            }
+
+            if (osAtual.referenciaEntrega) {
+                const confirmou = await modalConfirmar({
+                    titulo: 'Substituir registro da entrega',
+                    mensagem: 'Já existe uma imagem de entrega registrada. A nova imagem substituirá a anterior. Deseja continuar?',
+                    textoConfirmar: 'Substituir',
+                    textoCancelar: 'Cancelar'
+                });
+                if (!confirmou) {
+                    input.value = '';
+                    return;
+                }
+            }
+
+            const caminho = `/uploads/os/${osAtual.id}/entrega-${Date.now()}.jpg`;
+            const previewUrl = URL.createObjectURL(arquivo);
+            renderizarAnexo('os-entrega-display', previewUrl);
+
+            const novoHistorico = (osAtual.historico || []).concat([
+                { data: hojeLocalISO(), evento: 'Registro visual da entrega enviado pelo freelancer.' }
+            ]);
+
+            fetch(`${API_BASE}/ordensServico/${osAtual.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ referenciaEntrega: caminho, historico: novoHistorico })
+            }).then(function (res) {
+                if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
+                osAtual.referenciaEntrega = caminho;
+                osAtual.historico = novoHistorico;
+                mostrarMensagem('Registro da entrega enviado com sucesso!', 'success');
+            }).catch(function (erro) {
+                URL.revokeObjectURL(previewUrl);
+                renderizarAnexo('os-entrega-display', osAtual.referenciaEntrega);
+                mostrarMensagem('Não foi possível enviar o registro da entrega. Tente novamente.', 'error');
+            });
+
+            input.value = '';
+        });
+    }
+
+    configurarUploadEntrega();
+
     // ── Finalizar Ordem de Serviço (empresa) ──
     const btnFinalizar = document.getElementById('btn-finalizar-os');
 
@@ -191,9 +264,9 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!osAtual) return;
 
             const confirmou = await modalConfirmar({
-                titulo: 'Finalizar Ordem de Serviço',
-                mensagem: 'Confirmar a finalização desta Ordem de Serviço?',
-                textoConfirmar: 'Finalizar',
+                titulo: 'Encerrar Ordem de Serviço',
+                mensagem: 'Ao executar esta ação, será realizada a finalização da  Ordem de Serviço, você confirma?',
+                textoConfirmar: 'Encerrar',
                 textoCancelar: 'Cancelar'
             });
             if (!confirmou) return;

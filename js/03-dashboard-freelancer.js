@@ -10,6 +10,12 @@ document.addEventListener('DOMContentLoaded', function () {
     carregarPainel(sessao);
 });
 
+function classeBadgeOS(status) {
+    if (status === 'Concluída') return 'badge-success';
+    if (status === 'Cancelada') return 'badge-danger';
+    return 'badge-warning';
+}
+
 /* -------------------------------------------------------------------------- */
 /* 1. CARREGAR PAINEL (dados do perfil + seções)                              */
 /* -------------------------------------------------------------------------- */
@@ -65,6 +71,19 @@ async function carregarAvaliacoes(freelancerId) {
 /* 3. VAGAS RECOMENDADAS                                                      */
 /* -------------------------------------------------------------------------- */
 // Implementado filtro por cidade e estado do freelancer, caso disponíveis.
+function classeBadgeStatus(status) {
+    const statusNormalizado = (status || '').toLowerCase();
+    if (statusNormalizado.includes('pausada')) return 'badge-warning';
+    if (statusNormalizado.includes('encerrada')) return 'badge-danger';
+    return 'badge-success';
+}
+
+function classeBadgeOS(status) {
+    if (status === 'Concluída') return 'badge-success';
+    if (status === 'Cancelada') return 'badge-danger';
+    return 'badge-warning';
+}
+
 async function carregarVagasRecomendadas(freela) {
     const container = document.getElementById('vagas-recomendadas');
     if (!container) return;
@@ -107,8 +126,20 @@ async function carregarVagasRecomendadas(freela) {
             const info = document.createElement('div');
             info.className = 'service-info';
 
+            const badge = document.createElement('span');
+            badge.className = `badge ${classeBadgeStatus(vaga.status)}`;
+            badge.textContent = vaga.status || 'Aberta';
+
+            const tituloLinha = document.createElement('div');
+            tituloLinha.style.cssText = 'display:flex; align-items:center; gap:8px; flex-wrap:wrap;';
+
             const titulo = document.createElement('h3');
             titulo.textContent = vaga.titulo;
+            
+            tituloLinha.appendChild(titulo);
+
+            titulo.appendChild(badge);
+            badge.style.marginLeft = '8px';            
 
             const detalhes = document.createElement('span');
             if (vaga.empresaId) {
@@ -117,20 +148,21 @@ async function carregarVagasRecomendadas(freela) {
                 linkEmpresa.textContent = vaga.empresaNome || 'Confecção';
                 linkEmpresa.style.cssText = 'color: var(--color-primary); font-weight: 600;';
                 detalhes.appendChild(linkEmpresa);
-                detalhes.appendChild(document.createTextNode(` • ${vaga.valor || 'A combinar'}`));
+                detalhes.appendChild(document.createTextNode(` | Prazo: ${formatarData(vaga.prazo)} • Valor: ${vaga.valor || 'A combinar'}`));
             } else {
-                detalhes.textContent = `${vaga.empresaNome || 'Confecção'} • ${vaga.valor || 'A combinar'}`;
+                detalhes.textContent = `${vaga.empresaNome || 'Confecção'} | ${vaga.valor || 'A combinar'}`;
             }
 
             info.appendChild(titulo);
+            info.appendChild(tituloLinha);
             info.appendChild(detalhes);
 
             const botao = document.createElement('a');
             botao.href = `/pages/18-vaga-detalhe.html?id=${encodeURIComponent(vaga.id)}`;
-            botao.className = 'btn btn-outline-purple';
+            botao.className = 'btn btn-outline-purple bi-folder2-open';
             botao.style.padding = '6px 14px';
             botao.style.fontSize = '0.8rem';
-            botao.textContent = 'Ver Detalhes';
+            botao.textContent = 'Detalhar';
 
             vagaEl.appendChild(info);
             vagaEl.appendChild(botao);
@@ -192,9 +224,6 @@ async function carregarMetricasEProducoes(freelancerId) {
         if (!listaServicos) return;
         listaServicos.innerHTML = '';
 
-        if (contadorServicosTexto) {
-            contadorServicosTexto.textContent = `${ativas.length} ativa${ativas.length === 1 ? '' : 's'}`;
-        }
 
         if (!ativas.length) {
             listaServicos.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem;">Você não possui nenhuma produção em andamento no momento.</p>';
@@ -215,13 +244,22 @@ async function carregarMetricasEProducoes(freelancerId) {
             const info = document.createElement('div');
             info.className = 'service-info';
 
+            const tituloLinha = document.createElement('div');
+            tituloLinha.style.cssText = 'display:flex; align-items:center; gap:8px; flex-wrap:wrap;';
+
             const titulo = document.createElement('h3');
             titulo.textContent = os.titulo;
 
-            const detalhes = document.createElement('span');
-            detalhes.textContent = `Prazo: ${prazo} • Valor: ${valor}`;
+            const badgeOS = document.createElement('span');
+            badgeOS.className = `badge ${classeBadgeOS(os.status)}`;
+            badgeOS.textContent = os.status || 'Em andamento';
 
+            const detalhes = document.createElement('span');
+            detalhes.textContent = `  | Prazo: ${prazo} • Valor: ${valor}`;
+            
             info.appendChild(titulo);
+            info.appendChild(tituloLinha);
+           
             if (os.empresaId) {
                 const linkEmpresa = document.createElement('a');
                 linkEmpresa.href = `/pages/26-perfil-empresa-publico.html?id=${encodeURIComponent(os.empresaId)}`;
@@ -236,12 +274,18 @@ async function carregarMetricasEProducoes(freelancerId) {
             }
             info.appendChild(detalhes);
 
-            const badge = document.createElement('span');
-            badge.className = 'status-badge status-em-producao';
-            badge.textContent = os.categoria || os.status || 'Em andamento';
+            const botaoDetalhar = document.createElement('a');
+            botaoDetalhar.href = `/pages/19-ordem-servico-detalhe.html?id=${encodeURIComponent(os.id)}`;
+            botaoDetalhar.className = 'btn btn-outline-purple bi-folder2-open';
+            botaoDetalhar.style.padding = '6px 14px';
+            botaoDetalhar.style.fontSize = '0.8rem';
+            botaoDetalhar.textContent = 'Detalhar';
+
+            tituloLinha.appendChild(titulo);
+            tituloLinha.appendChild(badgeOS);
 
             item.appendChild(info);
-            item.appendChild(badge);
+            item.appendChild(botaoDetalhar);
             listaServicos.appendChild(item);
         });
     }

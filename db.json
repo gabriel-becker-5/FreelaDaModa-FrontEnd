@@ -71,7 +71,7 @@
       "foto": "",
       "referencias": [],
       "validado": false,
-      "mediaAvaliacoes": 4.0,
+      "mediaAvaliacoes": 4,
       "totalAvaliacoes": 1
     },
     {
@@ -135,8 +135,8 @@
         "/uploads/empresas/e1/referencia-1.png"
       ],
       "validado": true,
-      "mediaAvaliacoes": 4.0,
-      "totalAvaliacoes": 1
+      "mediaAvaliacoes": 4.5,
+      "totalAvaliacoes": 2
     },
     {
       "id": "e2",
@@ -187,7 +187,7 @@
       "foto": "",
       "referencias": [],
       "validado": false,
-      "mediaAvaliacoes": 5.0,
+      "mediaAvaliacoes": 5,
       "totalAvaliacoes": 1
     }
   ],
@@ -206,7 +206,7 @@
       "local": "Blumenau",
       "descricao": "Precisamos de costureira com máquina reta para lote de 120 vestidos em crepe. Corte já pronto, foco em costura e acabamento.",
       "dataPublicacao": "2026-09-17T21:45:20.405Z",
-      "status": "Aberta",
+      "status": "Encerrada",
       "referencias": [
         "/uploads/vagas/v1/referencia-1.png"
       ]
@@ -315,6 +315,22 @@
       "dataPublicacao": "2026-08-31T21:45:20.405Z",
       "status": "Encerrada",
       "referencias": []
+    },
+    {
+      "empresaId": "e1",
+      "empresaNome": "Aurora Confecção Ltda.",
+      "titulo": "novav aga",
+      "especialidade": "Costura reta",
+      "valor": "R$ 200,00",
+      "prazo": "2027-01-01",
+      "modalidade": "Presencial",
+      "cidade": "Blumenau",
+      "estado": "SC",
+      "local": "Blumenau",
+      "descricao": "aaaaaaaaaaaaaaaaaaaaa",
+      "dataPublicacao": "2026-09-21T16:59:47.867Z",
+      "status": "Aberta",
+      "id": "FO70LHZqFjU"
     }
   ],
   "candidaturas": [
@@ -332,7 +348,7 @@
       "dataCandidatura": "2026-09-18T21:45:20.405Z",
       "freelancerId": "f2",
       "freelancerNome": "João Pereira",
-      "status": "Em análise",
+      "status": "Selecionado",
       "tipo": "Vaga",
       "link": "18-vaga-detalhe.html"
     },
@@ -350,7 +366,7 @@
       "dataCandidatura": "2026-09-18T21:45:20.405Z",
       "freelancerId": "f3",
       "freelancerNome": "Ana Lima",
-      "status": "Em análise",
+      "status": "Rejeitado",
       "tipo": "Vaga",
       "link": "18-vaga-detalhe.html"
     },
@@ -422,7 +438,7 @@
       "dataCandidatura": "2026-09-16T21:45:20.406Z",
       "freelancerId": "f1",
       "freelancerNome": "Marina Souza",
-      "status": "Em análise",
+      "status": "Cancelada",
       "tipo": "Vaga",
       "link": "18-vaga-detalhe.html"
     },
@@ -461,6 +477,42 @@
       "status": "Selecionado",
       "tipo": "Vaga",
       "link": "18-vaga-detalhe.html"
+    },
+    {
+      "vagaId": "v1",
+      "empresaId": "e1",
+      "empresaNome": "Aurora Modas",
+      "nomeEmpresa": "Aurora Modas",
+      "titulo": "Costureira para lote de vestidos",
+      "cidade": "Blumenau",
+      "estado": "SC",
+      "valor": "R$ 2.500,00",
+      "prazo": "2026-10-30",
+      "dataCandidatura": "2026-09-21T12:23:53.173Z",
+      "freelancerId": "f1",
+      "freelancerNome": "Marina Souza",
+      "status": "Rejeitado",
+      "tipo": "Vaga",
+      "link": "18-vaga-detalhe.html",
+      "id": "ZAipO2_UNoI"
+    },
+    {
+      "vagaId": "v6",
+      "empresaId": "e3",
+      "empresaNome": "Bela Peça",
+      "nomeEmpresa": "Bela Peça",
+      "titulo": "Estamparia em lote pequeno",
+      "cidade": "Florianópolis",
+      "estado": "SC",
+      "valor": "R$ 750,00",
+      "prazo": "2026-11-04",
+      "dataCandidatura": "2026-09-21T13:49:01.911Z",
+      "freelancerId": "f1",
+      "freelancerNome": "Marina Souza",
+      "status": "Cancelada",
+      "tipo": "Vaga",
+      "link": "18-vaga-detalhe.html",
+      "id": "7dlwXOxhwqM"
     }
   ],
   "convites": [
@@ -516,19 +568,39 @@
       "valor": "R$ 1.800,00",
       "descricao": "Ordem de serviço gerada a partir da candidatura de Marina Souza para a vaga \"Pilotista de peça piloto\".",
       "habilidades": [],
-      "status": "Em andamento",
+      "status": "Concluída",
       "dataPublicacao": "2026-09-10T21:45:20.406Z",
       "prazo": "2026-10-10",
       "previsaoConclusao": "",
-      "avaliacaoFreelancer": "Pendente",
+      "avaliacaoFreelancer": "Avaliado",
       "avaliacaoConfeccao": "Pendente",
       "observacoes": "",
       "referenciaBriefing": "/uploads/os/os1/briefing-1758000000000.png",
-      "referenciaEntrega": "",
+      "referenciaEntrega": "/uploads/os/os1/entrega-1790010619328.jpg",
       "historico": [
         {
           "data": "2026-09-10",
           "evento": "OS criada a partir da seleção do candidato."
+        },
+        {
+          "data": "2026-09-21",
+          "evento": "Registro visual da entrega enviado pelo freelancer."
+        },
+        {
+          "data": "2026-09-21",
+          "evento": "Registro visual da entrega enviado pelo freelancer."
+        },
+        {
+          "data": "2026-09-21",
+          "evento": "Registro visual da entrega enviado pelo freelancer."
+        },
+        {
+          "data": "2026-09-21",
+          "evento": "Registro visual da entrega enviado pelo freelancer."
+        },
+        {
+          "data": "2026-09-21",
+          "evento": "OS finalizada pela empresa."
         }
       ]
     },
@@ -599,6 +671,40 @@
           "evento": "OS cancelada pela empresa."
         }
       ]
+    },
+    {
+      "titulo": "Costureira para lote de vestidos",
+      "categoria": "Costura reta",
+      "modalidade": "Presencial",
+      "empresaId": "e1",
+      "empresaNome": "Aurora Confecção Ltda.",
+      "freelancerId": "f2",
+      "freelancerNome": "João Pereira",
+      "cidade": "Blumenau",
+      "estado": "SC",
+      "valor": "R$ 2.500,00",
+      "descricao": "Ordem de serviço gerada a partir da candidatura de João Pereira para a vaga \"Costureira para lote de vestidos\".",
+      "habilidades": [],
+      "status": "Cancelada",
+      "dataPublicacao": "2026-09-21T16:47:50.409Z",
+      "prazo": "2026-10-30",
+      "previsaoConclusao": "",
+      "avaliacaoFreelancer": "Pendente",
+      "avaliacaoConfeccao": "Pendente",
+      "observacoes": "",
+      "referenciaBriefing": "",
+      "referenciaEntrega": "",
+      "historico": [
+        {
+          "data": "2026-09-21",
+          "evento": "OS criada a partir da seleção do candidato."
+        },
+        {
+          "data": "2026-09-21",
+          "evento": "OS cancelada pela empresa."
+        }
+      ],
+      "id": "06jQZ1ZiZXE"
     }
   ],
   "avaliacoes": [
@@ -641,6 +747,14 @@
       "autor": "João Pereira",
       "criadoEm": "2026-09-19T09:45:20.406Z",
       "empresaId": "e3"
+    },
+    {
+      "nota": 5,
+      "comentario": "TOPPPP",
+      "autor": "Marina Souza",
+      "criadoEm": "2026-09-21T17:20:15.079Z",
+      "empresaId": "e1",
+      "id": "weMhhiiulec"
     }
   ],
   "conversas": [
@@ -676,6 +790,17 @@
       "participanteBTipo": "empresas",
       "ultimaMensagem": "Vamos reavaliar o cronograma da modelagem em breve.",
       "ultimaAtualizacao": "2026-09-07T18:45:20.406Z"
+    },
+    {
+      "participanteAId": "f2",
+      "participanteANome": "João Pereira",
+      "participanteATipo": "freelancers",
+      "participanteBId": "e1",
+      "participanteBNome": "Aurora Confecção Ltda.",
+      "participanteBTipo": "empresas",
+      "ultimaMensagem": "",
+      "ultimaAtualizacao": "2026-09-21T16:47:50.374Z",
+      "id": "a-tEy-GxalQ"
     }
   ],
   "mensagens": [
@@ -710,7 +835,7 @@
       "destinatarioNome": "Marina Souza",
       "conteudo": "Perfeito, o briefing completo está anexado na OS.",
       "timestamp": "2026-09-19T19:45:20.406Z",
-      "lida": false
+      "lida": true
     },
     {
       "id": "m2f236",
@@ -913,7 +1038,7 @@
       "tipo": "mensagem",
       "titulo": "Nova mensagem",
       "mensagem": "Aurora Modas: Perfeito, o briefing completo está anexado na OS.",
-      "lida": false,
+      "lida": true,
       "criadoEm": "2026-09-19T19:45:20.407Z",
       "link": "/pages/11-chat.html?conversaId=cv1"
     },
@@ -927,6 +1052,72 @@
       "lida": true,
       "criadoEm": "2026-09-10T21:45:20.407Z",
       "link": "/pages/21-assinatura.html"
+    },
+    {
+      "usuarioId": "e1",
+      "usuarioTipo": "empresas",
+      "tipo": "candidatura",
+      "titulo": "Nova candidatura recebida",
+      "mensagem": "Marina Souza se candidatou à vaga \"Costureira para lote de vestidos\".",
+      "lida": true,
+      "criadoEm": "2026-09-21T12:23:53.186Z",
+      "link": "/pages/17-candidatos-vaga.html?id=v1",
+      "id": "yXeYwfIKnLk"
+    },
+    {
+      "usuarioId": "e3",
+      "usuarioTipo": "empresas",
+      "tipo": "candidatura",
+      "titulo": "Nova candidatura recebida",
+      "mensagem": "Marina Souza se candidatou à vaga \"Estamparia em lote pequeno\".",
+      "lida": true,
+      "criadoEm": "2026-09-21T13:49:01.921Z",
+      "link": "/pages/17-candidatos-vaga.html?id=v6",
+      "id": "HAO2xVHCAF8"
+    },
+    {
+      "usuarioId": "f2",
+      "usuarioTipo": "freelancers",
+      "tipo": "candidatura",
+      "titulo": "Candidatura aceita",
+      "mensagem": "Sua candidatura para a vaga \"Costureira para lote de vestidos\" foi aceita.",
+      "lida": false,
+      "criadoEm": "2026-09-21T16:47:50.383Z",
+      "link": "/pages/29-minhas-os.html",
+      "id": "nsg_Tx4UQrw"
+    },
+    {
+      "usuarioId": "f1",
+      "usuarioTipo": "freelancers",
+      "tipo": "os",
+      "titulo": "Ordem de serviço atualizada",
+      "mensagem": "A OS \"Pilotista de peça piloto\" foi finalizada pela empresa.",
+      "lida": true,
+      "criadoEm": "2026-09-21T17:18:29.261Z",
+      "link": "/pages/19-ordem-servico-detalhe.html?id=os1",
+      "id": "6PHQvpFCEaw"
+    },
+    {
+      "usuarioId": "f2",
+      "usuarioTipo": "freelancers",
+      "tipo": "os",
+      "titulo": "Ordem de serviço atualizada",
+      "mensagem": "A OS \"Costureira para lote de vestidos\" foi cancelada pela empresa.",
+      "lida": false,
+      "criadoEm": "2026-09-21T17:18:31.600Z",
+      "link": "/pages/19-ordem-servico-detalhe.html?id=06jQZ1ZiZXE",
+      "id": "u8uReAznpsk"
+    },
+    {
+      "usuarioId": "e1",
+      "usuarioTipo": "empresas",
+      "tipo": "avaliacao",
+      "titulo": "Nova avaliação recebida",
+      "mensagem": "Marina Souza avaliou você com nota 5 de 5.",
+      "lida": false,
+      "criadoEm": "2026-09-21T17:20:15.117Z",
+      "link": "/pages/26-perfil-empresa-publico.html?id=e1",
+      "id": "-YYO_PIIYZU"
     }
   ],
   "assinaturas": [
@@ -1109,5 +1300,6 @@
       "destaque": true,
       "beneficios": []
     }
-  ]
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
 }

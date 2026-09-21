@@ -1,5 +1,4 @@
-// Editar Ordem de Serviço (empresa) — padrão da 13-editar-vaga
-
+// Editar Ordem de Serviço (empresa)
 document.addEventListener('DOMContentLoaded', function () {
     const sessao = exigirTipo('empresas');
     if (!sessao) return;
@@ -32,12 +31,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const inputEmpresa = document.getElementById('empresa');
     const inputDescricao = document.getElementById('descricao');
     const inputObservacoes = document.getElementById('observacoes');
-    const inputAvaliacaoFreelancer = document.getElementById('avaliacaoFreelancer');
-    const inputAvaliacaoConfeccao = document.getElementById('avaliacaoConfeccao');
     const inputBriefing = document.getElementById('briefingInput');
     const briefingPreview = document.getElementById('briefingPreview');
-    const inputEntrega = document.getElementById('entregaInput');
-    const entregaPreview = document.getElementById('entregaPreview');
     const badgeOSId = document.getElementById('badgeOSId');
 
     const LIMITE_FOTO_MB = 5;
@@ -45,7 +40,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Anexos gravados por CAMINHO no banco; preview em sessão via blob URL.
     const anexoBriefing = { caminho: '', previewUrl: '' };
-    const anexoEntrega = { caminho: '', previewUrl: '' };
 
     /* ------------------------- menu mobile -------------------------------- */
     function initMenuMobile() {
@@ -156,7 +150,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     configurarUpload(inputBriefing, anexoBriefing, briefingPreview, 'briefing');
-    configurarUpload(inputEntrega, anexoEntrega, entregaPreview, 'entrega');
 
     /* ------------------------- carregar OS --------------------------------- */
     async function carregarOS() {
@@ -192,8 +185,6 @@ document.addEventListener('DOMContentLoaded', function () {
             inputEmpresa.value = os.empresaNome || '';
             inputDescricao.value = os.descricao || '';
             inputObservacoes.value = os.observacoes || '';
-            inputAvaliacaoFreelancer.value = os.avaliacaoFreelancer || 'Pendente';
-            inputAvaliacaoConfeccao.value = os.avaliacaoConfeccao || 'Pendente';
 
             await carregarUFs(selectEstado, os.estado || '');
             if (os.cidade) inputCidade.value = os.cidade;
@@ -202,10 +193,6 @@ document.addEventListener('DOMContentLoaded', function () {
             anexoBriefing.caminho = typeof os.referenciaBriefing === 'string' ? os.referenciaBriefing : '';
             anexoBriefing.previewUrl = anexoBriefing.caminho;
             renderizarAnexo(anexoBriefing, briefingPreview);
-
-            anexoEntrega.caminho = typeof os.referenciaEntrega === 'string' ? os.referenciaEntrega : '';
-            anexoEntrega.previewUrl = anexoEntrega.caminho;
-            renderizarAnexo(anexoEntrega, entregaPreview);
 
             loadingBar.setAttribute('hidden', '');
             form.removeAttribute('hidden');
@@ -231,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!inputDescricao.value.trim()) erros.push('Informe a descrição do serviço.');
 
         if (erros.length) {
-            mostrarMensagem(erros.join('<br>'), 'error');
+            mostrarMensagem(erros.join('\n'), 'error');
             return false;
         }
         return true;
@@ -255,8 +242,7 @@ document.addEventListener('DOMContentLoaded', function () {
             previsaoConclusao: inputPrevisao.value,
             descricao: inputDescricao.value.trim(),
             observacoes: inputObservacoes.value.trim(),
-            referenciaBriefing: anexoBriefing.caminho,
-            referenciaEntrega: anexoEntrega.caminho
+            referenciaBriefing: anexoBriefing.caminho
         };
 
         btnSubmit.disabled = true;

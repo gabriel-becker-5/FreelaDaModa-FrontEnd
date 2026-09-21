@@ -57,6 +57,12 @@ async function carregarDadosEmpresa(sessao) {
     }
 }
 
+function classeBadgeOS(status) {
+    if (status === 'Concluída') return 'badge-success';
+    if (status === 'Cancelada') return 'badge-danger';
+    return 'badge-warning';
+}
+
 /* -------------------------------------------------------------------------- */
 /* 4. ORDENS DE SERVIÇO EM ANDAMENTO                                          */
 /* -------------------------------------------------------------------------- */
@@ -73,7 +79,6 @@ async function carregarOsAtivas(sessao) {
         const ativas = ordensServico.filter(function (os) { return os.status === 'Em andamento'; });
 
         container.innerHTML = '';
-        if (contador) contador.textContent = `${ativas.length} em andamento`;
 
         if (!ativas.length) {
             const vazio = document.createElement('p');
@@ -98,13 +103,22 @@ async function carregarOsAtivas(sessao) {
             const info = document.createElement('div');
             info.className = 'service-info';
 
+            const tituloLinha = document.createElement('div');
+            tituloLinha.style.cssText = 'display:flex; align-items:center; gap:8px; flex-wrap:wrap;';
+
             const titulo = document.createElement('h3');
             titulo.textContent = os.titulo;
 
+            const badgeOS = document.createElement('span');
+            badgeOS.className = `badge ${classeBadgeOS(os.status)}`;
+            badgeOS.textContent = os.status || 'Em andamento';
+
             const detalhes = document.createElement('span');
-            detalhes.textContent = `Prazo: ${prazo} • Valor: ${valor}`;
+            detalhes.textContent = ` | Prazo: ${prazo} • Valor: ${valor}`;
 
             info.appendChild(titulo);
+            info.appendChild(tituloLinha);
+
             if (os.freelancerId) {
                 const linkFreelancer = document.createElement('a');
                 linkFreelancer.href = `/pages/25-perfil-freelancer-publico.html?id=${encodeURIComponent(os.freelancerId)}`;
@@ -119,15 +133,33 @@ async function carregarOsAtivas(sessao) {
             }
             info.appendChild(detalhes);
 
-            const botao = document.createElement('a');
-            botao.href = `/pages/14-editar-os.html?id=${encodeURIComponent(os.id)}`;
-            botao.className = 'btn btn-outline-purple';
-            botao.style.padding = '6px 14px';
-            botao.style.fontSize = '0.8rem';
-            botao.textContent = 'Abrir';
+            const botaoEditar = document.createElement('a');
+            botaoEditar.href = `/pages/14-editar-os.html?id=${encodeURIComponent(os.id)}`;
+            botaoEditar.className = 'btn btn-outline';
+            botaoEditar.style.padding = '6px 12px';
+            botaoEditar.style.fontSize = '0.82rem';
+            botaoEditar.innerHTML = '<i class="bi bi-pencil"></i> Editar';
+            
+            const botaoAbrir = document.createElement('a');
+            botaoAbrir.href = `/pages/19-ordem-servico-detalhe.html?id=${encodeURIComponent(os.id)}`;
+            botaoAbrir.className = 'btn btn-outline-purple';
+            botaoAbrir.style.padding = '6px 12px';
+            botaoAbrir.style.fontSize = '0.82rem';
+            botaoAbrir.innerHTML = '<i class="bi-folder2-open"></i> Detalhar';
+
+            const acoes = document.createElement('div');
+            acoes.className = 'job-actions';
+            
+            tituloLinha.appendChild(titulo);
+            tituloLinha.appendChild(badgeOS);
+
+            acoes.appendChild(botaoAbrir);
+            acoes.appendChild(botaoEditar);
 
             item.appendChild(info);
-            item.appendChild(botao);
+
+            item.appendChild(acoes);
+
             container.appendChild(item);
         });
     } catch (erro) {
@@ -149,7 +181,6 @@ function classeBadgeStatus(status) {
 
 async function carregarMinhasVagas(sessao) {
     const container = document.getElementById('lista-minhas-vagas');
-    const contadorTexto = document.getElementById('contador-vagas-texto');
     const metricVagas = document.getElementById('metric-vagas-abertas');
 
     try {
@@ -163,7 +194,6 @@ async function carregarMinhasVagas(sessao) {
             return vaga.status === 'Aberta' || vaga.status === 'Pausada';
         });
         metricVagas.textContent = ativas.length;
-        contadorTexto.textContent = `${ativas.length} vaga(s) ativa(s)`;
 
         // O preview do dashboard não exibe vagas encerradas.
         const vagasVisiveis = vagas.filter(function (vaga) {
@@ -195,18 +225,26 @@ async function carregarMinhasVagas(sessao) {
             titulo.textContent = vaga.titulo;
 
             const linha = document.createElement('span');
-            linha.textContent = `${vaga.especialidade || '—'} • ${vaga.valor || 'A combinar'} • Prazo: ${vaga.prazo || '—'}`;
+            linha.textContent = `${vaga.especialidade || '—'} • Prazo: ${formatarData(vaga.prazo) || '—'} • Valor: ${vaga.valor || 'A combinar'}`;
 
             const badge = document.createElement('span');
             badge.className = `badge ${classeBadgeStatus(vaga.status)}`;
             badge.textContent = vaga.status || 'Aberta';
+            badge.style.marginLeft = '8px';
+
 
             detalhes.appendChild(titulo);
+            titulo.appendChild(badge);
             detalhes.appendChild(linha);
-            detalhes.appendChild(badge);
 
             const acoes = document.createElement('div');
             acoes.className = 'job-actions';
+
+            const linkDetalhar = document.createElement('a');
+            linkDetalhar.href = `/pages/18-vaga-detalhe.html?id=${encodeURIComponent(vaga.id)}`;
+            linkDetalhar.className = 'btn btn-outline-purple';
+            linkDetalhar.style.cssText = 'padding: 6px 12px; font-size: 0.82rem;';
+            linkDetalhar.innerHTML = '<i class="bi bi-folder2-open"></i> Detalhar';
 
             const linkCandidatos = document.createElement('a');
             linkCandidatos.href = `/pages/17-candidatos-vaga.html?id=${encodeURIComponent(vaga.id)}`;
@@ -221,20 +259,9 @@ async function carregarMinhasVagas(sessao) {
             linkEditar.innerHTML = '<i class="bi bi-pencil"></i> Editar';
 
             acoes.appendChild(linkCandidatos);
+            acoes.appendChild(linkDetalhar);
             acoes.appendChild(linkEditar);
-
-            if (vaga.status !== 'Encerrada') {
-                const botaoEncerrar = document.createElement('button');
-                botaoEncerrar.type = 'button';
-                botaoEncerrar.className = 'btn btn-outline';
-                botaoEncerrar.style.cssText = 'padding: 6px 12px; font-size: 0.82rem; color: #d93025; border-color: #ffc1bc;';
-                botaoEncerrar.innerHTML = '<i class="bi bi-x-circle"></i> Encerrar';
-                botaoEncerrar.addEventListener('click', function () {
-                    encerrarVaga(vaga);
-                });
-                acoes.appendChild(botaoEncerrar);
-            }
-
+            
             vagaItem.appendChild(detalhes);
             vagaItem.appendChild(acoes);
             container.appendChild(vagaItem);
@@ -357,6 +384,7 @@ async function carregarMetricasEcandidaturas(sessao) {
             const badge = document.createElement('span');
             badge.className = 'badge ' + classeBadgeCandidatura(candidatura.status);
             badge.style.fontSize = '0.8rem';
+            badge.style.marginLeft = '8px';
             badge.textContent = candidatura.status || '';
             titulo.appendChild(badge);
 

@@ -1072,11 +1072,13 @@ a:focus-visible {
   grid-template-columns: 280px 1fr;
   gap: 20px;
 }
-.chat-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 10px;
+.chat-list .btn.btn-primary strong,
+.chat-list .btn.btn-primary .text-muted {
+  color: var(--text-inverse);
+}
+.chat-list .btn.btn-primary .chat-avatar {
+  background: rgba(255, 255, 255, 0.18);
+  color: var(--text-inverse);
 }
 .chat-thread {
   display: flex;

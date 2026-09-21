@@ -1,4 +1,4 @@
-// Ordens de Serviço (empresa) — padrão da 15-minhas-vagas / 29-minhas-os
+// Ordens de Serviço (empresa)
 
 const API_URL_OS = `${API_BASE}/ordensServico`;
 
@@ -230,7 +230,7 @@ function preencherLinha(os) {
 
     const linkDetalhar = document.createElement('a');
     linkDetalhar.className = 'btn btn-primary';
-    linkDetalhar.textContent = 'Ver';
+    linkDetalhar.textContent = 'Detalhar';
     linkDetalhar.href = `/pages/19-ordem-servico-detalhe.html?id=${encodeURIComponent(os.id)}`;
     divAcoes.appendChild(linkDetalhar);
 
@@ -244,7 +244,10 @@ function preencherLinha(os) {
         const botaoFinalizar = document.createElement('button');
         botaoFinalizar.type = 'button';
         botaoFinalizar.className = 'btn btn-outline';
-        botaoFinalizar.innerHTML = '<i class="bi bi-check-circle"></i> Finalizar';
+        botaoFinalizar.style.color = '#d93025';
+        botaoFinalizar.style.borderColor = '#ffc1bc';
+        botaoFinalizar.innerHTML = '<i class="bi bi-check-circle"></i> Encerrar';
+        
         botaoFinalizar.addEventListener('click', function () {
             alterarStatus(os, 'Concluída');
         });

@@ -1,4 +1,4 @@
-// Candidatos da Vaga (empresa) — padrão da 20-minhas-candidaturas
+// Candidatos da Vaga (empresa)
 
 const API_URL = `${API_BASE}/candidaturas`;
 

@@ -5,7 +5,7 @@
 const MENUS = {
     freelancers: [
         { pagina: '03-dashboard-freelancer', href: '/pages/03-dashboard-freelancer.html', rotulo: 'Dashboard', icone: 'bi-grid-1x2' },
-        { pagina: '07-vagas', href: '/pages/07-vagas.html', rotulo: 'Minhas Vagas', icone: 'bi-briefcase' },
+        { pagina: '07-vagas', href: '/pages/07-vagas.html', rotulo: 'Mural de Vagas', icone: 'bi-briefcase' },
         { pagina: '20-minhas-candidaturas', href: '/pages/20-minhas-candidaturas.html', rotulo: 'Minhas Candidaturas', icone: 'bi-clipboard-check' },
         { pagina: '29-minhas-os', href: '/pages/29-minhas-os.html', rotulo: 'Minhas OSs', icone: 'bi-clipboard-data' },
         { pagina: '08-perfil-freelancer', href: '/pages/08-perfil-freelancer.html', rotulo: 'Perfil', icone: 'bi-person' },

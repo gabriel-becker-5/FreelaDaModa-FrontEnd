@@ -1,4 +1,4 @@
-// Perfil da Empresa
+// Editar perfil Empresa
 const API_URL = `${API_BASE}/empresas`;
 
 const sessao = exigirTipo('empresas');
@@ -440,7 +440,7 @@ function validarFormulario() {
     if (!inputEstadoComercial.value.trim()) erros.push('Estado não preenchido — informe um CEP válido.');
 
     if (erros.length) {
-        mostrarMensagem(erros.join('<br>'), 'error');
+        mostrarMensagem(erros.join('\n<br>'), 'error');
         return false;
     }
 

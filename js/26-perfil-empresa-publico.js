@@ -1,4 +1,4 @@
-// Perfil público da empresa — padrão da 25-perfil-freelancer-publico
+// Perfil público da empresa
 
 const API_URL = `${API_BASE}/empresas`;
 const API_URL_VAGAS = `${API_BASE}/vagas`;

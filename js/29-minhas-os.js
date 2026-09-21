@@ -1,7 +1,4 @@
-// npx json-server --watch db.json --port 3000
-// Pendências
-// 1. Token JWT
-
+// Minhas Ordens de Serviço (Freelancer e Empresa)
 const API_URL_OS = `${API_BASE}/ordensServico`;
 
 const sessao = exigirTipo('freelancers');
@@ -29,9 +26,6 @@ const mensagemErro = document.querySelector('#msg-error');
 const mensagemVazio = document.querySelector('#msg-empty');
 const cardFiltros = document.querySelector('#cardFiltros');
 const cardTabela = document.querySelector('#cardTabela');
-const modalCancelamento = document.querySelector('#modalCancelamento');
-const btnConfirmarCancelamento = document.querySelector('#btnConfirmarCancelamento');
-const btnFecharCancelamento = document.querySelector('#btnFecharCancelamento');
 const btnPaginaAnterior = document.querySelector('#btnPaginaAnterior');
 const btnPaginaProxima = document.querySelector('#btnPaginaProxima');
 const resumoPaginas = document.querySelector('#resumoPaginas');
@@ -41,7 +35,6 @@ const PAGE_SIZE = 10;
 let todasOS = [];
 let itensFiltrados = [];
 let paginaAtual = 1;
-let osParaCancelar = null;
 
 /* ------------------------- menu mobile ------------------------------------ */
 
@@ -240,12 +233,42 @@ function preencherLinha(os) {
 
     if (os.status === 'Em andamento') {
         const botaoCancelar = document.createElement('button');
-        botaoCancelar.className = 'btn btn-danger';
+        botaoCancelar.className = 'btn btn-outline';
+        botaoCancelar.style.color = '#d93025';
+        botaoCancelar.style.borderColor = '#ffc1bc';
+        botaoCancelar.innerHTML = '<i class="bi bi-x-circle"></i> Encerrar';
         botaoCancelar.type = 'button';
-        botaoCancelar.textContent = 'Cancelar';
-        botaoCancelar.addEventListener('click', function () {
-            osParaCancelar = os;
-            modalCancelamento.hidden = false;
+        botaoCancelar.addEventListener('click', async function () {
+            const confirmou = await modalConfirmar({
+                titulo: 'Confirmar cancelamento',
+                mensagem: 'Você tem certeza que deseja cancelar esta ordem de serviço? Essa ação não poderá ser desfeita.',
+                textoConfirmar: 'Confirmar cancelamento',
+                textoCancelar: 'Cancelar',
+                perigoso: true
+            });
+            if (!confirmou) return;
+
+            try {
+                const novoHistorico = (os.historico || []).concat([
+                    { data: hojeLocalISO(), evento: 'OS cancelada pelo freelancer.' }
+                ]);
+                const resposta = await fetch(`${API_URL_OS}/${os.id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ status: 'Cancelada', historico: novoHistorico })
+                });
+
+                if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
+
+                mostrarMensagem('Ordem de serviço cancelada.', 'success');
+                carregarDadosFreelancer();
+            } catch (erro) {
+                console.error('Erro ao cancelar ordem de serviço:', erro);
+                mensagemErro.hidden = false;
+            }
         });
         divAcoes.appendChild(botaoCancelar);
     }
@@ -310,41 +333,6 @@ btnPaginaProxima.addEventListener('click', function () {
     if (paginaAtual < totalPaginas) {
         paginaAtual++;
         renderizarPagina();
-    }
-});
-
-/* ------------------------- cancelamento ------------------------------------ */
-
-btnFecharCancelamento.addEventListener('click', function () {
-    modalCancelamento.hidden = true;
-    osParaCancelar = null;
-});
-
-btnConfirmarCancelamento.addEventListener('click', async function () {
-    if (!osParaCancelar) return;
-
-    try {
-        const novoHistorico = (osParaCancelar.historico || []).concat([
-            { data: hojeLocalISO(), evento: 'OS cancelada pelo freelancer.' }
-        ]);
-        const resposta = await fetch(`${API_URL_OS}/${osParaCancelar.id}`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ status: 'Cancelada', historico: novoHistorico })
-        });
-
-        if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
-
-        modalCancelamento.hidden = true;
-        osParaCancelar = null;
-        toastMsg('Ordem de serviço cancelada.', 'success');
-        carregarDadosFreelancer();
-    } catch (erro) {
-        console.error('Erro ao cancelar ordem de serviço:', erro);
-        mensagemErro.hidden = false;
     }
 });
 

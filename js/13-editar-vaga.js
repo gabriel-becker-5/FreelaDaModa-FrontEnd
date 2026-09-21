@@ -222,7 +222,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (erros.length) {
-            mostrarMensagem(erros.join('<br>'), 'error');
+            mostrarMensagem(erros.join('\n'), 'error');
             return false;
         }
         return true;

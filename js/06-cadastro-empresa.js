@@ -1,7 +1,4 @@
-// Cadastro de Empresa
-
 const API_URL = `${API_BASE}/empresas`;
-
 const form = document.querySelector('#form-cadastro-empresa');
 const alertBar = document.querySelector('#alert-cadastro-empresa');
 const inputNomeResponsavel = document.querySelector('#resp-nome');
@@ -258,7 +255,7 @@ function validarFormulario() {
     else if (!atualizarConfirmacaoSenha()) erros.push('As senhas não coincidem.');
 
     if (erros.length) {
-        mostrarMensagem(erros.join('<br>'), 'error');
+        mostrarMensagem(erros.join('\n'), 'error');
         return false;
     }
 

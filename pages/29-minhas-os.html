@@ -39,6 +39,8 @@
             <div class="header-actions" id="header-acoes"></div>
           </div>
 
+          <div id="mensagemStatus" class="alert mb-md" role="alert" aria-live="polite" hidden></div>
+
           <div class="alert alert-error mb-md" id="msg-empty" aria-live="polite" hidden>
             Você ainda não tem ordens de serviço.
           </div>
@@ -99,14 +101,6 @@
               <button class="btn" type="button" id="btnPaginaAnterior" disabled>Anterior</button>
               <span id="resumoPaginas">Mostrando 0 de 0</span>
               <button class="btn" type="button" id="btnPaginaProxima" disabled>Próxima</button>
-            </div>
-            <div class="modal-static" role="alert" aria-live="polite" hidden id="modalCancelamento">
-              <div class="modal-static-title">Confirmação de Cancelamento</div>
-              <p>Você tem certeza que deseja cancelar esta ordem de serviço? Essa ação não poderá ser desfeita.</p>
-              <div class="cluster mt-sm">
-                <button class="btn btn-danger" type="button" id="btnConfirmarCancelamento">Confirmar cancelamento</button>
-                <button class="btn" type="button" id="btnFecharCancelamento">Cancelar</button>
-              </div>
             </div>
           </div>
 

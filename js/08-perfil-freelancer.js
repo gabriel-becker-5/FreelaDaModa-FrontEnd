@@ -1,7 +1,4 @@
-// npx json-server --watch db.json --port 3000
-// Pendências
-// 1. Token JWT
-
+// Editar Perfil Freelancer
 const API_URL = `${API_BASE}/freelancers`;
 
 const sessao = exigirTipo('freelancers');
@@ -434,7 +431,7 @@ function validarFormulario() {
     if (obterSelecionados(inputMaquinas).length < 1) erros.push('Selecione pelo menos uma Máquina.');
 
     if (erros.length) {
-        mostrarMensagem(erros.join('<br>'), 'error');
+        mostrarMensagem(erros.join('\n'), 'error');
         return false;
     }
 

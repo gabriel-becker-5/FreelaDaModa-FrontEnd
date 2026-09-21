@@ -1,5 +1,4 @@
-// Minhas Vagas (empresa) — padrão da 20-minhas-candidaturas
-
+// Minhas Vagas publicadas (empresa)
 const API_URL = `${API_BASE}/vagas`;
 
 const sessao = exigirTipo('empresas');
@@ -245,8 +244,8 @@ function preencherLinha(vaga) {
 
     const linkDetalhes = document.createElement('a');
     linkDetalhes.href = `/pages/18-vaga-detalhe.html?id=${encodeURIComponent(vaga.id)}`;
-    linkDetalhes.className = 'btn btn-outline';
-    linkDetalhes.textContent = 'Detalhes';
+    linkDetalhes.className = 'btn btn-primary';
+    linkDetalhes.textContent = 'Detalhar';
     divAcoes.appendChild(linkDetalhes);
 
     const linkEditar = document.createElement('a');

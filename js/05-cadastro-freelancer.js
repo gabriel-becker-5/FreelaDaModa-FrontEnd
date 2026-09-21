@@ -1,5 +1,4 @@
 const API_URL = `${API_BASE}/freelancers`;
-
 const form = document.querySelector('#form-cadastro');
 const alertBar = document.querySelector('#alert-cadastro');
 const inputNome = document.querySelector('#nome');
@@ -251,7 +250,7 @@ function validarFormulario() {
     else if (!atualizarConfirmacaoSenha()) erros.push('As senhas não coincidem.');
 
     if (erros.length) {
-        mostrarMensagem(erros.join('<br>'), 'error');
+        mostrarMensagem(erros.join('\n'), 'error');
         return false;
     }
 

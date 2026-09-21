@@ -29,8 +29,11 @@
         </div>
         <div id="mensagemStatus" class="alert mb-md" role="alert" aria-live="polite" hidden></div>
         <div class="cluster mb-md" id="os-acoes">
+         <div class="">
+  <a href="javascript:history.back()" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Voltar</a>
+</div>
           <a href="/pages/14-editar-os.html" class="btn" id="os-link-editar" hidden>Editar</a>
-          <button class="btn btn-primary" id="btn-finalizar-os" hidden>Finalizar</button>
+          <button class="btn btn-primary" id="btn-finalizar-os" hidden>Encerrar</button>
           <a href="/pages/23-avaliacao-os.html" class="btn btn-primary" id="os-link-avaliar" hidden>
             <i class="bi bi-star"></i> Avaliar confecção
           </a>
@@ -77,6 +80,11 @@
           <div class="card">
             <div class="section-title">Referências visuais da entrega</div>
             <div class="upload-preview" id="os-entrega-display">—</div>
+            <div id="os-entrega-upload" hidden>
+              <label class="btn btn-outline" for="entregaInput"><i class="bi bi-image"></i> Anexar registro da entrega</label>
+              <input type="file" id="entregaInput" accept="image/*" hidden />
+              <span class="field-message">Imagem de até 5MB.</span>
+            </div>
           </div>
         </section>
         <section class="card mt-lg">

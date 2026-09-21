@@ -384,7 +384,7 @@ function mostrarMensagem(texto, tipo) {
         warning: 'bi-exclamation-triangle-fill'
     };
     el.className = `alert mb-md alert-${tipoClasse}`;
-    el.innerHTML = `<i class="bi ${icones[tipoClasse]}"></i> ${escapeHtml(texto)}`;
+    el.innerHTML = `<i class="bi ${icones[tipoClasse]}"></i> ${escapeHtml(texto).replace(/\n/g, '<br>')}`;
     el.removeAttribute('hidden');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }

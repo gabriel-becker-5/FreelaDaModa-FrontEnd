@@ -1,7 +1,4 @@
-// npx json-server --watch db.json --port 3000
-// Pendências
-// 1. Token JWT
-
+// Perfil público do Freelancer
 const API_URL = `${API_BASE}/freelancers`;
 const API_URL_AVALIACOES = `${API_BASE}/avaliacoes`;
 const freelancerId = new URLSearchParams(window.location.search).get('id');

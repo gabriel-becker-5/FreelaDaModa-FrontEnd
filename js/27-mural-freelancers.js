@@ -1,4 +1,4 @@
-// Mural de Freelancers — padrão da 07 (público + logado) com nav.js
+// Mural de Freelancers (para empresas))
 
 const API_URL = `${API_BASE}/freelancers`;
 let todosFreelancers = [];

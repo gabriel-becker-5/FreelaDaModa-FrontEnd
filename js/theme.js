@@ -1,8 +1,5 @@
-/* Tema claro/escuro — fonte única.
-   Roda no <head>, antes do body, pra restaurar o tema salvo sem flash.
-   O clique no botão só muda o atributo; o MutationObserver abaixo é quem
-   persiste no localStorage e sincroniza os ícones, então qualquer forma de
-   trocar data-theme (clique, DevTools, outro script) fica coberta. */
+/* Controle do tema claro/escuro — centralizado neste .JS */
+
 (function () {
   var root = document.documentElement;
 

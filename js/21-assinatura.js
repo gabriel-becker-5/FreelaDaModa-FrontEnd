@@ -1,6 +1,3 @@
-// Assinatura (empresa) — padrão nav.js + modalConfirmar (ui.js)
-// O catálogo de planos vem da API (entidade `planos`, fonte de verdade).
-
 const API_URL_ASSINATURAS = `${API_BASE}/assinaturas`;
 const API_URL_PLANOS = `${API_BASE}/planos`;
 
