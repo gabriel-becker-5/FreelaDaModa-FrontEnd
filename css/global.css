@@ -1072,11 +1072,13 @@ a:focus-visible {
   grid-template-columns: 280px 1fr;
   gap: 20px;
 }
-.chat-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 10px;
+.chat-list .btn.btn-primary strong,
+.chat-list .btn.btn-primary .text-muted {
+  color: var(--text-inverse);
+}
+.chat-list .btn.btn-primary .chat-avatar {
+  background: rgba(255, 255, 255, 0.18);
+  color: var(--text-inverse);
 }
 .chat-thread {
   display: flex;
@@ -1599,8 +1601,12 @@ a:focus-visible {
   display: block;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   /* B12 - Tabelas como cards no mobile */
+  .table.table-card {
+    min-width: 0;
+    width: 100%;
+  }
   .table-card thead { display: none; }
   .table-card tr {
     display: block;
@@ -1615,6 +1621,7 @@ a:focus-visible {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 12px;
     padding: 7px 0;
     border: none;
     border-bottom: 1px solid var(--surface-alt);
@@ -1627,16 +1634,21 @@ a:focus-visible {
     color: var(--text-secondary);
     margin-right: 8px;
     font-size: 12px;
+    flex-shrink: 0;
   }
 }
 
 /* SITE HEADER (navbar de topo: Homepage, Login, Cadastro) */
 .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 900;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 20px 20px;
-    background: transparent;
+    background: var(--bg);
+    box-shadow: 0 2px 12px rgba(18, 0, 31, 0.06);
 }
 
 .logo-area {
@@ -2866,6 +2878,7 @@ h2.section-title {
 .job-actions {
     display: flex;
     gap: 8px;
+    flex-wrap: wrap;
 }
 
 .status-badge {
@@ -3056,7 +3069,7 @@ h2.section-title {
 
 .filter-bar {
     display: grid;
-    grid-template-columns: 2fr 1.2fr auto;
+    grid-template-columns: 1.5fr 1fr 1fr 1fr auto;
     gap: 12px;
     background: rgba(255, 255, 255, 0.1);
     padding: 12px;
@@ -3074,6 +3087,28 @@ h2.section-title {
     color: var(--text-primary);
     font-size: 14px;
     outline: none;
+    min-width: 0;
+    width: 100%;
+}
+
+.filter-bar .autocomplete-wrapper {
+    min-width: 0;
+}
+
+.filter-bar > .btn {
+    position: relative;
+    z-index: 20;
+    white-space: nowrap;
+}
+
+/* Variante de 6 controles (usada na listagem de vagas da empresa) */
+.filter-bar.filter-bar--6 {
+    grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr auto;
+}
+
+/* Variante de 3 controles (usada na listagem de candidatos da empresa) */
+.filter-bar.filter-bar--3 {
+    grid-template-columns: 2fr 1fr auto;
 }
 
 .jobs-layout {
@@ -3170,10 +3205,40 @@ h2.section-title {
     color: var(--text-primary);
 }
 
+@media (max-width: 900px) {
+    .filter-bar,
+    .filter-bar.filter-bar--6,
+    .filter-bar.filter-bar--3 {
+        grid-template-columns: 1fr 1fr;
+    }
+    .filter-bar > .btn {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
+}
+
 @media (max-width: 768px) {
-    .filter-bar { grid-template-columns: 1fr; }
+    .filter-bar,
+    .filter-bar.filter-bar--6,
+    .filter-bar.filter-bar--3 {
+        grid-template-columns: 1fr;
+    }
+    .filter-bar > .btn {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
     .job-card-header { flex-direction: column; gap: 8px; }
     .job-meta { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .mural-header {
+        padding: 20px 16px;
+        margin-bottom: 20px;
+    }
+    .mural-header h1 {
+        font-size: 1.6rem;
+    }
+    .mural-header p {
+        font-size: 0.9rem;
+    }
 }
 
 /* mural de freelancers — reaproveita .mural-header/.filter-bar do mural de vagas */
@@ -3198,16 +3263,18 @@ h2.section-title {
 /* Perfil com Impulsionamento ativo (Pro/Premium) — aparece primeiro no mural
    e ganha esse destaque visual (ver js/27-mural-freelancers.js). */
 .freelancer-card-destaque {
+  z-index: 1;
+  padding-top: 48px;
     border-color: var(--color-primary);
     box-shadow: 0 0 0 1px var(--color-primary), var(--shadow-lg);
 }
 
 .freelancer-badge-destaque {
     position: absolute;
-    top: -10px;
+  top: 14px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 11px;
+  font-size: calc(11px * 1.15);
     white-space: nowrap;
 }
 
@@ -3254,4 +3321,186 @@ h2.section-title {
 
 @media (max-width: 600px) {
     .freelancers-layout { grid-template-columns: 1fr; }
+}
+
+/* Layout compartilhado entre áreas logadas */
+.user-greeting {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.banner-validacao {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    background: var(--alert-warning-bg);
+    color: var(--warning);
+    border: 1px solid var(--alert-warning-border);
+    font-size: 14px;
+}
+.banner-validacao a {
+    color: inherit;
+    font-weight: 700;
+    text-decoration: underline;
+}
+.banner-validacao i {
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.requisito-ok {
+    color: var(--success);
+}
+.requisito-ok i {
+    color: var(--success);
+}
+
+.sidebar a i {
+    margin-right: 8px;
+}
+
+.autocomplete-item.disabled {
+    cursor: default;
+    color: var(--text-secondary);
+}
+.autocomplete-item.disabled:hover {
+    background: transparent;
+}
+
+.freelancer-badge-destaque {
+    z-index: 2;
+}
+
+.modal-confirm-mensagem {
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+/* uploads de foto e referências (perfil) */
+
+.upload-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.foto-preview {
+    margin-top: 10px;
+}
+
+.foto-preview img {
+    width: 96px;
+    height: 96px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+}
+
+.referencias-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.referencia-item {
+    position: relative;
+}
+
+.referencia-item img {
+    width: 96px;
+    height: 96px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+}
+
+.referencia-item button {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: var(--danger);
+    color: #fff;
+    cursor: pointer;
+    line-height: 1;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.imagem-placeholder {
+    width: 96px;
+    height: 96px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    border: 1px dashed var(--border);
+    color: var(--text-secondary);
+    font-size: 26px;
+    background: var(--surface-alt);
+}
+
+/* perfil público — selo, avatar com foto e referências maiores */
+
+.badge-primary-bg {
+    background: var(--badge-primary-bg);
+    color: var(--color-primary);
+}
+
+.profile-avatar-lg img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 20px;
+}
+
+#lista-referencias .referencia-item img {
+    width: 220px;
+    height: 220px;
+    max-width: 100%;
+}
+
+#lista-referencias .imagem-placeholder {
+    width: 220px;
+    height: 220px;
+    max-width: 100%;
+}
+
+/* referências grandes nas telas de exibição (detalhe de vaga e OS) —
+   legíveis sem modal; max-width:100% preserva a responsividade */
+
+#lista-referencias-vaga .referencia-item img {
+    width: 200px;
+    height: 200px;
+    max-width: 100%;
+}
+
+#lista-referencias-vaga .imagem-placeholder {
+    width: 200px;
+    height: 200px;
+    max-width: 100%;
+}
+
+.anexo-os-imagem {
+    width: 200px;
+    height: 200px;
+    max-width: 100%;
+    display: block;
+    margin: 0 auto;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--border);
 }

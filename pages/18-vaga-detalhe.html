@@ -17,44 +17,25 @@
         <span class="hamburger-line"></span>
     </button>
     <div class="sidebar-overlay"></div>
-    <aside class="sidebar" role="navigation" aria-label="Menu principal">
-        <a href="/pages/01-homepage.html" class="brand">
-            <img src="/assets/logo-icone-branco-2048.png" alt="Logo Freela" class="brand-logo" />
-            <span class="brand-text">FREELA<span class="brand-sub">DA MODA</span></span>
-        </a>
-        <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Alternar tema claro e escuro">
-            <i class="bi bi-moon-stars" aria-hidden="true"></i>
-        </button>
-        <a href="/pages/03-dashboard-freelancer.html">Dashboard</a>
-        <a href="/pages/07-vagas.html">Vagas</a>
-        <a href="/pages/20-minhas-candidaturas.html">Candidaturas/OS</a>
-        <a href="/pages/08-perfil-freelancer.html">Perfil</a>
-        <a href="/pages/11-chat.html">Chat</a>
-        <a href="/pages/24-suporte.html">Suporte</a>
-    </aside>
+    <aside class="sidebar" role="navigation" aria-label="Menu principal"></aside>
 
         <!-- Conteúdo Principal -->
         <main class="main">
-            <div class="page-container-md">
+            <div class="header">
+                <h2>Detalhe da Vaga</h2>
+                <div class="header-actions" id="header-acoes">
 
-                <!-- Cabeçalho -->
-                <header class="header">
-                    <div>
-                        <h1>Detalhe da Vaga</h1>
-                        <p class="text-muted">Informações completas sobre o serviço.</p>
-                    </div>
-                    <div class="header-actions">
-                        <!-- Esse botão "Voltar" geralmente volta pro mural de vagas ou lista -->
-                        <button onclick="history.back()" class="btn btn-outline">
-                            <i class="bi bi-arrow-left"></i> Voltar
-                        </button>
-                    </div>
-                </header>
-
-                <!-- Feedback de Candidatura -->
-                <div id="feedbackAlert" class="alert alert-success animate-slide-down mb-md" style="display: none;" role="alert">
-                    <i class="bi bi-check-circle-fill"></i> Sua candidatura foi enviada com sucesso! A empresa entrará em contato se houver interesse.
+                    
                 </div>
+            </div>
+            
+            <div class="page-container-md">
+                
+                <div class="mb-md">
+    <a href="javascript:history.back()" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Voltar</a>
+    </div>
+                <!-- Feedback -->
+                <div id="mensagemStatus" class="alert mb-md" role="alert" aria-live="polite" hidden></div>
 
                 <!-- Estado de carregamento -->
                 <div id="vagaLoading" class="text-center">
@@ -62,8 +43,8 @@
                 </div>
 
                 <!-- Estado de erro -->
-                <div id="vagaErro" class="alert" role="alert" aria-live="polite" hidden>
-                    Não foi possível carregar esta vaga. Verifique se o link está correto e se o json-server está rodando.
+                <div id="vagaErro" class="alert mb-md" role="alert" aria-live="polite" hidden>
+                    Não foi possível carregar esta vaga. Tente novamente mais tarde.
                 </div>
 
                 <!-- Card Principal da Vaga -->
@@ -85,6 +66,10 @@
                             <p><strong id="vaga-especialidade-modalidade">—</strong></p>
                         </div>
                         <div>
+                        <p class="text-muted" style="font-size: 13px;">Publicada em</p>
+                        <p><strong id="vaga-data-publicacao">—</strong></p>
+                        </div>
+                        <div>
                             <p class="text-muted" style="font-size: 13px;">Valor Oferecido</p>
                             <p><strong class="text-primary" style="font-size: 18px;" id="vaga-valor">—</strong></p>
                         </div>
@@ -97,12 +82,13 @@
                     <h3 class="mt-md" style="font-size: 16px;">Descrição do Serviço</h3>
                     <p style="background: var(--surface-alt); padding: 16px; border-radius: 8px;" id="vaga-descricao">—</p>
 
-                    <!-- Botão de Ação -->
-                    <div class="form-actions mt-lg" style="justify-content: center; padding-top: 16px; border-top: 1px solid var(--border);">
-                        <button id="btnCandidatar" class="btn btn-primary btn-lg" style="width: 100%; max-width: 350px;">
-                            <i class="bi bi-send-check-fill"></i> Candidatar-se a esta vaga
-                        </button>
+                    <h3 class="mt-md" style="font-size: 16px;">Referências Visuais</h3>
+                    <div class="referencias-grid" id="lista-referencias-vaga">
+                        <span class="field-message">Nenhuma referência enviada pela empresa.</span>
                     </div>
+
+                    <!-- Ações dinâmicas (candidatar / editar / encerrar) -->
+                    <div class="form-actions mt-lg" style="justify-content: center; padding-top: 16px; border-top: 1px solid var(--border);" id="acoes-vaga"></div>
                 </div>
 
             </div>
@@ -110,6 +96,8 @@
     </div>
 
     <script src="/js/config.js"></script>
+    <script src="/js/ui.js"></script>
+    <script src="/js/nav.js"></script>
     <script src="/js/18-vaga-detalhe.js"></script>
 </body>
 </html>

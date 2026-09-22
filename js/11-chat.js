@@ -20,45 +20,16 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ── 2. Proteção de rota + adapta o menu lateral pro tipo de usuário ──
-    const sessao = JSON.parse(sessionStorage.getItem('usuarioLogado') || 'null');
+    // ── 2. Proteção de rota + layout logado (nav.js por tipo) ──
+    const sessao = exigirLogin();
+    if (!sessao) return;
 
-    if (!sessao) {
-        window.location.href = '/pages/02-login.html';
-        return;
-    }
+    renderizarSidebar(document.querySelector('.sidebar'), sessao.tipo, '11-chat');
+    renderizarTopbar(document.getElementById('header-acoes'), sessao);
+    renderizarBannerValidacao(document.querySelector('.main'), sessao);
 
     const meuId = sessao.id;
     const meuNome = sessao.nome;
-    const meuTipo = sessao.tipo; // 'freelancers' ou 'empresas'
-
-    if (meuTipo === 'empresas') {
-        const navDashboard = document.getElementById('nav-dashboard');
-        const navVagas = document.getElementById('nav-vagas');
-        const navCandidaturas = document.getElementById('nav-candidaturas');
-        const navPerfil = document.getElementById('nav-perfil');
-        const navExtra = document.getElementById('nav-extra');
-        if (navDashboard) navDashboard.href = '/pages/04-dashboard-empresa.html';
-        if (navVagas) { navVagas.href = '/pages/15-minhas-vagas.html'; navVagas.textContent = 'Minhas Vagas'; }
-        if (navCandidaturas) { navCandidaturas.href = '/pages/16-ordens-servico.html'; navCandidaturas.textContent = 'Ordens de Serviço'; }
-        if (navPerfil) navPerfil.href = '/pages/09-perfil-empresa.html';
-        if (navExtra) { navExtra.href = '/pages/21-assinatura.html'; navExtra.textContent = 'Assinatura'; }
-    }
-
-    function mostrarMensagem(texto, tipo) {
-        const el = document.getElementById('mensagemStatus');
-        if (!el) return;
-        el.className = `alert alert-${tipo}`;
-        el.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
-        el.hidden = false;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function escapeHtml(str) {
-        return String(str ?? '').replace(/[&<>"']/g, function (ch) {
-            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
-        });
-    }
 
     function renderizarIniciais(nome) {
         const partes = (nome || '').trim().split(' ');
@@ -150,8 +121,9 @@ document.addEventListener('DOMContentLoaded', function () {
         chatThread.innerHTML = '';
 
         mensagens.forEach(function (msg) {
-            const hora = msg.timestamp
-                ? new Date(msg.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+            const dataMsg = msg.timestamp ? new Date(msg.timestamp) : null;
+            const hora = dataMsg && !isNaN(dataMsg)
+                ? dataMsg.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
                 : '';
 
             if (String(msg.remetenteId) === String(meuId)) {
@@ -183,7 +155,25 @@ document.addEventListener('DOMContentLoaded', function () {
             b.classList.toggle('btn-primary', b.dataset.conversaId === String(conversa.id));
         });
 
-        if (tituloThread) tituloThread.textContent = `Conversa com ${outraParteAtual.nome || 'contato'}`;
+        if (tituloThread) {
+            tituloThread.textContent = '';
+            tituloThread.appendChild(document.createTextNode(`Conversa com ${outraParteAtual.nome || 'contato'}`));
+            if (outraParteAtual.tipo === 'empresas') {
+                const linkPerfil = document.createElement('a');
+                linkPerfil.href = `/pages/26-perfil-empresa-publico.html?id=${encodeURIComponent(outraParteAtual.id)}`;
+                linkPerfil.className = 'text-primary';
+                linkPerfil.textContent = 'Ver perfil';
+                linkPerfil.style.cssText = 'margin-left: 8px; font-size: 12px; font-weight: 600;';
+                tituloThread.appendChild(linkPerfil);
+            } else if (outraParteAtual.tipo === 'freelancers') {
+                const linkPerfil = document.createElement('a');
+                linkPerfil.href = `/pages/25-perfil-freelancer-publico.html?id=${encodeURIComponent(outraParteAtual.id)}`;
+                linkPerfil.className = 'text-primary';
+                linkPerfil.textContent = 'Ver perfil';
+                linkPerfil.style.cssText = 'margin-left: 8px; font-size: 12px; font-weight: 600;';
+                tituloThread.appendChild(linkPerfil);
+            }
+        }
         if (emptyStateThread) emptyStateThread.hidden = true;
         if (areaEnvioMensagem) areaEnvioMensagem.hidden = false;
 
@@ -240,24 +230,45 @@ document.addEventListener('DOMContentLoaded', function () {
         chatThread.scrollTop = chatThread.scrollHeight;
 
         try {
-            await fetch(`${API_BASE}/mensagens`, {
+            const resPost = await fetch(`${API_BASE}/mensagens`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(novaMensagem)
             });
+            if (!resPost.ok) throw new Error(`Erro HTTP: ${resPost.status}`);
+
+            // Avisa o destinatário no sino de notificações.
+            criarNotificacao({
+                usuarioId: outraParteAtual.id,
+                usuarioTipo: outraParteAtual.tipo,
+                tipo: 'mensagem',
+                titulo: 'Nova mensagem',
+                mensagem: `${meuNome}: ${texto}`,
+                link: `/pages/11-chat.html?conversaId=${encodeURIComponent(conversaAtual.id)}`
+            });
 
             // Mantém a conversa com o preview da última mensagem atualizado.
-            await fetch(`${API_BASE}/conversas/${conversaAtual.id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ultimaMensagem: texto, ultimaAtualizacao: novaMensagem.timestamp })
-            });
+            // Falha aqui é cosmética: a mensagem já foi gravada, então a bolha
+            // permanece e apenas registramos o erro.
+            try {
+                const resPreview = await fetch(`${API_BASE}/conversas/${conversaAtual.id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ultimaMensagem: texto, ultimaAtualizacao: novaMensagem.timestamp })
+                });
+                if (!resPreview.ok) console.error(`Falha ao atualizar preview da conversa (HTTP ${resPreview.status}).`);
+            } catch (erroPreview) {
+                console.error('Erro ao atualizar preview da conversa:', erroPreview);
+            }
 
             conversaAtual.ultimaMensagem = texto;
             conversaAtual.ultimaAtualizacao = novaMensagem.timestamp;
         } catch (erro) {
             console.error('Erro ao enviar mensagem:', erro);
-            mostrarMensagem('Não foi possível enviar a mensagem. Verifique se o json-server está rodando.', 'error');
+            // Reverte a bolha otimista e devolve o texto pro campo.
+            if (bolha && bolha.parentNode) bolha.remove();
+            inputMensagem.value = texto;
+            mostrarMensagem('Não foi possível enviar a mensagem. Tente novamente em instantes.', 'error');
         }
     }
 

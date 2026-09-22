@@ -1,10 +1,10 @@
-﻿<!doctype html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <script src="/js/theme.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Suporte</title>
+    <title>Freela da Moda - Suporte</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,700&display=swap"
       rel="stylesheet"
@@ -21,37 +21,15 @@
   <span class="hamburger-line"></span>
 </button>
 <div class="sidebar-overlay"></div>
-<aside class="sidebar" role="navigation" aria-label="Menu principal">
-        <a href="/pages/01-homepage.html" class="brand">
-          <img
-            src="/assets/logo-icone-branco-2048.png"
-            alt="Logo Freela"
-            class="brand-logo"
-          /><span class="brand-text">FREELA<span class="brand-sub">DA MODA</span></span>
-        </a>
-        <button
-          class="theme-toggle"
-          type="button"
-          aria-label="Alternar tema claro e escuro"
-        ><i class="bi bi-moon-stars" aria-hidden="true"></i></button>
-        <a href="/pages/03-dashboard-freelancer.html">Dashboard</a
-        ><a href="/pages/07-vagas.html">Vagas</a
-        ><a href="/pages/20-minhas-candidaturas.html">Candidaturas/OS</a
-        ><a href="/pages/08-perfil-freelancer.html">Perfil</a
-        ><a href="/pages/11-chat.html">Chat</a
-        ><a href="/pages/10-impulsionamento.html">Impulsionamento</a
-        ><a class="active" href="/pages/24-suporte.html" aria-current="page">Suporte</a>
-      </aside>
+<aside class="sidebar" role="navigation" aria-label="Menu principal"></aside>
       <main class="main" role="main" aria-label="Conteúdo principal">
         <div class="header">
           <h2>Suporte</h2>
-          <a href="/pages/03-dashboard-freelancer.html" class="btn">Voltar</a>
+          <div class="header-actions" id="header-acoes"></div>
         </div>
         <div class="grid grid-2">
           <form class="card">
-            <div class="alert alert-success" role="alert" aria-live="polite">
-              Área para confirmação de envio do chamado.
-            </div>
+            <div class="alert alert-success mb-md" role="alert" aria-live="polite" hidden></div>
             <div class="section-title">Abrir chamado</div>
             <div class="form-group">
               <label for="suporte-assunto">Assunto</label
@@ -61,6 +39,7 @@
                 <option>Erro no sistema</option>
                 <option>Pagamento</option>
                 <option>Conta e acesso</option>
+                <option>Enviar documentos de validação</option>
                 <option>Denúncia</option></select
               ><span id="suporte-assunto-erro" class="field-message field-message-error" hidden
                 ><i class="bi bi-exclamation-circle-fill"></i> Selecione um assunto para continuar.</span>
@@ -76,23 +55,17 @@
               ><span class="field-message">Descreva com detalhes para agilizar o atendimento.</span>
             </div>
             <div class="form-group">
-              <label for="suporte-anexo">Anexo (opcional)</label>
+              <label for="suporte-anexo-input">Anexos (opcional)</label>
               <div class="upload-dropzone" id="suporte-dropzone" style="padding: 16px;">
                 <i class="bi bi-paperclip"></i>
-                <p>Clique para anexar uma imagem</p>
-                <p style="font-size: 11px;">Somente imagens até 10MB.</p>
-                <input type="file" id="suporte-anexo-input" accept="image/*" hidden>
+                <p>Clique para anexar arquivos</p>
+                <p style="font-size: 11px;">Até 5 arquivos (imagem ou PDF), 5MB cada.</p>
+                <input type="file" id="suporte-anexo-input" accept="image/*,application/pdf" multiple hidden>
               </div>
-              <div id="suporte-anexo-preview" class="upload-file-preview" style="display: none;">
-                <i class="bi bi-file-earmark-image"></i>
-                <span id="suporte-anexo-nome"></span>
-                <button type="button" class="btn btn-ghost" id="btnRemoverAnexo" style="padding:4px 8px;">
-                  <i class="bi bi-x-lg"></i>
-                </button>
-              </div>
+              <div id="suporte-anexos-preview" class="stack-xs" style="margin-top: 8px;"></div>
             </div>
             <div class="form-actions">
-              <a href="/pages/03-dashboard-freelancer.html" class="btn">Voltar</a
+              <a href="javascript:history.back()" class="btn">Voltar</a
               ><button class="btn btn-primary" type="submit">
                 Enviar solicitação
               </button>
@@ -115,7 +88,7 @@
               </details>
               <details>
                 <summary style="font-weight: 600; cursor: pointer; color: var(--text-primary);">Como anexar referências visuais?</summary>
-                <p style="font-size: 13px; color: var(--text-secondary); margin-top: 6px;">Use os campos de upload disponíveis nas vagas e ordens de serviço. Formatos aceitos: JPG, PNG. Tamanho máximo: 10MB por arquivo.</p>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-top: 6px;">Use os campos de upload disponíveis nas vagas e ordens de serviço. Formatos aceitos: JPG, PNG. Tamanho máximo: 5MB por arquivo.</p>
               </details>
               <details>
                 <summary style="font-weight: 600; cursor: pointer; color: var(--text-primary);">Posso cancelar uma candidatura ou OS?</summary>
@@ -131,6 +104,8 @@
       </main>
     </div>
     <script src="/js/config.js"></script>
+    <script src="/js/ui.js"></script>
+    <script src="/js/nav.js"></script>
     <script src="/js/24-suporte.js"></script>
   </body>
 </html>

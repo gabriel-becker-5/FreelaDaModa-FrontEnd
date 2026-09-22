@@ -19,44 +19,31 @@
         <span class="hamburger-line"></span>
     </button>
     <div class="sidebar-overlay"></div>
-    <aside class="sidebar" role="navigation" aria-label="Menu principal">
-        <a href="/pages/01-homepage.html" class="brand">
-            <img src="/assets/logo-icone-branco-2048.png" alt="Logo Freela" class="brand-logo" />
-            <span class="brand-text">FREELA<span class="brand-sub">DA MODA</span></span>
-        </a>
-        <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Alternar tema claro e escuro">
-            <i class="bi bi-moon-stars" aria-hidden="true"></i>
-        </button>
-        <a href="/pages/04-dashboard-empresa.html" id="link-dashboard">Dashboard</a>
-        <a href="/pages/12-publicar-vaga.html">Publicar Vaga</a>
-        <a href="/pages/15-minhas-vagas.html">Minhas Vagas</a>
-        <a class="active" href="/pages/27-mural-freelancers.html" aria-current="page">Buscar Freelancers</a>
-        <a href="/pages/11-chat.html">Chat</a>
-        <a href="/pages/16-ordens-servico.html">Ordens de Serviço</a>
-        <a href="/pages/09-perfil-empresa.html">Perfil</a>
-        <a href="/pages/21-assinatura.html">Assinatura</a>
-        <a href="/pages/24-suporte.html">Suporte</a>
-    </aside>
+    <aside class="sidebar" role="navigation" aria-label="Menu principal"></aside>
+
     <main class="main" role="main" aria-label="Conteúdo principal">
         <div class="header">
             <h2>Mural de Freelancers</h2>
-            <div class="header-actions">
-                <span id="user-greeting" style="font-size: 0.9rem; font-weight: 600; color: var(--color-primary);"></span>
-                <a href="/pages/02-login.html" class="btn btn-outline-purple" id="btn-auth">Entrar</a>
-            </div>
+            <div class="header-actions" id="header-acoes"></div>
         </div>
 
         <!-- CABEÇALHO COM FILTROS -->
         <section class="mural-header">
             <span class="badge"><i class="bi bi-people"></i> TALENTOS DA MODA</span>
             <h1>Encontre o profissional certo para sua confecção</h1>
-            <p>Busque por nome ou especialidade entre os freelancers cadastrados na plataforma.</p>
+            <p>Busque por nome, especialidade ou localidade entre os freelancers cadastrados na plataforma.</p>
 
             <div class="filter-bar">
                 <input type="text" id="filtro-busca" placeholder="Buscar por nome ou especialidade..." />
                 <select id="filtro-especialidade">
                     <option value="">Todas as especialidades</option>
                 </select>
+                <select id="filtro-estado">
+                    <option value="">Todos os estados</option>
+                </select>
+                <div class="autocomplete-wrapper">
+                    <input type="text" id="filtro-cidade" placeholder="Cidade..." autocomplete="off" />
+                </div>
                 <button type="button" class="btn btn-purple-bright" id="btn-limpar-filtros">
                     <i class="bi bi-x-circle"></i> Limpar
                 </button>
@@ -72,6 +59,8 @@
     </div>
 
     <script src="/js/config.js"></script>
+    <script src="/js/ui.js"></script>
+    <script src="/js/nav.js"></script>
     <script src="/js/27-mural-freelancers.js"></script>
 </body>
 </html>

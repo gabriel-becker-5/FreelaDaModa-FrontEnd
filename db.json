@@ -1,761 +1,693 @@
 {
   "freelancers": [
     {
-      "id": "-DU9G2RSk6s",
-      "nome": "Karina Vicente",
-      "email": "karinavicente06@gmail.com",
-      "telefone": "(47) 99999-9999",
-      "nascimento": "1995-04-10",
-      "senha": "12345678",
-      "tipoNegocio": "MEI",
-      "experiencia": "5 a 10 anos",
-      "oficina": "Só eu",
-      "especialidade": "Costura reta",
+      "id": "f1",
+      "nome": "Marina Souza",
+      "cpf": "529.982.247-25",
+      "dataNascimento": "1992-03-14",
+      "email": "f1@c.com",
+      "telefone": "(47) 98888-1111",
+      "descricao": "Costureira profissional com mais de 5 anos de experiência em costura reta, overloque e peça piloto. Atendimento de lotes pequenos e médios com capricho no acabamento e compromisso com prazos.",
+      "senha": "123",
+      "cepResidencial": "89010-360",
+      "enderecoResidencial": "Rua XV de Novembro",
+      "numeroResidencial": "120",
+      "bairroResidencial": "Centro",
+      "complementoResidencial": "Sala 2",
+      "cidadeResidencial": "Blumenau",
+      "estadoResidencial": "SC",
+      "tempoExperiencia": "5 a 10 anos",
+      "disponibilidadeHorario": "Período integral",
       "especialidades": [
         "Costura reta",
         "Overloque",
-        "Modelagem"
-      ],
-      "maquinas": [
-        "Reta",
-        "Overloque"
-      ],
-      "fechamento": "Plataformas online",
-      "disponibilidade": "Período integral",
-      "produtorFixo": "nao",
-      "nomeProdutor": "",
-      "veiculo": "sim",
-      "faturamento": "R$ 3.000 a R$ 6.000",
-      "enderecoResidencial": {
-        "cep": "89010-000",
-        "endereco": "Rua das Flores",
-        "numero": "123",
-        "bairro": "Centro",
-        "complemento": "Apto 101",
-        "cidade": "Blumenau",
-        "estado": "SC"
-      },
-      "mediaAvaliacoes": 4.45,
-      "totalAvaliacoes": 33
-    },
-    {
-      "id": "joana-costa-01",
-      "nome": "Joana Costa",
-      "email": "joana.costa@email.com",
-      "telefone": "(11) 98123-4567",
-      "nascimento": "1990-02-18",
-      "senha": "12345678",
-      "tipoNegocio": "Autônomo",
-      "experiencia": "3 a 5 anos",
-      "oficina": "Só eu",
-      "especialidade": "Modelagem",
-      "especialidades": [
-        "Modelagem",
+        "Peça piloto",
         "Acabamento"
       ],
       "maquinas": [
-        "Reta"
+        "Reta",
+        "Overloque",
+        "Galoneira",
+        "Máquina de corte"
       ],
-      "fechamento": "Indicação",
-      "disponibilidade": "Fins de semana",
-      "produtorFixo": "nao",
-      "nomeProdutor": "",
-      "veiculo": "nao",
-      "faturamento": "R$ 1.000 a R$ 3.000",
-      "enderecoResidencial": {
-        "cidade": "São Paulo",
-        "estado": "SP"
-      },
-      "mediaAvaliacoes": 4.9,
-      "totalAvaliacoes": 34
+      "foto": "/uploads/freelancers/f1/foto-perfil.png",
+      "referencias": [
+        "/uploads/freelancers/f1/referencia-1.png",
+        "/uploads/freelancers/f1/referencia-2.png",
+        "/uploads/freelancers/f1/referencia-3.png",
+        "/uploads/freelancers/f1/referencia-4.png",
+        "/uploads/freelancers/f1/referencia-5.png"
+      ],
+      "validado": true,
+      "mediaAvaliacoes": 4.5,
+      "totalAvaliacoes": 2
     },
     {
-      "id": "maria-silva-02",
-      "nome": "Maria Silva",
-      "email": "maria.silva@email.com",
-      "telefone": "(21) 97654-3210",
-      "nascimento": "1988-09-05",
-      "senha": "12345678",
-      "tipoNegocio": "MEI",
-      "experiencia": "5 a 10 anos",
-      "oficina": "2 a 3 pessoas",
-      "especialidade": "Bordado",
+      "id": "f2",
+      "nome": "João Pereira",
+      "cpf": "111.444.777-35",
+      "dataNascimento": "1988-07-22",
+      "email": "f2@c.com",
+      "telefone": "(11) 97777-2222",
+      "descricao": "Modelista e costureiro com experiência em modelagem plana e moulage. Já trabalhei com coleções de moda feminina e masculina para marcas de médio porte.",
+      "senha": "123",
+      "cepResidencial": "01310-100",
+      "enderecoResidencial": "Avenida Paulista",
+      "numeroResidencial": "900",
+      "bairroResidencial": "Bela Vista",
+      "complementoResidencial": "",
+      "cidadeResidencial": "São Paulo",
+      "estadoResidencial": "SP",
+      "tempoExperiencia": "3 a 5 anos",
+      "disponibilidadeHorario": "Meio período",
+      "especialidades": [
+        "Modelagem",
+        "Peça piloto"
+      ],
+      "maquinas": [
+        "Reta",
+        "Interlock"
+      ],
+      "foto": "",
+      "referencias": [],
+      "validado": false,
+      "mediaAvaliacoes": 4,
+      "totalAvaliacoes": 1
+    },
+    {
+      "id": "f3",
+      "nome": "Ana Lima",
+      "cpf": "123.456.789-09",
+      "dataNascimento": "1995-11-02",
+      "email": "f3@c.com",
+      "telefone": "(48) 96666-3333",
+      "descricao": "Bordadeira e estampadora especializada em peças personalizadas e pequenos lotes. Trabalho com bordado computadorizado e estamparia em silk.",
+      "senha": "123",
+      "cepResidencial": "88015-600",
+      "enderecoResidencial": "Rua Felipe Schmidt",
+      "numeroResidencial": "45",
+      "bairroResidencial": "Centro",
+      "complementoResidencial": "",
+      "cidadeResidencial": "Florianópolis",
+      "estadoResidencial": "SC",
+      "tempoExperiencia": "1 a 3 anos",
+      "disponibilidadeHorario": "Sob demanda",
       "especialidades": [
         "Bordado",
         "Estamparia"
       ],
       "maquinas": [
-        "Overloque",
-        "Galoneira"
-      ],
-      "fechamento": "Plataformas online",
-      "disponibilidade": "Período integral",
-      "produtorFixo": "nao",
-      "nomeProdutor": "",
-      "veiculo": "sim",
-      "faturamento": "R$ 3.000 a R$ 6.000",
-      "enderecoResidencial": {
-        "cidade": "Rio de Janeiro",
-        "estado": "RJ"
-      },
-      "mediaAvaliacoes": 4.7,
-      "totalAvaliacoes": 12
-    },
-    {
-      "id": "ana-ferreira-03",
-      "nome": "Ana Ferreira",
-      "email": "ana.ferreira@email.com",
-      "telefone": "(47) 98888-1122",
-      "nascimento": "1996-11-22",
-      "senha": "12345678",
-      "tipoNegocio": "Sem CNPJ",
-      "experiencia": "1 a 3 anos",
-      "oficina": "Só eu",
-      "especialidade": "Estamparia",
-      "especialidades": [
-        "Estamparia",
-        "Costura reta"
-      ],
-      "maquinas": [
-        "Reta"
-      ],
-      "fechamento": "Redes sociais",
-      "disponibilidade": "Sob demanda",
-      "produtorFixo": "nao",
-      "nomeProdutor": "",
-      "veiculo": "nao",
-      "faturamento": "Até R$ 1.000",
-      "enderecoResidencial": {
-        "cidade": "Blumenau",
-        "estado": "SC"
-      },
-      "mediaAvaliacoes": 4.3,
-      "totalAvaliacoes": 6
-    },
-    {
-      "id": "carlos-souza-04",
-      "nome": "Carlos Souza",
-      "email": "carlos.souza@email.com",
-      "telefone": "(41) 99222-3344",
-      "nascimento": "1985-06-30",
-      "senha": "12345678",
-      "tipoNegocio": "ME",
-      "experiencia": "Mais de 10 anos",
-      "oficina": "4 a 6 pessoas",
-      "especialidade": "Acabamento",
-      "especialidades": [
-        "Acabamento",
-        "Costura reta"
-      ],
-      "maquinas": [
         "Reta",
-        "Overloque",
-        "Travete"
+        "Máquina de corte"
       ],
-      "fechamento": "Indicação",
-      "disponibilidade": "Período integral",
-      "produtorFixo": "sim",
-      "nomeProdutor": "Confecção própria",
-      "veiculo": "sim",
-      "faturamento": "De R$ 3000 a R$ 6000",
-      "enderecoResidencial": {
-        "cidade": "Curitiba",
-        "estado": "PR"
-      },
-      "mediaAvaliacoes": 4.6,
-      "totalAvaliacoes": 21
-    }
-  ],
-  "empresas": [
-    {
-      "id": "0UEUrH8HgJE",
-      "razaoSocial": "Confecção Silva & Cia",
-      "nomeFantasia": "Silva Fashion",
-      "cnpj": "12.345.678/0001-90",
-      "email": "contato@silvafashion.com.br",
-      "telefone": "(11) 98888-7777",
-      "senha": "12345678",
-      "ramo": "Moda Feminina",
-      "porte": "Média empresa",
-      "cidade": "São Paulo",
-      "estado": "SP",
-      "mediaAvaliacoes": 4.45,
-      "totalAvaliacoes": 33
-    },
-    {
-      "id": "LZwRUc8wAso",
-      "nomeResponsavel": "Karina Claro",
-      "cpfResponsavel": "043.215.678-90",
-      "razaoSocial": "kC",
-      "nomeFantasia": "kkkk",
-      "cnpjEmpresa": "07.338.788/0001-23",
-      "ramoAtuacao": "confecção",
-      "email": "kc@gmail.com",
-      "telefone": "(47) 99776-4532",
-      "descricaoPerfil": "",
-      "cep": "89026-680",
-      "enderecoComercial": "Rua José João Libório",
-      "numeroComercial": "90",
-      "bairroComercial": "Progresso",
-      "cidadeComercial": "Blumenau",
-      "estadoComercial": "Santa Catarina",
-      "complementoComercial": "",
-      "senha": "qakxo2-midboF-gacxoh",
+      "foto": "/uploads/freelancers/f3/foto-perfil.png",
+      "referencias": [
+        "/uploads/freelancers/f3/referencia-1.png"
+      ],
+      "validado": false,
       "mediaAvaliacoes": 0,
       "totalAvaliacoes": 0
     }
   ],
-  "vagas": [
+  "empresas": [
     {
-      "id": "1",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "titulo": "Costureira Especialista em Alfaiataria",
-      "descricao": "Produção de lote de 200 blazers femininos em linho com forro.",
-      "especialidade": "Costura reta",
-      "valor": "R$ 3.500,00",
-      "prazo": "2026-10-03",
-      "local": "São Paulo, SP (Envio por correio)",
-      "status": "Encerrada"
+      "id": "e1",
+      "nomeResponsavel": "Carla Mendes",
+      "cpfResponsavel": "390.533.447-05",
+      "dataNascimento": "1980-04-10",
+      "razaoSocial": "Aurora Confecção Ltda.",
+      "nomeFantasia": "Aurora Modas",
+      "cnpjEmpresa": "AB.CDE.FGH/0001-95",
+      "ramoAtuacao": "Moda feminina",
+      "email": "c1@c.com",
+      "telefone": "(47) 3222-1111",
+      "descricaoPerfil": "Confecção especializada em vestidos e moda feminina em série. Atendemos marcas e lojistas de todo o Brasil com corte, costura e acabamento de alta qualidade.",
+      "cep": "89010-360",
+      "enderecoComercial": "Rua XV de Novembro",
+      "numeroComercial": "120",
+      "bairroComercial": "Centro",
+      "cidadeComercial": "Blumenau",
+      "estadoComercial": "SC",
+      "complementoComercial": "Galpão 1",
+      "senha": "123",
+      "foto": "/uploads/empresas/e1/logo-perfil.png",
+      "referencias": [
+        "/uploads/empresas/e1/referencia-1.png"
+      ],
+      "validado": true,
+      "mediaAvaliacoes": 4.5,
+      "totalAvaliacoes": 2
     },
     {
-      "id": "2",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "titulo": "Modelista para Coleção de Verão",
-      "descricao": "Desenvolvimento de moldes digitais e graduação P/M/G para vestidos leves.",
-      "especialidade": "Modelagem",
-      "valor": "R$ 1.800,00",
-      "prazo": "2026-09-25",
-      "local": "Remoto",
-      "status": "Aberta"
+      "id": "e2",
+      "nomeResponsavel": "Paulo Ricardo",
+      "cpfResponsavel": "168.995.350-09",
+      "dataNascimento": "1975-12-03",
+      "razaoSocial": "Tecelagem do Vale S.A.",
+      "nomeFantasia": "Vale Têxtil",
+      "cnpjEmpresa": "CD.EFG.HIJ/0002-96",
+      "ramoAtuacao": "Tecidos e malhas",
+      "email": "c2@c.com",
+      "telefone": "(11) 3666-2222",
+      "descricaoPerfil": "Tecelagem com produção de malhas e tecidos planos. Buscamos profissionais para modelagem, corte e acabamento de coleções sazonais.",
+      "cep": "01310-100",
+      "enderecoComercial": "Avenida Paulista",
+      "numeroComercial": "900",
+      "bairroComercial": "Bela Vista",
+      "cidadeComercial": "São Paulo",
+      "estadoComercial": "SP",
+      "complementoComercial": "",
+      "senha": "123",
+      "foto": "",
+      "referencias": [],
+      "validado": false,
+      "mediaAvaliacoes": 0,
+      "totalAvaliacoes": 0
     },
     {
-      "id": "ZlDvpb1",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "titulo": "Modelista em audaces",
-      "especialidade": "Modelagem",
-      "valor": "2000",
-      "prazo": "2026-09-25",
-      "local": "Santa Catarina",
-      "descricao": "10 modelagens e graduação de camisas femininas",
-      "status": "Aberta"
-    },
-    {
-      "id": "4",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "titulo": "Costureira Pilotista",
-      "descricao": "Confecção de peças piloto para aprovação de novas coleções.",
-      "especialidade": "Peça piloto",
-      "valor": "1.200",
-      "prazo": "2026-09-28",
-      "local": "São Paulo, SP",
-      "modalidade": "Presencial",
-      "status": "Aberta",
-      "link": "18-vaga-detalhe.html"
-    },
-    {
-      "id": "5",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "titulo": "Costureira Industrial",
-      "descricao": "Produção em série em máquina industrial reta e overloque.",
-      "especialidade": "Costura reta",
-      "valor": "2.800",
-      "prazo": "2026-10-08",
-      "local": "São Paulo, SP",
-      "modalidade": "Presencial",
-      "status": "Aberta",
-      "link": "18-vaga-detalhe.html"
-    },
-    {
-      "id": "6",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "titulo": "Técnico(a) em Controle de Qualidade Têxtil",
-      "descricao": "Inspeção de acabamento e conformidade de peças antes do envio.",
-      "especialidade": "Acabamento",
-      "valor": "3.500",
-      "prazo": "2026-10-18",
-      "local": "São Paulo, SP",
-      "modalidade": "Híbrido",
-      "status": "Aberta",
-      "link": "18-vaga-detalhe.html"
+      "id": "e3",
+      "nomeResponsavel": "Beatriz Nunes",
+      "cpfResponsavel": "935.411.347-80",
+      "dataNascimento": "1990-09-30",
+      "razaoSocial": "Malharia Bela Peça Ltda.",
+      "nomeFantasia": "Bela Peça",
+      "cnpjEmpresa": "EF.GHI.JKL/0003-97",
+      "ramoAtuacao": "Malharia",
+      "email": "c3@c.com",
+      "telefone": "(48) 3444-3333",
+      "descricaoPerfil": "Malharia focada em camisetas e moletons personalizados. Trabalhamos com bordado e estamparia próprios e terceirizados.",
+      "cep": "88015-600",
+      "enderecoComercial": "Rua Felipe Schmidt",
+      "numeroComercial": "45",
+      "bairroComercial": "Centro",
+      "cidadeComercial": "Florianópolis",
+      "estadoComercial": "SC",
+      "complementoComercial": "",
+      "senha": "123",
+      "foto": "",
+      "referencias": [],
+      "validado": false,
+      "mediaAvaliacoes": 5,
+      "totalAvaliacoes": 1
     }
   ],
-  "avaliacoes": [
+  "vagas": [
     {
-      "id": "1",
-      "freelancerId": "-DU9G2RSk6s",
-      "nota": 5,
-      "comentario": "Excelente profissional, muito competente e pontual na entrega.",
-      "autor": "Carlos"
+      "id": "v1",
+      "empresaId": "e1",
+      "empresaNome": "Aurora Modas",
+      "titulo": "Costureira para lote de vestidos",
+      "especialidade": "Costura reta",
+      "valor": "R$ 2.500,00",
+      "prazo": "2026-10-30",
+      "modalidade": "Presencial",
+      "cidade": "Blumenau",
+      "estado": "SC",
+      "local": "Blumenau",
+      "descricao": "Precisamos de costureira com máquina reta para lote de 120 vestidos em crepe. Corte já pronto, foco em costura e acabamento.",
+      "dataPublicacao": "2026-09-17T21:45:20.405Z",
+      "status": "Encerrada",
+      "referencias": [
+        "/uploads/vagas/v1/referencia-1.png"
+      ]
     },
     {
-      "id": "2",
-      "freelancerId": "-DU9G2RSk6s",
-      "nota": 4,
-      "comentario": "Bom trabalho, demonstrou conhecimento técnico e atenção aos detalhes.",
-      "autor": "Mariana"
+      "id": "v2",
+      "empresaId": "e1",
+      "empresaNome": "Aurora Modas",
+      "titulo": "Pilotista de peça piloto",
+      "especialidade": "Peça piloto",
+      "valor": "R$ 1.800,00",
+      "prazo": "2026-10-10",
+      "modalidade": "Remota",
+      "cidade": "Blumenau",
+      "estado": "SC",
+      "local": "Blumenau",
+      "descricao": "Desenvolvimento de peça piloto de vestido de festa conforme ficha técnica fornecida. Enviamos o material para o seu endereço.",
+      "dataPublicacao": "2026-09-08T21:45:20.405Z",
+      "status": "Encerrada",
+      "referencias": [
+        "/uploads/vagas/v2/referencia-1.png",
+        "/uploads/vagas/v2/referencia-2.png"
+      ]
     },
     {
-      "id": "3",
-      "freelancerId": "-DU9G2RSk6s",
-      "nota": 5,
-      "comentario": "Profissional dedicado, entregou um ótimo resultado dentro do prazo.",
-      "autor": "Rafael"
+      "id": "v3",
+      "empresaId": "e2",
+      "empresaNome": "Vale Têxtil",
+      "titulo": "Estamparia digital em malhas",
+      "especialidade": "Estamparia",
+      "valor": "R$ 2.200,00",
+      "prazo": "2026-11-19",
+      "modalidade": "Presencial",
+      "cidade": "São Paulo",
+      "estado": "SP",
+      "local": "São Paulo",
+      "descricao": "Estamparia digital em 200 peças de malha PV para coleção de verão. Arte pronta e tecido cortado, foco em impressão e fixação.",
+      "dataPublicacao": "2026-09-12T21:45:20.405Z",
+      "status": "Pausada",
+      "referencias": []
     },
     {
-      "id": "4",
-      "empresaId": "0UEUrH8HgJE",
-      "nota": 4,
-      "comentario": "Boa estrutura e equipe profissional. Experiência bastante positiva.",
-      "autor": "Camila"
+      "id": "v4",
+      "empresaId": "e2",
+      "empresaNome": "Vale Têxtil",
+      "titulo": "Overloquista para acabamento",
+      "especialidade": "Overloque",
+      "valor": "R$ 1.200,00",
+      "prazo": "2026-10-20",
+      "modalidade": "Presencial",
+      "cidade": "São Paulo",
+      "estado": "SP",
+      "local": "São Paulo",
+      "descricao": "Overloquista para acabamento de malhas em nosso ateliê no bairro Bela Vista. Turno da tarde, segunda a sábado.",
+      "dataPublicacao": "2026-09-15T21:45:20.405Z",
+      "status": "Aberta",
+      "referencias": []
     },
     {
-      "id": "5",
-      "empresaId": "0UEUrH8HgJE",
-      "nota": 5,
-      "comentario": "Excelente empresa, ambiente organizado e boas oportunidades.",
-      "autor": "Lucas"
+      "id": "v5",
+      "empresaId": "e3",
+      "empresaNome": "Bela Peça",
+      "titulo": "Bordadeira para camisetas",
+      "especialidade": "Bordado",
+      "valor": "R$ 900,00",
+      "prazo": "2026-10-05",
+      "modalidade": "Sob demanda",
+      "cidade": "Florianópolis",
+      "estado": "SC",
+      "local": "Florianópolis",
+      "descricao": "Bordado computadorizado em lote de 50 camisetas para evento corporativo. Máquina disponível na nossa malharia.",
+      "dataPublicacao": "2026-08-26T21:45:20.405Z",
+      "status": "Encerrada",
+      "referencias": []
     },
     {
-      "id": "6",
-      "empresaId": "0UEUrH8HgJE",
-      "nota": 4,
-      "comentario": "Empresa séria, com processos bem organizados e bons projetos.",
-      "autor": "Marcos"
+      "id": "v6",
+      "empresaId": "e3",
+      "empresaNome": "Bela Peça",
+      "titulo": "Estamparia em lote pequeno",
+      "especialidade": "Estamparia",
+      "valor": "R$ 750,00",
+      "prazo": "2026-11-04",
+      "modalidade": "Presencial",
+      "cidade": "Florianópolis",
+      "estado": "SC",
+      "local": "Florianópolis",
+      "descricao": "Estamparia silk em 80 peças com arte pronta enviada pela empresa. Inclui lavagem e secagem das peças.",
+      "dataPublicacao": "2026-09-19T21:45:20.405Z",
+      "status": "Aberta",
+      "referencias": []
     },
     {
-      "freelancerId": "-DU9G2RSk6s",
-      "nota": 3,
-      "comentario": "SENSASIONAL",
-      "autor": "Confecção X",
-      "id": "Wuu4J-7hgkE"
+      "id": "v7",
+      "empresaId": "e2",
+      "empresaNome": "Vale Têxtil",
+      "titulo": "Modelista para coleção verão",
+      "especialidade": "Modelagem",
+      "valor": "R$ 3.000,00",
+      "prazo": "2026-11-09",
+      "modalidade": "Híbrida",
+      "cidade": "São Paulo",
+      "estado": "SP",
+      "local": "São Paulo",
+      "descricao": "Modelista para desenvolver 10 modelos da coleção verão. Necessária experiência com Audaces ou modelagem manual.",
+      "dataPublicacao": "2026-08-31T21:45:20.405Z",
+      "status": "Encerrada",
+      "referencias": []
+    },
+    {
+      "empresaId": "e1",
+      "empresaNome": "Aurora Confecção Ltda.",
+      "titulo": "novav aga",
+      "especialidade": "Costura reta",
+      "valor": "R$ 200,00",
+      "prazo": "2027-01-01",
+      "modalidade": "Presencial",
+      "cidade": "Blumenau",
+      "estado": "SC",
+      "local": "Blumenau",
+      "descricao": "aaaaaaaaaaaaaaaaaaaaa",
+      "dataPublicacao": "2026-09-21T16:59:47.867Z",
+      "status": "Aberta",
+      "id": "FO70LHZqFjU"
     }
   ],
   "candidaturas": [
     {
-      "id": "1",
-      "titulo": "Produção Lote de verão",
-      "nomeEmpresa": "VestiLar Confecções",
-      "status": "Em andamento",
-      "tipo": "OS",
-      "link": "18-vaga-detalhe.html",
-      "freelancerId": "-DU9G2RSk6s"
-    },
-    {
-      "id": "2",
-      "titulo": "Costureira Pilotista",
-      "nomeEmpresa": "Alvorada Moda & Têxtil",
-      "status": "Em análise",
-      "tipo": "Vaga",
-      "link": "18-vaga-detalhe.html",
-      "freelancerId": "-DU9G2RSk6s"
-    },
-    {
-      "id": "3",
-      "titulo": "Costura de amostras",
-      "nomeEmpresa": "VestiLar Confecções",
-      "status": "Concluída",
-      "tipo": "OS",
-      "link": "18-vaga-detalhe.html",
-      "freelancerId": "-DU9G2RSk6s"
-    },
-    {
-      "id": "4",
-      "titulo": "Costureira Pilotista",
-      "nomeEmpresa": "Alvorada Moda & Têxtil",
-      "status": "Em análise",
-      "tipo": "Vaga",
-      "link": "18-vaga-detalhe.html",
-      "freelancerId": "-DU9G2RSk6s"
-    },
-    {
-      "id": "5",
-      "titulo": "Ajuste de modelagem de peças",
-      "nomeEmpresa": "Fio & Forma Confecções",
-      "status": "Em andamento",
-      "tipo": "OS",
-      "link": "18-vaga-detalhe.html",
-      "freelancerId": "-DU9G2RSk6s"
-    },
-    {
-      "id": "6",
-      "titulo": "Costura de peças piloto",
-      "nomeEmpresa": "Bella Linha Têxtil",
-      "status": "Em análise",
-      "tipo": "Vaga",
-      "link": "18-vaga-detalhe.html",
-      "freelancerId": "-DU9G2RSk6s"
-    },
-    {
-      "id": "7",
-      "titulo": "Produção de camisetas básicas",
-      "nomeEmpresa": "Sulvest Confecções",
-      "status": "Concluída",
-      "tipo": "OS",
-      "link": "18-vaga-detalhe.html",
-      "freelancerId": "-DU9G2RSk6s"
-    },
-    {
-      "id": "8",
-      "titulo": "Costureira para linha fitness",
-      "nomeEmpresa": "MoveFit Moda Esportiva",
-      "status": "Em andamento",
-      "tipo": "Vaga",
-      "link": "18-vaga-detalhe.html",
-      "freelancerId": "-DU9G2RSk6s"
-    },
-    {
-      "id": "9",
-      "titulo": "Acabamento de peças em malha",
-      "nomeEmpresa": "TramaSul Indústria Têxtil",
-      "status": "Em análise",
-      "tipo": "OS",
-      "link": "18-vaga-detalhe.html",
-      "freelancerId": "-DU9G2RSk6s"
-    },
-    {
-      "id": "10",
-      "titulo": "Costureira para produção em série",
-      "nomeEmpresa": "Estilo Norte Confecções",
-      "status": "Em andamento",
-      "tipo": "Vaga",
-      "link": "18-vaga-detalhe.html",
-      "freelancerId": "-DU9G2RSk6s"
-    },
-    {
-      "id": "11",
-      "titulo": "Montagem de peças de alfaiataria",
-      "nomeEmpresa": "Corte & Linha Moda",
-      "status": "Concluída",
-      "tipo": "OS",
-      "link": "18-vaga-detalhe.html",
-      "freelancerId": "-DU9G2RSk6s"
-    },
-    {
-      "id": "12",
-      "titulo": "Costureira para coleção primavera",
-      "nomeEmpresa": "Essenza Moda Feminina",
-      "status": "Em análise",
-      "tipo": "Vaga",
-      "link": "18-vaga-detalhe.html",
-      "freelancerId": "-DU9G2RSk6s"
-    },
-    {
-      "id": "13",
-      "titulo": "Produção de uniformes profissionais",
-      "nomeEmpresa": "ProUniforme Têxtil",
-      "status": "Em andamento",
-      "tipo": "OS",
-      "link": "18-vaga-detalhe.html",
-      "freelancerId": "-DU9G2RSk6s"
-    },
-    {
-      "id": "14",
-      "titulo": "Costureira para peças de moda feminina",
-      "nomeEmpresa": "Ateliê Nova Estação",
-      "status": "Concluída",
-      "tipo": "Vaga",
-      "link": "18-vaga-detalhe.html",
-      "freelancerId": "-DU9G2RSk6s"
-    },
-    {
-      "id": "c-vg1-1",
-      "vagaId": "1",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "nomeEmpresa": "Silva Fashion",
-      "titulo": "Costureira Especialista em Alfaiataria",
-      "freelancerId": "maria-silva-02",
-      "freelancerNome": "Maria Silva",
+      "id": "ca12",
+      "vagaId": "v1",
+      "empresaId": "e1",
+      "empresaNome": "Aurora Modas",
+      "nomeEmpresa": "Aurora Modas",
+      "titulo": "Costureira para lote de vestidos",
+      "cidade": "Blumenau",
+      "estado": "SC",
+      "valor": "R$ 2.500,00",
+      "prazo": "2026-10-30",
+      "dataCandidatura": "2026-09-18T21:45:20.405Z",
+      "freelancerId": "f2",
+      "freelancerNome": "João Pereira",
       "status": "Selecionado",
       "tipo": "Vaga",
       "link": "18-vaga-detalhe.html"
     },
     {
-      "id": "c-vg1-2",
-      "vagaId": "1",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "nomeEmpresa": "Silva Fashion",
-      "titulo": "Costureira Especialista em Alfaiataria",
-      "freelancerId": "carlos-souza-04",
-      "freelancerNome": "Carlos Souza",
+      "id": "ca13",
+      "vagaId": "v1",
+      "empresaId": "e1",
+      "empresaNome": "Aurora Modas",
+      "nomeEmpresa": "Aurora Modas",
+      "titulo": "Costureira para lote de vestidos",
+      "cidade": "Blumenau",
+      "estado": "SC",
+      "valor": "R$ 2.500,00",
+      "prazo": "2026-10-30",
+      "dataCandidatura": "2026-09-18T21:45:20.405Z",
+      "freelancerId": "f3",
+      "freelancerNome": "Ana Lima",
       "status": "Rejeitado",
       "tipo": "Vaga",
       "link": "18-vaga-detalhe.html"
     },
     {
-      "id": "c-vg2-1",
-      "vagaId": "2",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "nomeEmpresa": "Silva Fashion",
-      "titulo": "Modelista para Coleção de Verão",
-      "freelancerId": "joana-costa-01",
-      "freelancerNome": "Joana Costa",
-      "status": "Em análise",
+      "id": "ca21",
+      "vagaId": "v2",
+      "empresaId": "e1",
+      "empresaNome": "Aurora Modas",
+      "nomeEmpresa": "Aurora Modas",
+      "titulo": "Pilotista de peça piloto",
+      "cidade": "Blumenau",
+      "estado": "SC",
+      "valor": "R$ 1.800,00",
+      "prazo": "2026-10-10",
+      "dataCandidatura": "2026-09-09T21:45:20.405Z",
+      "freelancerId": "f1",
+      "freelancerNome": "Marina Souza",
+      "status": "Selecionado",
       "tipo": "Vaga",
       "link": "18-vaga-detalhe.html"
     },
     {
-      "id": "c-vg4-1",
-      "vagaId": "4",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "nomeEmpresa": "Silva Fashion",
-      "titulo": "Costureira Pilotista",
-      "freelancerId": "ana-ferreira-03",
-      "freelancerNome": "Ana Ferreira",
-      "status": "Em análise",
+      "id": "ca22",
+      "vagaId": "v2",
+      "empresaId": "e1",
+      "empresaNome": "Aurora Modas",
+      "nomeEmpresa": "Aurora Modas",
+      "titulo": "Pilotista de peça piloto",
+      "cidade": "Blumenau",
+      "estado": "SC",
+      "valor": "R$ 1.800,00",
+      "prazo": "2026-10-10",
+      "dataCandidatura": "2026-09-09T21:45:20.406Z",
+      "freelancerId": "f2",
+      "freelancerNome": "João Pereira",
+      "status": "Rejeitado",
       "tipo": "Vaga",
       "link": "18-vaga-detalhe.html"
     },
     {
-      "id": "c-vg4-2",
-      "vagaId": "4",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "nomeEmpresa": "Silva Fashion",
-      "titulo": "Costureira Pilotista",
-      "freelancerId": "maria-silva-02",
-      "freelancerNome": "Maria Silva",
-      "status": "Em análise",
+      "id": "ca31",
+      "vagaId": "v3",
+      "empresaId": "e2",
+      "empresaNome": "Vale Têxtil",
+      "nomeEmpresa": "Vale Têxtil",
+      "titulo": "Estamparia digital em malhas",
+      "cidade": "São Paulo",
+      "estado": "SP",
+      "valor": "R$ 2.200,00",
+      "prazo": "2026-11-19",
+      "dataCandidatura": "2026-09-14T21:45:20.406Z",
+      "freelancerId": "f1",
+      "freelancerNome": "Marina Souza",
+      "status": "Cancelada",
       "tipo": "Vaga",
       "link": "18-vaga-detalhe.html"
     },
     {
-      "id": "c-vg5-1",
-      "vagaId": "5",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "nomeEmpresa": "Silva Fashion",
-      "titulo": "Costureira Industrial",
-      "freelancerId": "carlos-souza-04",
-      "freelancerNome": "Carlos Souza",
-      "status": "Em análise",
+      "id": "ca41",
+      "vagaId": "v4",
+      "empresaId": "e2",
+      "empresaNome": "Vale Têxtil",
+      "nomeEmpresa": "Vale Têxtil",
+      "titulo": "Overloquista para acabamento",
+      "cidade": "São Paulo",
+      "estado": "SP",
+      "valor": "R$ 1.200,00",
+      "prazo": "2026-10-20",
+      "dataCandidatura": "2026-09-16T21:45:20.406Z",
+      "freelancerId": "f1",
+      "freelancerNome": "Marina Souza",
+      "status": "Cancelada",
       "tipo": "Vaga",
       "link": "18-vaga-detalhe.html"
     },
     {
-      "vagaId": "1",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "nomeEmpresa": "Silva Fashion",
-      "titulo": "Costureira Especialista em Alfaiataria",
-      "freelancerId": "-DU9G2RSk6s",
-      "freelancerNome": "Karina Vicente",
+      "id": "ca71",
+      "vagaId": "v7",
+      "empresaId": "e2",
+      "empresaNome": "Vale Têxtil",
+      "nomeEmpresa": "Vale Têxtil",
+      "titulo": "Modelista para coleção verão",
+      "cidade": "São Paulo",
+      "estado": "SP",
+      "valor": "R$ 3.000,00",
+      "prazo": "2026-11-09",
+      "dataCandidatura": "2026-09-01T21:45:20.406Z",
+      "freelancerId": "f1",
+      "freelancerNome": "Marina Souza",
+      "status": "Selecionado",
+      "tipo": "Vaga",
+      "link": "18-vaga-detalhe.html"
+    },
+    {
+      "id": "caconvite1",
+      "vagaId": "v5",
+      "empresaId": "e3",
+      "empresaNome": "Bela Peça",
+      "nomeEmpresa": "Bela Peça",
+      "titulo": "Bordadeira para camisetas",
+      "cidade": "Florianópolis",
+      "estado": "SC",
+      "valor": "R$ 900,00",
+      "prazo": "2026-10-05",
+      "dataCandidatura": "2026-08-27T21:45:20.406Z",
+      "freelancerId": "f2",
+      "freelancerNome": "João Pereira",
+      "status": "Selecionado",
+      "tipo": "Vaga",
+      "link": "18-vaga-detalhe.html"
+    },
+    {
+      "vagaId": "v1",
+      "empresaId": "e1",
+      "empresaNome": "Aurora Modas",
+      "nomeEmpresa": "Aurora Modas",
+      "titulo": "Costureira para lote de vestidos",
+      "cidade": "Blumenau",
+      "estado": "SC",
+      "valor": "R$ 2.500,00",
+      "prazo": "2026-10-30",
+      "dataCandidatura": "2026-09-21T12:23:53.173Z",
+      "freelancerId": "f1",
+      "freelancerNome": "Marina Souza",
       "status": "Rejeitado",
       "tipo": "Vaga",
       "link": "18-vaga-detalhe.html",
-      "id": "IAbs837HfRk"
+      "id": "ZAipO2_UNoI"
     },
     {
-      "vagaId": "2",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "nomeEmpresa": "Silva Fashion",
-      "titulo": "Modelista para Coleção de Verão",
-      "freelancerId": "-DU9G2RSk6s",
-      "freelancerNome": "Karina Vicente",
-      "status": "Em análise",
+      "vagaId": "v6",
+      "empresaId": "e3",
+      "empresaNome": "Bela Peça",
+      "nomeEmpresa": "Bela Peça",
+      "titulo": "Estamparia em lote pequeno",
+      "cidade": "Florianópolis",
+      "estado": "SC",
+      "valor": "R$ 750,00",
+      "prazo": "2026-11-04",
+      "dataCandidatura": "2026-09-21T13:49:01.911Z",
+      "freelancerId": "f1",
+      "freelancerNome": "Marina Souza",
+      "status": "Cancelada",
       "tipo": "Vaga",
       "link": "18-vaga-detalhe.html",
-      "id": "x97-5cQ4WDw"
+      "id": "7dlwXOxhwqM"
     }
   ],
   "convites": [
     {
-      "vagaId": "6",
-      "vagaTitulo": "Técnico(a) em Controle de Qualidade Têxtil",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Silva Fashion",
-      "freelancerId": "-DU9G2RSk6s",
-      "freelancerNome": "Karina Vicente",
+      "id": "co1",
+      "vagaId": "v4",
+      "vagaTitulo": "Overloquista para acabamento",
+      "empresaId": "e2",
+      "empresaNome": "Vale Têxtil",
+      "freelancerId": "f2",
+      "freelancerNome": "João Pereira",
       "status": "Pendente",
       "tipo": "Convite",
-      "criadoEm": "2026-09-19T12:00:00.000Z",
-      "id": "upjN6rgrXMU"
+      "criadoEm": "2026-09-19T15:45:20.406Z"
+    },
+    {
+      "id": "co2",
+      "vagaId": "v5",
+      "vagaTitulo": "Bordadeira para camisetas",
+      "empresaId": "e3",
+      "empresaNome": "Bela Peça",
+      "freelancerId": "f2",
+      "freelancerNome": "João Pereira",
+      "status": "Aceito",
+      "tipo": "Convite",
+      "criadoEm": "2026-08-26T21:45:20.406Z"
+    },
+    {
+      "id": "co3",
+      "vagaId": "v2",
+      "vagaTitulo": "Pilotista de peça piloto",
+      "empresaId": "e1",
+      "empresaNome": "Aurora Modas",
+      "freelancerId": "f2",
+      "freelancerNome": "João Pereira",
+      "status": "Recusado",
+      "tipo": "Convite",
+      "criadoEm": "2026-09-07T21:45:20.406Z"
     }
   ],
   "ordensServico": [
     {
-      "id": "1",
-      "titulo": "Produção lote verão",
-      "categoria": "Costura",
-      "modalidade": "Presencial",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Confecção X",
-      "freelancerId": "-DU9G2RSk6s",
-      "freelancerNome": "Maria Silva",
-      "cidade": "São Paulo",
-      "estado": "SP",
-      "valor": "5000",
-      "descricao": "Produção de peças em escala.",
-      "requisitos": "Experiência com produção em lote.",
-      "habilidades": [
-        "Produção em lote",
-        "Acabamento"
-      ],
-      "status": "Em andamento",
-      "dataPublicacao": "2026-07-01T09:30",
-      "prazo": "2026-12-20",
-      "previsaoConclusao": "2026-12-22",
-      "avaliacaoFreelancer": "Pendente",
-      "avaliacaoConfeccao": "Avaliado",
-      "observacoes": "Primeira entrega em",
-      "referenciaBriefing": "briefing-producao-lote.jpg",
-      "referenciaEntrega": "entrega-final.jpg",
-      "historico": [
-        {
-          "data": "2026-07-01",
-          "evento": "OS criada."
-        },
-        {
-          "data": "2026-07-05",
-          "evento": "Freelancer atribuído."
-        },
-        {
-          "data": "2026-07-20",
-          "evento": "Entrega parcial enviada."
-        }
-      ]
-    },
-    {
-      "id": "2",
-      "titulo": "Costura de amostras",
-      "categoria": "Costura",
+      "id": "os1",
+      "titulo": "Pilotista de peça piloto",
+      "categoria": "Peça piloto",
       "modalidade": "Remota",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "VestiLar Confecções",
-      "freelancerId": "-DU9G2RSk6s",
-      "freelancerNome": "Karina Vicente",
+      "empresaId": "e1",
+      "empresaNome": "Aurora Modas",
+      "freelancerId": "f1",
+      "freelancerNome": "Marina Souza",
       "cidade": "Blumenau",
       "estado": "SC",
-      "valor": "1200",
-      "descricao": "Costura de peças de amostra para aprovação de coleção.",
-      "requisitos": "Atenção a detalhes de acabamento.",
-      "habilidades": [
-        "Amostras",
-        "Acabamento"
-      ],
+      "valor": "R$ 1.800,00",
+      "descricao": "Ordem de serviço gerada a partir da candidatura de Marina Souza para a vaga \"Pilotista de peça piloto\".",
+      "habilidades": [],
       "status": "Concluída",
-      "dataPublicacao": "2026-06-10T09:00",
-      "prazo": "2026-06-20",
-      "previsaoConclusao": "2026-06-19",
+      "dataPublicacao": "2026-09-10T21:45:20.406Z",
+      "prazo": "2026-10-10",
+      "previsaoConclusao": "",
       "avaliacaoFreelancer": "Avaliado",
-      "avaliacaoConfeccao": "Avaliado",
-      "observacoes": "Entrega aprovada sem ressalvas.",
-      "referenciaBriefing": "",
-      "referenciaEntrega": "",
+      "avaliacaoConfeccao": "Pendente",
+      "observacoes": "",
+      "referenciaBriefing": "/uploads/os/os1/briefing-1758000000000.png",
+      "referenciaEntrega": "/uploads/os/os1/entrega-1790010619328.jpg",
       "historico": [
         {
-          "data": "2026-06-10",
-          "evento": "OS criada."
+          "data": "2026-09-10",
+          "evento": "OS criada a partir da seleção do candidato."
         },
         {
-          "data": "2026-06-12",
-          "evento": "Freelancer atribuído."
+          "data": "2026-09-21",
+          "evento": "Registro visual da entrega enviado pelo freelancer."
         },
         {
-          "data": "2026-06-19",
-          "evento": "Entrega final enviada."
+          "data": "2026-09-21",
+          "evento": "Registro visual da entrega enviado pelo freelancer."
         },
         {
-          "data": "2026-06-20",
-          "evento": "OS finalizada."
+          "data": "2026-09-21",
+          "evento": "Registro visual da entrega enviado pelo freelancer."
+        },
+        {
+          "data": "2026-09-21",
+          "evento": "Registro visual da entrega enviado pelo freelancer."
+        },
+        {
+          "data": "2026-09-21",
+          "evento": "OS finalizada pela empresa."
         }
       ]
     },
     {
-      "id": "3",
-      "titulo": "Ajuste de modelagem de peças",
+      "id": "os2",
+      "titulo": "Bordadeira para camisetas",
+      "categoria": "Bordado",
+      "modalidade": "Sob demanda",
+      "empresaId": "e3",
+      "empresaNome": "Bela Peça",
+      "freelancerId": "f2",
+      "freelancerNome": "João Pereira",
+      "cidade": "Florianópolis",
+      "estado": "SC",
+      "valor": "R$ 900,00",
+      "descricao": "Ordem de serviço gerada a partir do convite aceito para a vaga \"Bordadeira para camisetas\".",
+      "habilidades": [],
+      "status": "Concluída",
+      "dataPublicacao": "2026-08-27T21:45:20.406Z",
+      "prazo": "2026-10-05",
+      "previsaoConclusao": "2026-09-17",
+      "avaliacaoFreelancer": "Avaliado",
+      "avaliacaoConfeccao": "Avaliado",
+      "observacoes": "Entrega aprovada na primeira revisão.",
+      "referenciaBriefing": "/uploads/os/os2/briefing-1757000000000.png",
+      "referenciaEntrega": "/uploads/os/os2/entrega-1756500000000.png",
+      "historico": [
+        {
+          "data": "2026-08-27",
+          "evento": "OS criada a partir da aceitação do convite."
+        },
+        {
+          "data": "2026-09-17",
+          "evento": "OS finalizada pela empresa."
+        }
+      ]
+    },
+    {
+      "id": "os3",
+      "titulo": "Modelista para coleção verão",
       "categoria": "Modelagem",
       "modalidade": "Híbrida",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Fio & Forma Confecções",
-      "freelancerId": "-DU9G2RSk6s",
-      "freelancerNome": "Karina Vicente",
+      "empresaId": "e2",
+      "empresaNome": "Vale Têxtil",
+      "freelancerId": "f1",
+      "freelancerNome": "Marina Souza",
       "cidade": "São Paulo",
       "estado": "SP",
-      "valor": "700",
-      "descricao": "Ajuste de moldes para nova numeração da coleção.",
-      "requisitos": "Experiência com graduação de moldes.",
-      "habilidades": [
-        "Modelagem"
-      ],
+      "valor": "R$ 3.000,00",
+      "descricao": "Ordem de serviço gerada a partir da candidatura de Marina Souza para a vaga \"Modelista para coleção verão\".",
+      "habilidades": [],
       "status": "Cancelada",
-      "dataPublicacao": "2026-05-02T14:00",
-      "prazo": "2026-05-10",
-      "previsaoConclusao": "2026-05-09",
-      "avaliacaoFreelancer": "Não aplicável",
-      "avaliacaoConfeccao": "Não aplicável",
-      "observacoes": "Cancelada a pedido da confecção antes do início da produção.",
+      "dataPublicacao": "2026-09-01T21:45:20.406Z",
+      "prazo": "2026-11-09",
+      "previsaoConclusao": "",
+      "avaliacaoFreelancer": "Pendente",
+      "avaliacaoConfeccao": "Pendente",
+      "observacoes": "",
       "referenciaBriefing": "",
       "referenciaEntrega": "",
       "historico": [
         {
-          "data": "2026-05-02",
-          "evento": "OS criada."
+          "data": "2026-09-01",
+          "evento": "OS criada a partir da seleção do candidato."
         },
         {
-          "data": "2026-05-04",
+          "data": "2026-09-06",
           "evento": "OS cancelada pela empresa."
         }
       ]
     },
     {
-      "titulo": "Costureira Especialista em Alfaiataria",
+      "titulo": "Costureira para lote de vestidos",
       "categoria": "Costura reta",
       "modalidade": "Presencial",
-      "empresaId": "0UEUrH8HgJE",
-      "empresaNome": "Confecção Silva & Cia",
-      "freelancerId": "maria-silva-02",
-      "freelancerNome": "Maria Silva",
-      "cidade": "",
-      "estado": "",
-      "valor": "R$ 3.500,00",
-      "descricao": "Ordem de serviço gerada a partir da candidatura de Maria Silva para a vaga \"Costureira Especialista em Alfaiataria\".",
-      "requisitos": "",
-      "habilidades": [],
-      "status": "Em andamento",
-      "dataPublicacao": "2026-09-18T22:17:08.587Z",
-      "prazo": "2026-10-03",
-      "previsaoConclusao": "",
-      "avaliacaoFreelancer": "Pendente",
-      "avaliacaoConfeccao": "Pendente",
-      "observacoes": "",
-      "referenciaBriefing": "",
-      "referenciaEntrega": "",
-      "historico": [
-        {
-          "data": "2026-09-18",
-          "evento": "OS criada a partir da seleção do candidato."
-        }
-      ],
-      "id": "W14joWNLaLo"
-    },
-    {
-      "titulo": "Ajuste de peças de festa",
-      "categoria": "Costura",
-      "modalidade": "Presencial",
-      "empresaId": "LZwRUc8wAso",
-      "empresaNome": "kkkk",
-      "freelancerId": "joana-costa-01",
-      "freelancerNome": "Joana Costa",
+      "empresaId": "e1",
+      "empresaNome": "Aurora Confecção Ltda.",
+      "freelancerId": "f2",
+      "freelancerNome": "João Pereira",
       "cidade": "Blumenau",
       "estado": "SC",
-      "valor": "900",
-      "descricao": "Ajustes finais em peças de festa antes da entrega.",
-      "requisitos": "",
+      "valor": "R$ 2.500,00",
+      "descricao": "Ordem de serviço gerada a partir da candidatura de João Pereira para a vaga \"Costureira para lote de vestidos\".",
       "habilidades": [],
-      "status": "Em andamento",
-      "dataPublicacao": "2026-09-10T09:00:00.000Z",
-      "prazo": "2026-09-30",
+      "status": "Cancelada",
+      "dataPublicacao": "2026-09-21T16:47:50.409Z",
+      "prazo": "2026-10-30",
       "previsaoConclusao": "",
       "avaliacaoFreelancer": "Pendente",
       "avaliacaoConfeccao": "Pendente",
@@ -764,236 +696,475 @@
       "referenciaEntrega": "",
       "historico": [
         {
-          "data": "2026-09-10",
-          "evento": "OS criada."
+          "data": "2026-09-21",
+          "evento": "OS criada a partir da seleção do candidato."
+        },
+        {
+          "data": "2026-09-21",
+          "evento": "OS cancelada pela empresa."
         }
       ],
-      "id": "5GSxXeNI-tk"
+      "id": "06jQZ1ZiZXE"
+    }
+  ],
+  "avaliacoes": [
+    {
+      "id": "av1",
+      "nota": 5,
+      "comentario": "Excelente trabalho e ótima comunicação.",
+      "autor": "Aurora Modas",
+      "criadoEm": "2026-09-15T21:45:20.406Z",
+      "freelancerId": "f1"
+    },
+    {
+      "id": "av2",
+      "nota": 4,
+      "comentario": "Ótima costureira, entregou no prazo.",
+      "autor": "Aurora Modas",
+      "criadoEm": "2026-09-08T21:45:20.406Z",
+      "freelancerId": "f1"
+    },
+    {
+      "id": "av3",
+      "nota": 4,
+      "comentario": "Modelagem precisa e boa comunicação durante a OS.",
+      "autor": "Bela Peça",
+      "criadoEm": "2026-09-18T21:45:20.406Z",
+      "freelancerId": "f2"
+    },
+    {
+      "id": "av4",
+      "nota": 4,
+      "comentario": "Empresa organizada e pagamento em dia.",
+      "autor": "Marina Souza",
+      "criadoEm": "2026-09-11T21:45:20.406Z",
+      "empresaId": "e1"
+    },
+    {
+      "id": "av5",
+      "nota": 5,
+      "comentario": "Pagamento rápido e briefing claro.",
+      "autor": "João Pereira",
+      "criadoEm": "2026-09-19T09:45:20.406Z",
+      "empresaId": "e3"
+    },
+    {
+      "nota": 5,
+      "comentario": "TOPPPP",
+      "autor": "Marina Souza",
+      "criadoEm": "2026-09-21T17:20:15.079Z",
+      "empresaId": "e1",
+      "id": "weMhhiiulec"
     }
   ],
   "conversas": [
     {
-      "id": "conv-1",
-      "participanteAId": "-DU9G2RSk6s",
-      "participanteANome": "Karina Vicente",
+      "id": "cv1",
+      "participanteAId": "f1",
+      "participanteANome": "Marina Souza",
       "participanteATipo": "freelancers",
-      "participanteBId": "0UEUrH8HgJE",
-      "participanteBNome": "Silva Fashion",
+      "participanteBId": "e1",
+      "participanteBNome": "Aurora Modas",
       "participanteBTipo": "empresas",
-      "ultimaMensagem": "Enviei as referências visuais.",
-      "ultimaAtualizacao": "2026-08-01T10:35:00"
+      "ultimaMensagem": "Perfeito, o briefing completo está anexado na OS.",
+      "ultimaAtualizacao": "2026-09-19T19:45:20.406Z"
     },
     {
-      "id": "conv-2",
-      "participanteAId": "-DU9G2RSk6s",
-      "participanteANome": "Karina Vicente",
+      "id": "cv2",
+      "participanteAId": "f2",
+      "participanteANome": "João Pereira",
       "participanteATipo": "freelancers",
-      "participanteBId": "LZwRUc8wAso",
-      "participanteBNome": "kkkk",
+      "participanteBId": "e3",
+      "participanteBNome": "Bela Peça",
       "participanteBTipo": "empresas",
-      "ultimaMensagem": "Perfeito, pode enviar as fotos finais.",
-      "ultimaAtualizacao": "2026-08-02T09:15:00"
+      "ultimaMensagem": "Entrega finalizada, segue a confirmação na OS.",
+      "ultimaAtualizacao": "2026-09-17T15:45:20.406Z"
     },
     {
-      "id": "conv-3",
-      "participanteAId": "-DU9G2RSk6s",
-      "participanteANome": "Karina Vicente",
+      "id": "cv3",
+      "participanteAId": "f1",
+      "participanteANome": "Marina Souza",
       "participanteATipo": "freelancers",
-      "participanteBId": "maria-silva-02",
-      "participanteBNome": "Maria Silva",
-      "participanteBTipo": "freelancers",
-      "ultimaMensagem": "Consigo entregar a modelagem até sexta-feira.",
-      "ultimaAtualizacao": "2026-08-03T14:02:00"
+      "participanteBId": "e2",
+      "participanteBNome": "Vale Têxtil",
+      "participanteBTipo": "empresas",
+      "ultimaMensagem": "Vamos reavaliar o cronograma da modelagem em breve.",
+      "ultimaAtualizacao": "2026-09-07T18:45:20.406Z"
     },
     {
-      "participanteAId": "maria-silva-02",
-      "participanteANome": "Maria Silva",
+      "participanteAId": "f2",
+      "participanteANome": "João Pereira",
       "participanteATipo": "freelancers",
-      "participanteBId": "0UEUrH8HgJE",
-      "participanteBNome": "Silva Fashion",
+      "participanteBId": "e1",
+      "participanteBNome": "Aurora Confecção Ltda.",
       "participanteBTipo": "empresas",
       "ultimaMensagem": "",
-      "ultimaAtualizacao": "2026-09-18T22:17:08.587Z",
-      "id": "JeF3SqlHss4"
+      "ultimaAtualizacao": "2026-09-21T16:47:50.374Z",
+      "id": "a-tEy-GxalQ"
     }
   ],
   "mensagens": [
     {
-      "id": "1",
-      "conversaId": "conv-1",
-      "remetenteId": "0UEUrH8HgJE",
-      "remetenteNome": "Silva Fashion",
-      "destinatarioId": "-DU9G2RSk6s",
-      "destinatarioNome": "Karina Vicente",
-      "conteudo": "Olá, tudo bem?",
-      "timestamp": "2026-08-01T10:30:00",
+      "id": "m1e194",
+      "conversaId": "cv1",
+      "remetenteId": "e1",
+      "remetenteNome": "Aurora Modas",
+      "destinatarioId": "f1",
+      "destinatarioNome": "Marina Souza",
+      "conteudo": "Olá Marina, iniciamos a produção da peça piloto.",
+      "timestamp": "2026-09-11T17:45:20.406Z",
       "lida": true
     },
     {
-      "id": "2",
-      "conversaId": "conv-1",
-      "remetenteId": "-DU9G2RSk6s",
-      "remetenteNome": "Karina Vicente",
-      "destinatarioId": "0UEUrH8HgJE",
-      "destinatarioNome": "Silva Fashion",
-      "conteudo": "Sim, podemos iniciar.",
-      "timestamp": "2026-08-01T10:32:00",
+      "id": "m1f195",
+      "conversaId": "cv1",
+      "remetenteId": "f1",
+      "remetenteNome": "Marina Souza",
+      "destinatarioId": "e1",
+      "destinatarioNome": "Aurora Modas",
+      "conteudo": "Combinado, envio fotos do avanço amanhã.",
+      "timestamp": "2026-09-11T16:45:20.406Z",
       "lida": true
     },
     {
-      "id": "3",
-      "conversaId": "conv-1",
-      "remetenteId": "0UEUrH8HgJE",
-      "remetenteNome": "Silva Fashion",
-      "destinatarioId": "-DU9G2RSk6s",
-      "destinatarioNome": "Karina Vicente",
-      "conteudo": "Enviei as referências visuais.",
-      "timestamp": "2026-08-01T10:35:00",
-      "lida": false
-    },
-    {
-      "id": "4",
-      "conversaId": "conv-2",
-      "remetenteId": "LZwRUc8wAso",
-      "remetenteNome": "kkkk",
-      "destinatarioId": "-DU9G2RSk6s",
-      "destinatarioNome": "Karina Vicente",
-      "conteudo": "Bom dia! O lote de blusas já está pronto para envio.",
-      "timestamp": "2026-08-02T09:10:00",
+      "id": "m1e112",
+      "conversaId": "cv1",
+      "remetenteId": "e1",
+      "remetenteNome": "Aurora Modas",
+      "destinatarioId": "f1",
+      "destinatarioNome": "Marina Souza",
+      "conteudo": "Perfeito, o briefing completo está anexado na OS.",
+      "timestamp": "2026-09-19T19:45:20.406Z",
       "lida": true
     },
     {
-      "id": "5",
-      "conversaId": "conv-2",
-      "remetenteId": "-DU9G2RSk6s",
-      "remetenteNome": "Karina Vicente",
-      "destinatarioId": "LZwRUc8wAso",
-      "destinatarioNome": "kkkk",
-      "conteudo": "Perfeito, pode enviar as fotos finais.",
-      "timestamp": "2026-08-02T09:15:00",
+      "id": "m2f236",
+      "conversaId": "cv2",
+      "remetenteId": "f2",
+      "remetenteNome": "João Pereira",
+      "destinatarioId": "e3",
+      "destinatarioNome": "Bela Peça",
+      "conteudo": "Entrega finalizada, segue a confirmação na OS.",
+      "timestamp": "2026-09-17T15:45:20.406Z",
       "lida": true
     },
     {
-      "id": "6",
-      "conversaId": "conv-3",
-      "remetenteId": "maria-silva-02",
-      "remetenteNome": "Maria Silva",
-      "destinatarioId": "-DU9G2RSk6s",
-      "destinatarioNome": "Karina Vicente",
-      "conteudo": "Consigo entregar a modelagem até sexta-feira.",
-      "timestamp": "2026-08-03T14:02:00",
+      "id": "m2e337",
+      "conversaId": "cv2",
+      "remetenteId": "e3",
+      "remetenteNome": "Bela Peça",
+      "destinatarioId": "f2",
+      "destinatarioNome": "João Pereira",
+      "conteudo": "Recebido e aprovado, obrigada!",
+      "timestamp": "2026-09-17T14:45:20.406Z",
+      "lida": true
+    },
+    {
+      "id": "m3e2133",
+      "conversaId": "cv3",
+      "remetenteId": "e2",
+      "remetenteNome": "Vale Têxtil",
+      "destinatarioId": "f1",
+      "destinatarioNome": "Marina Souza",
+      "conteudo": "Vamos reavaliar o cronograma da modelagem em breve.",
+      "timestamp": "2026-09-07T18:45:20.406Z",
+      "lida": true
+    },
+    {
+      "id": "m3f1134",
+      "conversaId": "cv3",
+      "remetenteId": "f1",
+      "remetenteNome": "Marina Souza",
+      "destinatarioId": "e2",
+      "destinatarioNome": "Vale Têxtil",
+      "conteudo": "Ok, fico no aguardo da nova data.",
+      "timestamp": "2026-09-07T17:45:20.406Z",
       "lida": true
     }
   ],
   "chamados": [
     {
-      "id": "1",
+      "id": "ch1",
       "assunto": "Dúvida",
-      "descricao": "Como funciona a plataforma?",
+      "descricao": "Como funciona o pagamento das ordens de serviço?",
       "status": "Aberto",
-      "autorId": "-DU9G2RSk6s",
-      "autorNome": "Maria Silva",
-      "criadoEm": "2026-07-10",
+      "autorId": "f1",
+      "autorNome": "Marina Souza",
+      "criadoEm": "2026-09-18",
+      "anexos": [],
       "mensagens": [
         {
-          "autor": "Maria Silva",
-          "texto": "Como funciona a plataforma?",
-          "data": "2026-07-10"
+          "autor": "Marina Souza",
+          "texto": "Como funciona o pagamento das ordens de serviço?",
+          "data": "2026-09-18"
         }
       ]
     },
     {
-      "id": "2",
-      "assunto": "Pagamento",
-      "descricao": "Dúvida sobre cobrança da assinatura.",
+      "id": "ch2",
+      "assunto": "Enviar documentos de validação",
+      "descricao": "Envio do contrato social e do cartão CNPJ para validação da conta da empresa.",
       "status": "Respondido",
-      "autorId": "0UEUrH8HgJE",
-      "autorNome": "Confecção X",
-      "criadoEm": "2026-07-12",
+      "autorId": "e2",
+      "autorNome": "Vale Têxtil",
+      "criadoEm": "2026-09-13",
+      "anexos": [],
       "mensagens": [
         {
-          "autor": "Confecção X",
-          "texto": "Dúvida sobre cobrança da assinatura.",
-          "data": "2026-07-12"
+          "autor": "Vale Têxtil",
+          "texto": "Envio do contrato social e do cartão CNPJ para validação da conta da empresa.",
+          "data": "2026-09-13"
         },
         {
           "autor": "Suporte Freela da Moda",
-          "texto": "Olá! A cobrança é mensal e renova automaticamente. Posso ajudar em algo mais?",
-          "data": "2026-07-12"
+          "texto": "Documentos recebidos. A validação será concluída em até 3 dias úteis.",
+          "data": "2026-09-14"
         }
       ]
     },
     {
-      "assunto": "Dúvida",
-      "descricao": "ola estou com duvida",
+      "id": "ch3",
+      "assunto": "Erro no sistema",
+      "descricao": "O upload da referência falhou com um arquivo de 4 MB.",
       "status": "Fechado",
+      "autorId": "f2",
+      "autorNome": "João Pereira",
+      "criadoEm": "2026-09-10",
+      "anexos": [
+        "/uploads/chamados/ch3/anexo-1755000000000-1.png"
+      ],
+      "mensagens": [
+        {
+          "autor": "João Pereira",
+          "texto": "O upload da referência falhou com um arquivo de 4 MB.",
+          "data": "2026-09-10"
+        },
+        {
+          "autor": "Suporte Freela da Moda",
+          "texto": "Corrigido. Teste novamente por favor.",
+          "data": "2026-09-11"
+        }
+      ]
+    },
+    {
+      "id": "ch4",
+      "assunto": "Denúncia",
+      "descricao": "Denúncia anônima sobre descrição irregular em uma vaga do mural.",
+      "status": "Aberto",
       "autorId": null,
       "autorNome": "Visitante",
-      "criadoEm": "2026-09-13",
+      "criadoEm": "2026-09-19",
+      "anexos": [],
       "mensagens": [
         {
           "autor": "Visitante",
-          "texto": "ola estou com duvida",
-          "data": "2026-09-13"
-        },
-        {
-          "autor": "Suporte Freela da Moda",
-          "texto": "ok",
-          "data": "2026-09-13"
+          "texto": "Denúncia anônima sobre descrição irregular em uma vaga do mural.",
+          "data": "2026-09-19"
         }
-      ],
-      "id": "TJNm37eKX8k"
+      ]
     }
   ],
   "notificacoes": [
     {
-      "usuarioId": "-DU9G2RSk6s",
+      "id": "n1",
+      "usuarioId": "e1",
+      "usuarioTipo": "empresas",
+      "tipo": "candidatura",
+      "titulo": "Nova candidatura recebida",
+      "mensagem": "João Pereira se candidatou à vaga \"Costureira para lote de vestidos\".",
+      "lida": true,
+      "criadoEm": "2026-09-18T21:45:20.406Z",
+      "link": "/pages/17-candidatos-vaga.html?id=v1"
+    },
+    {
+      "id": "n2",
+      "usuarioId": "f1",
+      "usuarioTipo": "freelancers",
+      "tipo": "candidatura",
+      "titulo": "Candidatura aceita",
+      "mensagem": "Sua candidatura para a vaga \"Pilotista de peça piloto\" foi aceita.",
+      "lida": true,
+      "criadoEm": "2026-09-10T21:45:20.406Z",
+      "link": "/pages/29-minhas-os.html"
+    },
+    {
+      "id": "n3",
+      "usuarioId": "f2",
       "usuarioTipo": "freelancers",
       "tipo": "convite",
       "titulo": "Novo convite de vaga",
-      "mensagem": "Silva Fashion convidou você para a vaga \"Técnico(a) em Controle de Qualidade Têxtil\".",
+      "mensagem": "Vale Têxtil convidou você para a vaga \"Overloquista para acabamento\".",
       "lida": false,
-      "criadoEm": "2026-09-19T12:00:00.000Z",
-      "link": "/pages/20-minhas-candidaturas.html",
-      "id": "jSRIVSM41tc"
+      "criadoEm": "2026-09-19T15:45:20.407Z",
+      "link": "/pages/20-minhas-candidaturas.html"
     },
     {
-      "usuarioId": "0UEUrH8HgJE",
+      "id": "n4",
+      "usuarioId": "e3",
+      "usuarioTipo": "empresas",
+      "tipo": "convite",
+      "titulo": "Convite aceito",
+      "mensagem": "João Pereira aceitou seu convite para a vaga \"Bordadeira para camisetas\".",
+      "lida": true,
+      "criadoEm": "2026-08-27T21:45:20.407Z",
+      "link": "/pages/16-ordens-servico.html"
+    },
+    {
+      "id": "n5",
+      "usuarioId": "f2",
+      "usuarioTipo": "freelancers",
+      "tipo": "os",
+      "titulo": "Ordem de serviço atualizada",
+      "mensagem": "A OS \"Bordadeira para camisetas\" foi finalizada pela empresa.",
+      "lida": false,
+      "criadoEm": "2026-09-17T21:45:20.407Z",
+      "link": "/pages/19-ordem-servico-detalhe.html?id=os2"
+    },
+    {
+      "id": "n6",
+      "usuarioId": "f2",
+      "usuarioTipo": "freelancers",
+      "tipo": "avaliacao",
+      "titulo": "Nova avaliação recebida",
+      "mensagem": "Bela Peça avaliou você com nota 4 de 5.",
+      "lida": false,
+      "criadoEm": "2026-09-18T20:45:20.407Z",
+      "link": "/pages/25-perfil-freelancer-publico.html?id=f2"
+    },
+    {
+      "id": "n7",
+      "usuarioId": "f1",
+      "usuarioTipo": "freelancers",
+      "tipo": "mensagem",
+      "titulo": "Nova mensagem",
+      "mensagem": "Aurora Modas: Perfeito, o briefing completo está anexado na OS.",
+      "lida": true,
+      "criadoEm": "2026-09-19T19:45:20.407Z",
+      "link": "/pages/11-chat.html?conversaId=cv1"
+    },
+    {
+      "id": "n8",
+      "usuarioId": "e1",
       "usuarioTipo": "empresas",
       "tipo": "pagamento",
       "titulo": "Pagamento confirmado",
-      "mensagem": "Pagamento de R$ 49,90 do plano Básico confirmado. Próxima cobrança em 14/10/2026.",
+      "mensagem": "Pagamento de R$ 14,90 do plano Profissional confirmado. Próxima cobrança em 2026-10-01.",
+      "lida": true,
+      "criadoEm": "2026-09-10T21:45:20.407Z",
+      "link": "/pages/21-assinatura.html"
+    },
+    {
+      "usuarioId": "e1",
+      "usuarioTipo": "empresas",
+      "tipo": "candidatura",
+      "titulo": "Nova candidatura recebida",
+      "mensagem": "Marina Souza se candidatou à vaga \"Costureira para lote de vestidos\".",
+      "lida": true,
+      "criadoEm": "2026-09-21T12:23:53.186Z",
+      "link": "/pages/17-candidatos-vaga.html?id=v1",
+      "id": "yXeYwfIKnLk"
+    },
+    {
+      "usuarioId": "e3",
+      "usuarioTipo": "empresas",
+      "tipo": "candidatura",
+      "titulo": "Nova candidatura recebida",
+      "mensagem": "Marina Souza se candidatou à vaga \"Estamparia em lote pequeno\".",
+      "lida": true,
+      "criadoEm": "2026-09-21T13:49:01.921Z",
+      "link": "/pages/17-candidatos-vaga.html?id=v6",
+      "id": "HAO2xVHCAF8"
+    },
+    {
+      "usuarioId": "f2",
+      "usuarioTipo": "freelancers",
+      "tipo": "candidatura",
+      "titulo": "Candidatura aceita",
+      "mensagem": "Sua candidatura para a vaga \"Costureira para lote de vestidos\" foi aceita.",
       "lida": false,
-      "criadoEm": "2026-09-14T09:00:00.000Z",
-      "link": "/pages/21-assinatura.html",
-      "id": "LC9g2oyrbbI"
+      "criadoEm": "2026-09-21T16:47:50.383Z",
+      "link": "/pages/29-minhas-os.html",
+      "id": "nsg_Tx4UQrw"
+    },
+    {
+      "usuarioId": "f1",
+      "usuarioTipo": "freelancers",
+      "tipo": "os",
+      "titulo": "Ordem de serviço atualizada",
+      "mensagem": "A OS \"Pilotista de peça piloto\" foi finalizada pela empresa.",
+      "lida": true,
+      "criadoEm": "2026-09-21T17:18:29.261Z",
+      "link": "/pages/19-ordem-servico-detalhe.html?id=os1",
+      "id": "6PHQvpFCEaw"
+    },
+    {
+      "usuarioId": "f2",
+      "usuarioTipo": "freelancers",
+      "tipo": "os",
+      "titulo": "Ordem de serviço atualizada",
+      "mensagem": "A OS \"Costureira para lote de vestidos\" foi cancelada pela empresa.",
+      "lida": false,
+      "criadoEm": "2026-09-21T17:18:31.600Z",
+      "link": "/pages/19-ordem-servico-detalhe.html?id=06jQZ1ZiZXE",
+      "id": "u8uReAznpsk"
+    },
+    {
+      "usuarioId": "e1",
+      "usuarioTipo": "empresas",
+      "tipo": "avaliacao",
+      "titulo": "Nova avaliação recebida",
+      "mensagem": "Marina Souza avaliou você com nota 5 de 5.",
+      "lida": false,
+      "criadoEm": "2026-09-21T17:20:15.117Z",
+      "link": "/pages/26-perfil-empresa-publico.html?id=e1",
+      "id": "-YYO_PIIYZU"
     }
   ],
   "assinaturas": [
     {
-      "id": "1",
-      "empresaId": "0UEUrH8HgJE",
-      "plano": "Básico",
-      "valor": "R$ 49,90",
+      "id": "as1",
+      "empresaId": "e1",
+      "plano": "Profissional",
+      "valor": "R$ 14,90",
       "status": "ativo",
-      "proximaCobranca": "2026-10-14",
+      "proximaCobranca": "2026-10-01",
       "historico": [
         {
-          "data": "2026-08-10",
-          "plano": "Básico",
-          "valor": "R$ 49,90",
+          "data": "2026-09-10",
+          "plano": "Profissional",
+          "valor": "R$ 14,90",
           "status": "pago"
-        },
+        }
+      ]
+    },
+    {
+      "id": "as2",
+      "empresaId": "e2",
+      "plano": "Profissional",
+      "valor": "R$ 14,90",
+      "status": "inativo",
+      "proximaCobranca": "",
+      "historico": [
         {
-          "data": "2026-09-13",
-          "plano": "Pro",
-          "valor": "R$ 99,90",
+          "data": "2026-08-11",
+          "plano": "Profissional",
+          "valor": "R$ 14,90",
           "status": "pago"
-        },
+        }
+      ]
+    },
+    {
+      "id": "as3",
+      "empresaId": "e3",
+      "plano": "Básico",
+      "valor": "Grátis",
+      "status": "inativo",
+      "proximaCobranca": "",
+      "historico": [
         {
-          "data": "2026-09-14",
+          "data": "2026-07-22",
           "plano": "Básico",
-          "valor": "R$ 49,90",
+          "valor": "Grátis",
           "status": "pago"
         }
       ]
@@ -1001,27 +1172,36 @@
   ],
   "impulsionamentos": [
     {
-      "id": "1",
-      "freelancerId": "-DU9G2RSk6s",
+      "id": "im1",
+      "freelancerId": "f1",
       "plano": "Premium",
-      "valor": "R$ 14,90/mês",
+      "valor": "R$ 29,90",
       "status": "ativo",
-      "dataInicio": "2026-09-18",
+      "dataInicio": "2026-09-15",
       "dataFim": null
     },
     {
-      "freelancerId": "carlos-souza-04",
+      "id": "im2",
+      "freelancerId": "f2",
       "plano": "Pro",
-      "valor": "R$ 29,90/mês",
+      "valor": "R$ 9,90",
       "status": "ativo",
-      "dataInicio": "2026-09-01",
-      "dataFim": null,
-      "id": "pBtwG69awGE"
+      "dataInicio": "2026-09-17",
+      "dataFim": null
+    },
+    {
+      "id": "im3",
+      "freelancerId": "f3",
+      "plano": "Pro",
+      "valor": "R$ 9,90",
+      "status": "inativo",
+      "dataInicio": "2026-08-11",
+      "dataFim": "2026-09-10"
     }
   ],
   "parametros": [
     {
-      "id": "1",
+      "id": "pa1",
       "taxa": 10,
       "limite": 5,
       "aviso": "",
@@ -1030,22 +1210,95 @@
   ],
   "avisos": [
     {
-      "id": "1",
+      "id": "avs1",
       "titulo": "Manutenção programada",
-      "texto": "A plataforma ficará indisponível das 2h às 4h para manutenção.",
+      "texto": "O mural de vagas ficará fora do ar na madrugada de sábado para manutenção.",
       "autor": "Administração",
-      "publicadoEm": "2026-07-01",
-      "expiraEm": "2026-07-15",
+      "publicadoEm": "2026-09-18",
+      "expiraEm": "2026-10-02",
       "status": "Ativo"
     },
     {
-      "id": "2",
-      "titulo": "Atualização de termos de uso",
-      "texto": "Os termos de uso foram atualizados. Confira as novidades na sua conta.",
+      "id": "avs2",
+      "titulo": "Avaliação em dois sentidos",
+      "texto": "Empresas e freelancers agora se avaliam ao final de cada ordem de serviço.",
       "autor": "Administração",
-      "publicadoEm": "2026-06-20",
-      "expiraEm": "2026-08-20",
-      "status": "Programado"
+      "publicadoEm": "2026-09-14",
+      "expiraEm": null,
+      "status": "Ativo"
+    },
+    {
+      "id": "avs3",
+      "titulo": "Campanha de inverno",
+      "texto": "Convites liberados para empresas assinantes durante a campanha.",
+      "autor": "Administração",
+      "publicadoEm": "2026-07-22",
+      "expiraEm": "2026-08-21",
+      "status": "Expirado"
+    }
+  ],
+  "planos": [
+    {
+      "id": "pl-ass-basico",
+      "tipo": "assinatura",
+      "nome": "Básico",
+      "valor": "Grátis",
+      "descricao": "Para começar a contratar ou trabalhar",
+      "destaque": false,
+      "beneficios": [
+        "Perfil profissional completo",
+        "Até 3 vagas publicadas",
+        "Chat com candidatos",
+        "Ordens de serviço"
+      ]
+    },
+    {
+      "id": "pl-ass-profissional",
+      "tipo": "assinatura",
+      "nome": "Profissional",
+      "valor": "R$ 14,90",
+      "descricao": "Para confecções que querem escalar",
+      "destaque": true,
+      "beneficios": [
+        "Vagas ilimitadas",
+        "Destaque nas buscas",
+        "Portfólio com fotos e vídeos",
+        "Relatórios de desempenho",
+        "Suporte prioritário"
+      ]
+    },
+    {
+      "id": "pl-ass-empresarial",
+      "tipo": "assinatura",
+      "nome": "Empresarial",
+      "valor": "",
+      "descricao": "Para operações de grande volume",
+      "destaque": false,
+      "beneficios": [
+        "Tudo do Profissional",
+        "Múltiplos usuários",
+        "API de integração",
+        "Gestão de equipe interna",
+        "Gerente de conta dedicado"
+      ]
+    },
+    {
+      "id": "pl-imp-pro",
+      "tipo": "impulsionamento",
+      "nome": "Pro",
+      "valor": "R$ 9,90",
+      "descricao": "Mais visibilidade nas buscas",
+      "destaque": false,
+      "beneficios": []
+    },
+    {
+      "id": "pl-imp-premium",
+      "tipo": "impulsionamento",
+      "nome": "Premium",
+      "valor": "R$ 29,90",
+      "descricao": "Destaque máximo no mural",
+      "destaque": true,
+      "beneficios": []
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"

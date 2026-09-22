@@ -1,285 +1,299 @@
-// Confere se a empresa tem uma assinatura com status "ativo" — publicar vaga é
-// um recurso pago, então isso não pode continuar funcionando pra quem nunca
-// contratou nenhum plano (ver tela de Assinatura).
-async function empresaTemAssinaturaAtiva(empresaId) {
-    try {
-        const res = await fetch(`${API_BASE}/assinaturas?empresaId=${empresaId}`);
-        if (!res.ok) return false;
-        const assinaturas = await res.json();
-        return assinaturas.some(function (a) { return a.status === 'ativo'; });
-    } catch (erro) {
-        console.error('Erro ao verificar assinatura:', erro);
-        return false;
-    }
-}
-
 document.addEventListener('DOMContentLoaded', function () {
-    'use strict';
+    const sessao = exigirTipo('empresas');
+    if (!sessao) return;
 
-    // ── 2. Controle de Habilidades (Badges Selecionáveis) ──
-    const habilidadesBadges = document.querySelectorAll('#habilidadesGroup .badge-selectable');
-    habilidadesBadges.forEach(badge => {
-        badge.addEventListener('click', function () {
-            this.classList.toggle('selected');
-        });
-    });
+    renderizarSidebar(document.querySelector('.sidebar'), 'empresas', '12-publicar-vaga');
+    renderizarTopbar(document.getElementById('header-acoes'), sessao);
+    renderizarBannerValidacao(document.querySelector('.main'), sessao);
 
-    // ── 3. Incremento / Decremento do Valor ──
-    const btnDecrementar = document.getElementById('btnDecrementar');
-    const btnIncrementar = document.getElementById('btnIncrementar');
-    const inputValor = document.getElementById('valor');
+    initMenuMobile();
 
-    function extrairNumero(texto) {
-        const limpo = texto.replace(/[^\d]/g, '');
-        return limpo ? parseInt(limpo, 10) / 100 : 0;
-    }
-
-    function formatarMoeda(valor) {
-        return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    }
-
-    if (btnDecrementar && btnIncrementar && inputValor) {
-        btnDecrementar.addEventListener('click', function () {
-            let valorAtual = extrairNumero(inputValor.value);
-            if (valorAtual >= 100) {
-                valorAtual -= 50;
-                inputValor.value = formatarMoeda(valorAtual);
-            }
-        });
-
-        btnIncrementar.addEventListener('click', function () {
-            let valorAtual = extrairNumero(inputValor.value);
-            valorAtual += 50;
-            inputValor.value = formatarMoeda(valorAtual);
-        });
-
-        inputValor.addEventListener('blur', function () {
-            let num = extrairNumero(this.value);
-            this.value = formatarMoeda(num);
-        });
-
-        // Live-masking: nunca deixa letras aparecerem, só dígitos viram moeda.
-        inputValor.addEventListener('input', function () {
-            const digitos = this.value.replace(/\D/g, '');
-            const num = digitos ? parseInt(digitos, 10) / 100 : 0;
-            this.value = digitos ? formatarMoeda(num) : '';
-        });
-    }
-
-    // ── 4. Simulação de Upload de Arquivo (Dropzone) ──
-    const dropzone = document.getElementById('dropzone');
-    const fileInput = document.getElementById('fileInput');
-    const filePreview = document.getElementById('filePreview');
-    const fileName = document.getElementById('fileName');
-
-    if (dropzone && fileInput) {
-        dropzone.addEventListener('click', () => fileInput.click());
-
-        fileInput.addEventListener('change', function () {
-            if (this.files && this.files[0]) {
-                fileName.textContent = this.files[0].name;
-                filePreview.style.display = 'flex';
-            }
-        });
-    }
-
-    // ── 5. Autocomplete de Cidades (NOVO) ──
-    const inputCidade = document.getElementById('cidade');
-
-    const cidadesMock = [
-        'São Paulo - SP',
-        'Santo André - SP',
-        'São Bernardo do Campo - SP',
-        'Sorocaba - SP',
-        'Santos - SP',
-        'Blumenau - SC',
-        'Brusque - SC',
-        'Pomerode - SC',
-        'Rio de Janeiro - RJ',
-        'Aracaju - SE'
-    ];
-
-    if (inputCidade) {
-        const wrapper = inputCidade.closest('.autocomplete-wrapper');
-        const dropdown = document.createElement('div');
-        dropdown.className = 'autocomplete-dropdown';
-        dropdown.style.display = 'none';
-
-        wrapper.appendChild(dropdown);
-
-        inputCidade.addEventListener('input', function () {
-            const valorDigitado = this.value.toLowerCase();
-            dropdown.innerHTML = '';
-
-            if (!valorDigitado) {
-                dropdown.style.display = 'none';
-                return;
-            }
-
-            const filtradas = cidadesMock.filter(cidade =>
-                cidade.toLowerCase().includes(valorDigitado)
-            );
-
-            if (filtradas.length > 0) {
-                filtradas.forEach(cidade => {
-                    const item = document.createElement('div');
-                    item.className = 'autocomplete-item';
-                    item.textContent = cidade;
-
-                    item.addEventListener('click', function () {
-                        inputCidade.value = cidade;
-                        dropdown.style.display = 'none';
-                    });
-
-                    dropdown.appendChild(item);
-                });
-                dropdown.style.display = 'block';
-            } else {
-                dropdown.style.display = 'none';
-            }
-        });
-
-        document.addEventListener('click', function (e) {
-            if (!wrapper.contains(e.target)) {
-                dropdown.style.display = 'none';
-            }
-        });
-    }
-
-    // ── 6. Validação e Envio do Formulário ──
+    /* ------------------------- refs ---------------------------------------- */
     const form = document.getElementById('formPublicarVaga');
-    const feedbackAlert = document.getElementById('feedbackAlert');
+    const alertBar = document.getElementById('alert-publicar-vaga');
+    const inputTitulo = document.getElementById('titulo');
+    const selectEspecialidade = document.getElementById('especialidade');
+    const selectModalidade = document.getElementById('modalidade');
+    const inputCidade = document.getElementById('cidade');
+    const selectEstado = document.getElementById('estado');
+    const inputValor = document.getElementById('valor');
+    const inputPrazo = document.getElementById('prazo');
+    const inputDescricao = document.getElementById('descricao');
+    const inputReferencias = document.getElementById('refs-vaga');
+    const referenciasPreview = document.getElementById('refs-vaga-preview');
     const btnSubmit = document.getElementById('btnSubmit');
 
-    function mostrarErroFeedback(texto) {
-        if (!feedbackAlert) return;
-        feedbackAlert.classList.remove('alert-success');
-        feedbackAlert.classList.add('alert-error');
-        feedbackAlert.innerHTML = `<i class="bi bi-exclamation-circle-fill"></i> ${texto}`;
-        feedbackAlert.style.display = 'block';
+    const LIMITE_FOTO_MB = 5;
+    const MAX_REFERENCIAS = 10;
+    const TETO_VALOR = 99999.99;
+    const PRAZO_MAX_DIAS = 730;
+
+    // Referências ficam em preview na sessão; os caminhos são montados após a
+    // vaga ser criada (o id vem do POST) e gravados via PATCH.
+    let referenciasPreviewUrls = [];
+
+    /* ------------------------- menu mobile -------------------------------- */
+    function initMenuMobile() {
+        const sidebarToggleBtn = document.querySelector('.sidebar-toggle-btn');
+        const sidebar = document.querySelector('.sidebar');
+        const sidebarOverlay = document.querySelector('.sidebar-overlay');
+        if (!sidebarToggleBtn || !sidebar || !sidebarOverlay) return;
+
+        sidebarToggleBtn.addEventListener('click', function () {
+            const abrindo = !sidebar.classList.contains('open');
+            sidebar.classList.toggle('open', abrindo);
+            sidebarOverlay.classList.toggle('open', abrindo);
+            sidebarToggleBtn.setAttribute('aria-expanded', String(abrindo));
+        });
+
+        sidebarOverlay.addEventListener('click', function () {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('open');
+            sidebarToggleBtn.setAttribute('aria-expanded', 'false');
+        });
+    }
+
+    /* ------------------------- mensagens ----------------------------------- */
+    function mostrarMensagem(texto, tipo) {
+        if (!alertBar) return;
+        alertBar.className = `alert mb-md ${tipo === 'success' ? 'alert-success' : 'alert-error'}`;
+        alertBar.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${escapeHtml(texto)}`;
+        alertBar.removeAttribute('hidden');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    if (form) {
-        form.addEventListener('submit', async function (e) {
-            e.preventDefault();
+    function limparMensagem() {
+        if (alertBar) alertBar.setAttribute('hidden', '');
+    }
 
-            const titulo = document.getElementById('titulo');
-            const categoria = document.getElementById('categoria');
-            const modalidade = document.getElementById('modalidade');
-            const cidade = document.getElementById('cidade');
-            const estado = document.getElementById('estado');
-            const valor = document.getElementById('valor');
-            const prazo = document.getElementById('prazo');
-            const descricao = document.getElementById('descricao');
+    /* ------------------------- assinatura ---------------------------------- */
+    // Publicar vaga é um recurso pago: exige assinatura com status "ativo".
+    async function empresaTemAssinaturaAtiva(empresaId) {
+        try {
+            const res = await fetch(`${API_BASE}/assinaturas?empresaId=${encodeURIComponent(empresaId)}`);
+            if (!res.ok) return false;
+            const assinaturas = await res.json();
+            return assinaturas.some(function (a) { return a.status === 'ativo'; });
+        } catch (erro) {
+            console.error('Erro ao verificar assinatura:', erro);
+            return false;
+        }
+    }
 
-            let isValid = true;
+    /* ------------------------- cidade/estado (IBGE) ------------------------ */
+    // Pré-seleciona a localidade cadastrada da empresa logada.
+    async function prepararLocalidade() {
+        try {
+            const res = await fetch(`${API_BASE}/empresas/${sessao.id}`);
+            if (!res.ok) throw new Error('Erro ao carregar empresa.');
+            const empresa = await res.json();
 
-            [titulo, categoria, modalidade, cidade, estado, valor, prazo, descricao].forEach(el => el.classList.remove('input-error'));
+            await carregarUFs(selectEstado, empresa.estadoComercial || '');
+            if (empresa.cidadeComercial) inputCidade.value = empresa.cidadeComercial;
+            montarAutocompleteCidade(inputCidade, selectEstado);
+        } catch (erro) {
+            console.error('Erro ao preparar localidade:', erro);
+            await carregarUFs(selectEstado, '');
+            montarAutocompleteCidade(inputCidade, selectEstado);
+        }
+    }
 
-            if (!titulo.value.trim()) {
-                titulo.classList.add('input-error');
-                isValid = false;
-            }
+    prepararLocalidade();
 
-            if (!categoria.value) {
-                categoria.classList.add('input-error');
-                isValid = false;
-            }
+    /* ------------------------- máscara de moeda ---------------------------- */
+    aplicarMascaraMoeda(inputValor, TETO_VALOR);
 
-            if (!modalidade.value) {
-                modalidade.classList.add('input-error');
-                isValid = false;
-            }
+    /* ------------------------- limites do prazo ----------------------------- */
+    const limitesPrazo = limitesDataPrazo(PRAZO_MAX_DIAS);
+    inputPrazo.min = limitesPrazo.min;
+    inputPrazo.max = limitesPrazo.max;
 
-            if (!cidade.value.trim()) {
-                cidade.classList.add('input-error');
-                isValid = false;
-            }
+    /* ------------------------- uploads de referências ---------------------- */
+    function criarImagemComFallback(container, src, alt) {
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = alt;
+        img.onerror = function () {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'imagem-placeholder';
+            placeholder.innerHTML = '<i class="bi bi-image"></i>';
+            container.replaceChild(placeholder, img);
+        };
+        container.appendChild(img);
+    }
 
-            if (!estado.value) {
-                estado.classList.add('input-error');
-                isValid = false;
-            }
+    function renderizarReferencias() {
+        referenciasPreview.innerHTML = '';
+        if (!referenciasPreviewUrls.length) {
+            referenciasPreview.innerHTML = '<span class="field-message">Nenhuma foto de referência adicionada.</span>';
+            return;
+        }
+        referenciasPreviewUrls.forEach(function (url, indice) {
+            const item = document.createElement('div');
+            item.className = 'referencia-item';
 
-            const valorNumerico = extrairNumero(valor.value);
-            if (!valorNumerico || valorNumerico <= 0) {
-                valor.classList.add('input-error');
-                isValid = false;
-            }
+            criarImagemComFallback(item, url, `Referência ${indice + 1}`);
 
-            if (!prazo.value) {
-                prazo.classList.add('input-error');
-                isValid = false;
-            }
+            const botao = document.createElement('button');
+            botao.type = 'button';
+            botao.setAttribute('aria-label', 'Remover referência');
+            botao.innerHTML = '<i class="bi bi-x"></i>';
+            botao.addEventListener('click', function () {
+                const urlRemovida = referenciasPreviewUrls.splice(indice, 1)[0];
+                if (urlRemovida && urlRemovida.startsWith('blob:')) URL.revokeObjectURL(urlRemovida);
+                renderizarReferencias();
+            });
 
-            if (!descricao.value.trim() || descricao.value.length < 15) {
-                descricao.classList.add('input-error');
-                const descError = document.getElementById('descricaoError');
-                if (descError) descError.textContent = 'A descrição deve ter no mínimo 15 caracteres.';
-                isValid = false;
-            }
-
-            if (!isValid) return;
-
-            const sessao = JSON.parse(sessionStorage.getItem('usuarioLogado') || 'null');
-            if (!sessao) {
-                mostrarErroFeedback('Sessão expirada. Faça login novamente com a conta da sua empresa.');
-                return;
-            }
-
-            btnSubmit.disabled = true;
-            const textoOriginalBtn = btnSubmit.innerHTML;
-            btnSubmit.innerHTML = '<span class="spinner"></span> Verificando assinatura...';
-
-            const assinaturaAtiva = await empresaTemAssinaturaAtiva(sessao.id);
-            if (!assinaturaAtiva) {
-                btnSubmit.disabled = false;
-                btnSubmit.innerHTML = textoOriginalBtn;
-                mostrarErroFeedback('Sua empresa não tem uma assinatura ativa. Contrate um plano na página de Assinatura para publicar vagas.');
-                return;
-            }
-
-            const novaVaga = {
-                empresaId: sessao.id,
-                empresaNome: sessao.nome,
-                titulo: titulo.value.trim(),
-                especialidade: categoria.value,
-                valor: formatarMoeda(valorNumerico),
-                prazo: prazo.value,
-                local: `${cidade.value.trim()}, ${estado.value}`,
-                modalidade: modalidade.value,
-                descricao: descricao.value.trim(),
-                status: 'Aberta'
-            };
-
-            btnSubmit.disabled = true;
-            btnSubmit.innerHTML = '<span class="spinner"></span> Publicando...';
-
-            try {
-                const res = await fetch(`${API_BASE}/vagas`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(novaVaga)
-                });
-
-                if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
-
-                feedbackAlert.classList.remove('alert-error');
-                feedbackAlert.classList.add('alert-success');
-                feedbackAlert.innerHTML = '<i class="bi bi-check-circle-fill"></i> Vaga publicada com sucesso! Redirecionando...';
-                feedbackAlert.style.display = 'block';
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-
-                setTimeout(() => {
-                    window.location.href = '/pages/15-minhas-vagas.html';
-                }, 1500);
-            } catch (erro) {
-                console.error('Erro ao publicar vaga:', erro);
-                mostrarErroFeedback('Não foi possível publicar a vaga. Verifique se o json-server está rodando e tente novamente.');
-                btnSubmit.disabled = false;
-                btnSubmit.innerHTML = '<i class="bi bi-send-fill"></i> Publicar Vaga';
-            }
+            item.appendChild(botao);
+            referenciasPreview.appendChild(item);
         });
     }
+
+    renderizarReferencias();
+
+    inputReferencias.addEventListener('change', function () {
+        const arquivos = Array.from(inputReferencias.files);
+        let ignorados = 0;
+
+        arquivos.forEach(function (arquivo) {
+            if (referenciasPreviewUrls.length >= MAX_REFERENCIAS) {
+                ignorados++;
+                return;
+            }
+            if (!arquivo.type.startsWith('image/')) {
+                ignorados++;
+                return;
+            }
+            if (arquivo.size > LIMITE_FOTO_MB * 1024 * 1024) {
+                ignorados++;
+                return;
+            }
+            referenciasPreviewUrls.push(URL.createObjectURL(arquivo));
+        });
+
+        renderizarReferencias();
+
+        if (ignorados > 0) {
+            mostrarMensagem(`Algumas fotos não foram adicionadas (são permitidas até ${MAX_REFERENCIAS} imagens de até ${LIMITE_FOTO_MB}MB cada).`, 'error');
+        }
+        inputReferencias.value = '';
+    });
+
+    /* ------------------------- validação ----------------------------------- */
+    function validarFormulario() {
+        const erros = [];
+
+        if (!inputTitulo.value.trim()) erros.push('Informe o título da vaga.');
+        if (!selectEspecialidade.value) erros.push('Selecione a especialidade.');
+        if (!selectModalidade.value) erros.push('Selecione a modalidade.');
+        if (!inputCidade.value.trim()) erros.push('Informe a cidade.');
+        if (!selectEstado.value) erros.push('Selecione o estado (UF).');
+        if (moedaParaNumero(inputValor.value) <= 0) erros.push('Informe um valor maior que zero.');
+        if (!inputPrazo.value) {
+            erros.push('Informe o prazo máximo de conclusão.');
+        } else if (inputPrazo.value < limitesPrazo.min) {
+            erros.push('O prazo não pode estar no passado.');
+        } else if (inputPrazo.value > limitesPrazo.max) {
+            erros.push('O prazo não pode ser superior a dois anos a partir de hoje.');
+        }
+        if (!inputDescricao.value.trim() || inputDescricao.value.trim().length < 15) {
+            erros.push('A descrição deve ter no mínimo 15 caracteres.');
+        }
+
+        if (erros.length) {
+            mostrarMensagem(erros.join('\n'), 'error');
+            return false;
+        }
+        return true;
+    }
+
+    /* ------------------------- envio --------------------------------------- */
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        limparMensagem();
+
+        if (!validarFormulario()) return;
+
+        const sessaoAtual = obterSessao();
+        if (!sessaoAtual || sessaoAtual.tipo !== 'empresas') {
+            mostrarMensagem('Sessão expirada. Faça login novamente com a conta da sua empresa.', 'error');
+            return;
+        }
+
+        btnSubmit.disabled = true;
+        const textoOriginalBtn = btnSubmit.innerHTML;
+        btnSubmit.innerHTML = '<span class="spinner"></span> Verificando assinatura...';
+
+        const assinaturaAtiva = await empresaTemAssinaturaAtiva(sessaoAtual.id);
+        if (!assinaturaAtiva) {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = textoOriginalBtn;
+            mostrarMensagem('Sua empresa não tem uma assinatura ativa. Contrate um plano na página de Assinatura para publicar vagas.', 'error');
+            return;
+        }
+
+        const cidade = inputCidade.value.trim();
+        const novaVaga = {
+            empresaId: sessaoAtual.id,
+            empresaNome: sessaoAtual.nome,
+            titulo: inputTitulo.value.trim(),
+            especialidade: selectEspecialidade.value,
+            valor: formatarMoeda(moedaParaNumero(inputValor.value)),
+            prazo: inputPrazo.value,
+            modalidade: selectModalidade.value,
+            cidade: cidade,
+            estado: selectEstado.value,
+            local: cidade,
+            descricao: inputDescricao.value.trim(),
+            dataPublicacao: new Date().toISOString(),
+            status: 'Aberta'
+        };
+
+        btnSubmit.innerHTML = '<span class="spinner"></span> Publicando...';
+
+        try {
+            const res = await fetch(`${API_BASE}/vagas`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(novaVaga)
+            });
+            if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
+
+            const vagaCriada = await res.json();
+
+            let referenciasSalvas = true;
+            if (referenciasPreviewUrls.length) {
+                try {
+                    const caminhos = referenciasPreviewUrls.map(function (_, indice) {
+                        return `/uploads/vagas/${vagaCriada.id}/referencia-${indice + 1}.jpg`;
+                    });
+                    const resRef = await fetch(`${API_BASE}/vagas/${vagaCriada.id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ referencias: caminhos })
+                    });
+                    if (!resRef.ok) throw new Error(`Erro HTTP: ${resRef.status}`);
+                } catch (erroRef) {
+                    console.error('Erro ao salvar referências da vaga:', erroRef);
+                    referenciasSalvas = false;
+                }
+            }
+
+            mostrarMensagem(
+                referenciasSalvas
+                    ? 'Vaga publicada com sucesso! Redirecionando...'
+                    : 'Vaga publicada, mas as imagens de referência não puderam ser salvas. Redirecionando...',
+                referenciasSalvas ? 'success' : 'warning'
+            );
+
+            setTimeout(function () {
+                window.location.href = '/pages/15-minhas-vagas.html';
+            }, 1500);
+        } catch (erro) {
+            console.error('Erro ao publicar vaga:', erro);
+            mostrarMensagem('Não foi possível publicar a vaga. Tente novamente em instantes.', 'error');
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = textoOriginalBtn;
+        }
+    });
 });

@@ -1,423 +1,543 @@
-// npx json-server --watch db.json --port 3000
-// Pendências
-// 1. Token JWT
-// 2. Paginar resultados
-
+// Minhas Candidaturas (Freelancer)
 const API_URL = `${API_BASE}/candidaturas`;
-
-// Sempre mostra as candidaturas de quem está realmente logado — nunca um ID fixo.
-const sessao = JSON.parse(sessionStorage.getItem("usuarioLogado") || "null");
-if (!sessao || sessao.tipo !== "freelancers") {
-    window.location.href = "/pages/02-login.html";
-}
-const freelancerId = sessao ? sessao.id : null;
-let token;
-const loadingBar = document.querySelector("#perfil-loading");
-const erroBar = document.querySelector("#perfil-erro");
-const conteudoPerfil = document.querySelector("#perfil-conteudo");
-const botaoFiltrar = document.querySelector("#btnFiltrar");
-const botaoLimparFiltros = document.querySelector("#btnLimparFiltros");
-const filtroTituloVaga = document.querySelector("#filterTituloVaga");
-const filtroStatusVaga = document.querySelector("#filterStatusVaga");
-const filtroTipoVaga = document.querySelector("#filterTipoVaga");
-const bodyListaCandidaturas = document.querySelector("tbody");
-const mensagemErro = document.querySelector("#msg-error");
-const mensagemVazio = document.querySelector("#msg-empty");
-const modalCancelamento = document.querySelector(".modal-static");
-const btnConfirmarCancelamento = document.querySelector("#btnConfirmarCancelamento");
-const btnFecharCancelamento = document.querySelector("#btnFecharCancelamento");
-let candidaturaIdParaCancelar = null;
-
-// Convites recebidos (empresa convidou o freelancer para uma vaga)
 const API_URL_CONVITES = `${API_BASE}/convites`;
-const cardConvites = document.querySelector("#cardConvites");
-const listaConvites = document.querySelector("#listaConvites");
-const modalAceitarConvite = document.querySelector("#modalAceitarConvite");
-const conviteTituloModal = document.querySelector("#convite-titulo-modal");
-const btnCancelarAceiteConvite = document.querySelector("#btnCancelarAceiteConvite");
-const btnConfirmarAceiteConvite = document.querySelector("#btnConfirmarAceiteConvite");
+
+const sessao = exigirTipo('freelancers');
+if (!sessao) {
+    throw new Error('Sessão inválida');
+}
+const freelancerId = sessao.id;
+let token;
+
+renderizarSidebar(document.querySelector('.sidebar'), 'freelancers', '20-minhas-candidaturas');
+renderizarTopbar(document.querySelector('#header-acoes'), sessao);
+renderizarBannerValidacao(document.querySelector('.main'), sessao);
+
+const loadingBar = document.querySelector('#perfil-loading');
+const erroBar = document.querySelector('#perfil-erro');
+const conteudoPerfil = document.querySelector('#perfil-conteudo');
+const filtroTituloVaga = document.querySelector('#filterTituloVaga');
+const filtroStatusVaga = document.querySelector('#filterStatusVaga');
+const filtroOrdenar = document.querySelector('#filtroOrdenar');
+const filtroEstado = document.querySelector('#filterEstado');
+const filtroCidade = document.querySelector('#filterCidade');
+const btnLimparFiltros = document.querySelector('#btnLimparFiltros');
+const bodyLista = document.querySelector('tbody');
+const mensagemErro = document.querySelector('#msg-error');
+const mensagemVazio = document.querySelector('#msg-empty');
+const cardFiltros = document.querySelector('#cardFiltros');
+const cardTabela = document.querySelector('#cardTabela');
+const btnPaginaAnterior = document.querySelector('#btnPaginaAnterior');
+const btnPaginaProxima = document.querySelector('#btnPaginaProxima');
+const resumoPaginas = document.querySelector('#resumoPaginas');
+
+const cardConvites = document.querySelector('#cardConvites');
+const listaConvites = document.querySelector('#listaConvites');
+const modalAceitarConvite = document.querySelector('#modalAceitarConvite');
+const conviteTituloModal = document.querySelector('#convite-titulo-modal');
+const btnCancelarAceiteConvite = document.querySelector('#btnCancelarAceiteConvite');
+const btnConfirmarAceiteConvite = document.querySelector('#btnConfirmarAceiteConvite');
+
+const PAGE_SIZE = 10;
+
+let todasCandidaturas = [];
+let itensFiltrados = [];
+let paginaAtual = 1;
 let conviteSelecionado = null;
 
+/* ------------------------- menu mobile ------------------------------------ */
 
-// Toggle Menu Mobile (Hambúrguer)
-const sidebarToggleBtn = document.querySelector(".sidebar-toggle-btn");
-const sidebar = document.querySelector(".sidebar");
-const sidebarOverlay = document.querySelector(".sidebar-overlay");
- 
-function abrirMenu() 
-{
-    sidebar.classList.add("open");
-    sidebarOverlay.classList.add("open");
-    sidebarToggleBtn.classList.add("open");
-    sidebarToggleBtn.setAttribute("aria-expanded", "true");
+const sidebarToggleBtn = document.querySelector('.sidebar-toggle-btn');
+const sidebar = document.querySelector('.sidebar');
+const sidebarOverlay = document.querySelector('.sidebar-overlay');
+
+function abrirMenu() {
+    sidebar.classList.add('open');
+    sidebarOverlay.classList.add('open');
+    sidebarToggleBtn.classList.add('open');
+    sidebarToggleBtn.setAttribute('aria-expanded', 'true');
 }
- 
-function fecharMenu() 
-{
-    sidebar.classList.remove("open");
-    sidebarOverlay.classList.remove("open");
-    sidebarToggleBtn.classList.remove("open");
-    sidebarToggleBtn.setAttribute("aria-expanded", "false");
+
+function fecharMenu() {
+    sidebar.classList.remove('open');
+    sidebarOverlay.classList.remove('open');
+    sidebarToggleBtn.classList.remove('open');
+    sidebarToggleBtn.setAttribute('aria-expanded', 'false');
 }
- 
-sidebarToggleBtn.addEventListener("click", () => 
-{
-    sidebar.classList.contains("open") ? fecharMenu() : abrirMenu();
+
+sidebarToggleBtn.addEventListener('click', () => {
+    sidebar.classList.contains('open') ? fecharMenu() : abrirMenu();
 });
- 
-sidebarOverlay.addEventListener("click", fecharMenu);
+sidebarOverlay.addEventListener('click', fecharMenu);
 
-// Carregar as candidaturas e ordens de serviço do Freelancer via API
-async function carregarDadosFreelancer() 
-{
-    try 
-    {
-        loadingBar.removeAttribute("hidden"); // #perfil-loading
-        erroBar.setAttribute("hidden", ""); // #perfil-erro
-        conteudoPerfil.setAttribute("hidden", ""); // #perfil-conteudo
-        
-        const urlFiltros = geraURLFiltros();
+/* ------------------------- filtros de localidade -------------------------- */
 
-        const resposta = await fetch(`${API_URL}/?freelancerId=${freelancerId}${urlFiltros}`, 
-        {
-            method: "GET",
-            headers: 
-            {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
+if (filtroEstado) carregarUFs(filtroEstado);
+if (filtroEstado && filtroCidade) montarAutocompleteCidade(filtroCidade, filtroEstado);
+
+/* ------------------------- carregar dados --------------------------------- */
+
+async function carregarDadosFreelancer() {
+    mensagemErro.hidden = true;
+    mensagemVazio.hidden = true;
+    loadingBar.removeAttribute('hidden');
+    erroBar.setAttribute('hidden', '');
+    conteudoPerfil.setAttribute('hidden', '');
+
+    try {
+        const resposta = await fetch(`${API_URL}?freelancerId=${encodeURIComponent(freelancerId)}`);
+        if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
+
+        todasCandidaturas = await resposta.json();
+
+        loadingBar.setAttribute('hidden', '');
+        conteudoPerfil.removeAttribute('hidden');
+
+        // Sem nenhuma candidatura: exibe somente a mensagem em vermelho,
+        // sem lista nem opção de pesquisa.
+        if (todasCandidaturas.length === 0) {
+            cardFiltros.hidden = true;
+            cardTabela.hidden = true;
+            mensagemVazio.textContent = 'Você ainda não tem candidaturas.';
+            mensagemVazio.hidden = false;
+            return;
+        }
+
+        cardFiltros.hidden = false;
+        cardTabela.hidden = false;
+        aplicarFiltros();
+    } catch (erro) {
+        console.error('Erro ao carregar candidaturas:', erro);
+        loadingBar.setAttribute('hidden', '');
+        mensagemErro.hidden = false;
+    }
+}
+
+/* ------------------------- filtros e render ------------------------------- */
+
+function ordenarCandidaturas(lista) {
+    const ordenacao = filtroOrdenar ? filtroOrdenar.value : 'recentes';
+
+    if (ordenacao === 'valor') {
+        lista.sort(function (a, b) { return moedaParaNumero(b.valor) - moedaParaNumero(a.valor); });
+        return;
+    }
+
+    if (ordenacao === 'prazo') {
+        lista.sort(function (a, b) {
+            const da = a.prazo ? new Date(a.prazo).getTime() : NaN;
+            const db_ = b.prazo ? new Date(b.prazo).getTime() : NaN;
+            const va = isNaN(da) ? Infinity : da;
+            const vb = isNaN(db_) ? Infinity : db_;
+            return va - vb;
         });
+        return;
+    }
 
-        if (!resposta.ok) 
-        {
-            throw new Error(`Erro HTTP: ${resposta.status}`);
-        }
+    // "Mais recentes": por data de candidatura.
+    lista.sort(function (a, b) {
+        const da = a.dataCandidatura ? new Date(a.dataCandidatura).getTime() : 0;
+        const db_ = b.dataCandidatura ? new Date(b.dataCandidatura).getTime() : 0;
+        return db_ - da;
+    });
+}
 
-        limparLista();
+function aplicarFiltros() {
+    const termo = removerAcentos(filtroTituloVaga.value.trim().toLowerCase());
+    const status = filtroStatusVaga.value;
+    const uf = filtroEstado ? filtroEstado.value : '';
+    const cidade = filtroCidade ? removerAcentos(filtroCidade.value.trim().toLowerCase()) : '';
 
-        const dados = await resposta.json();       
+    itensFiltrados = todasCandidaturas.filter(function (candidatura) {
+        const bateTermo = !termo || removerAcentos(String(candidatura.titulo || '')).toLowerCase().includes(termo);
+        const bateStatus = !status || candidatura.status === status;
+        const bateUf = !uf || String(candidatura.estado || '').toUpperCase() === uf.toUpperCase();
+        const bateCidade = !cidade || removerAcentos(String(candidatura.cidade || '')).toLowerCase().includes(cidade);
+        return bateTermo && bateStatus && bateUf && bateCidade;
+    });
 
-        for (let index = 0; index < dados.length; index++) {
-            const element = dados[index];
-            preencherLista(element); 
-        }
+    ordenarCandidaturas(itensFiltrados);
 
-        if(dados.length === 0)
-        {
-            mensagemVazio.removeAttribute("hidden");
-        }
-        
+    paginaAtual = 1;
+    renderizarPagina();
+}
 
+function renderizarPagina() {
+    const totalPaginas = Math.max(1, Math.ceil(itensFiltrados.length / PAGE_SIZE));
+    if (paginaAtual > totalPaginas) paginaAtual = totalPaginas;
 
-        // Controle da exibição das páginas
-        const divPagination = document.querySelector(".pagination");
-        const resumoPaginas = document.querySelector("#resumoPaginas");
+    const inicio = (paginaAtual - 1) * PAGE_SIZE;
+    const pagina = itensFiltrados.slice(inicio, inicio + PAGE_SIZE);
 
-        if(dados.length === 0)
-        {
-            resumoPaginas.textContent = "";
-        }
-        if(dados.length > 0 && dados.length < 10)
-        {
-            resumoPaginas.textContent = `Mostrando 1-${dados.length} de ${dados.length}`;
-        }
+    bodyLista.innerHTML = '';
 
-        if(dados.length >= 10)
-        {
-            resumoPaginas.textContent = `Mostrando 1-10 de ${dados.length}`;
-        }
+    if (itensFiltrados.length === 0) {
+        mensagemVazio.textContent = 'Nenhuma candidatura encontrada para os filtros selecionados.';
+        mensagemVazio.hidden = false;
+        cardTabela.hidden = true;
+    } else {
+        mensagemVazio.hidden = true;
+        cardTabela.hidden = false;
+        pagina.forEach(preencherLinha);
+    }
 
-        const paginas = document.querySelector("#pages");
-        paginas.innerHTML = "";
+    const total = itensFiltrados.length;
+    const fim = Math.min(inicio + PAGE_SIZE, total);
+    resumoPaginas.textContent = total > 0 ? `Mostrando ${inicio + 1}-${fim} de ${total}` : 'Mostrando 0 de 0';
+    btnPaginaAnterior.disabled = paginaAtual <= 1;
+    btnPaginaProxima.disabled = paginaAtual >= totalPaginas;
+}
 
-        let qtdPaginas = Math.ceil(dados.length / 10);
-        
-        if(qtdPaginas > 0)
-        {
-            for (let index = 0; index < qtdPaginas; index++) 
-            {
-                const pagina = document.createElement("span");
-                pagina.textContent = index + 1;
-                
-                if(index === 0)
-                {
-                    pagina.classList = "page-btn active";
-                }
-                else
-                {
-                    pagina.classList = "page-btn";
-                }
+function obterClasseBadgeStatus(status) {
+    if (status === 'Em análise') return 'badge-warning';
+    if (status === 'Cancelada' || status === 'Rejeitado') return 'badge-danger';
+    if (status === 'Selecionado') return 'badge-success';
+    return 'badge';
+}
 
-                paginas.appendChild(pagina);
+function preencherLinha(candidatura) {
+    const tableRow = document.createElement('tr');
+
+    const tdTitulo = document.createElement('td');
+    tdTitulo.textContent = candidatura.titulo;
+
+    const tdEmpresa = document.createElement('td');
+    const nomeEmpresaCandidatura = candidatura.nomeEmpresa || candidatura.empresaNome || '';
+    if (candidatura.empresaId) {
+        const linkEmpresa = document.createElement('a');
+        linkEmpresa.href = `/pages/26-perfil-empresa-publico.html?id=${encodeURIComponent(candidatura.empresaId)}`;
+        linkEmpresa.className = 'text-primary';
+        linkEmpresa.textContent = nomeEmpresaCandidatura;
+        tdEmpresa.appendChild(linkEmpresa);
+    } else {
+        tdEmpresa.textContent = nomeEmpresaCandidatura;
+    }
+
+    const tdLocal = document.createElement('td');
+    tdLocal.textContent = [candidatura.cidade, candidatura.estado].filter(Boolean).join(' - ') || '—';
+
+    const tdValor = document.createElement('td');
+    tdValor.textContent = candidatura.valor || '—';
+
+    const tdPrazo = document.createElement('td');
+    tdPrazo.textContent = formatarData(candidatura.prazo) || '—';
+
+    const tdDataCandidatura = document.createElement('td');
+    tdDataCandidatura.textContent = formatarData(candidatura.dataCandidatura) || '—';
+
+    const tdStatus = document.createElement('td');
+    const badgeStatus = document.createElement('span');
+    badgeStatus.className = `badge ${obterClasseBadgeStatus(candidatura.status)}`;
+    badgeStatus.textContent = candidatura.status;
+    tdStatus.appendChild(badgeStatus);
+
+    const tdAcoes = document.createElement('td');
+    const divAcoes = document.createElement('div');
+    divAcoes.className = 'table-actions';
+
+    const botaoDetalhar = document.createElement('a');
+    botaoDetalhar.className = 'btn btn-primary';
+    botaoDetalhar.textContent = 'Detalhar';
+    botaoDetalhar.href = `/pages/18-vaga-detalhe.html?id=${encodeURIComponent(candidatura.vagaId || candidatura.id)}`;
+    divAcoes.appendChild(botaoDetalhar);
+
+    if (candidatura.status === 'Em análise') {
+        const botaoCancelar = document.createElement('button');
+        botaoCancelar.className = 'btn btn-outline';
+        botaoCancelar.style.color = '#d93025';
+        botaoCancelar.style.borderColor = '#ffc1bc';
+        botaoCancelar.innerHTML = '<i class="bi bi-x-circle"></i> Encerrar';
+        botaoCancelar.type = 'button';
+        botaoCancelar.textContent = 'Cancelar';
+        botaoCancelar.addEventListener('click', async function () {
+            const confirmou = await modalConfirmar({
+                titulo: 'Confirmar cancelamento',
+                mensagem: 'Você tem certeza que deseja cancelar a sua candidatura? Essa ação não poderá ser desfeita.',
+                textoConfirmar: 'Confirmar cancelamento',
+                textoCancelar: 'Cancelar',
+                perigoso: true
+            });
+            if (!confirmou) return;
+
+            try {
+                const resposta = await fetch(`${API_URL}/${candidatura.id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ status: 'Cancelada' })
+                });
+
+                if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
+
+                mostrarMensagem('Candidatura cancelada.', 'success');
+                carregarDadosFreelancer();
+            } catch (erro) {
+                console.error('Erro ao cancelar candidatura:', erro);
+                mensagemErro.hidden = false;
             }
-        }
-
-
-
-        loadingBar.setAttribute("hidden", "");
-        conteudoPerfil.removeAttribute("hidden");
-    } 
-    catch (erro)
-    {
-        console.error(erro);
-        loadingBar.setAttribute("hidden", "");
-        mensagemErro.removeAttribute("hidden");
-    }
-}
-
-// Preenche a lista com os dados recebidos da API
-function preencherLista(dados)
-{
-    const tableRow = document.createElement("tr");
-    tableRow.dataset.id = dados.id;
-
-    const tdTipoVaga = document.createElement("td");
-    tdTipoVaga.textContent = dados.tipo;
-
-    const tdTituloVaga = document.createElement("td");
-    tdTituloVaga.textContent = dados.titulo;
-    
-    const tdNomeEmpresa = document.createElement("td");
-    tdNomeEmpresa.textContent = dados.nomeEmpresa;
-
-    const tdStatusCandidatura = document.createElement("td");
-    const badgeStatus = document.createElement("span");
-    badgeStatus.className = `badge ${obterClasseBadgeStatus(dados.status)}`;
-    badgeStatus.textContent = dados.status;
-    tdStatusCandidatura.appendChild(badgeStatus);
-
-    const tdBotoesAcoes = document.createElement("td");
-    const divBotoesAcoes = document.createElement("div");
-    divBotoesAcoes.className = "table-actions";
-    const botaoVisualizar = document.createElement("a");
-    botaoVisualizar.className = "btn btn-primary";
-    botaoVisualizar.textContent = "Detalhar";
-    
-    if(dados.tipo == "Vaga")
-    {
-        botaoVisualizar.href = "/pages/18-vaga-detalhe.html";
-    }
-    else
-    {
-        botaoVisualizar.href = "/pages/19-ordem-servico-detalhe.html";
-    }
-
-    divBotoesAcoes.appendChild(botaoVisualizar);
-
-    // Só pode cancelar enquanto a candidatura/OS ainda está em andamento — uma
-    // vez decidida (Selecionado, Rejeitado, Concluída, Cancelada), cancelar por
-    // aqui não faz mais sentido (um match já gerou OS/chat; para desistir de uma
-    // OS em andamento, isso é feito na tela de Ordens de Serviço).
-    const podeCancelar = dados.tipo == "OS"
-        ? dados.status == "Em andamento"
-        : dados.status == "Em análise";
-
-    if(podeCancelar)
-    {
-        const botaoCancelar = document.createElement("button");
-        botaoCancelar.className = "btn btn-danger";
-        botaoCancelar.type = "button";
-        botaoCancelar.textContent = "Cancelar";
-        botaoCancelar.addEventListener("click", () => {
-            candidaturaIdParaCancelar = dados.id;
-            modalCancelamento.hidden = false;
         });
-        divBotoesAcoes.appendChild(botaoCancelar);
+        divAcoes.appendChild(botaoCancelar);
     }
 
-    if(dados.tipo == "OS" && dados.status == "Finalizado")
-    {
-        const botaoAvaliar = document.createElement("a");
-        botaoAvaliar.className = "btn";
-        botaoAvaliar.textContent = "Avaliar";
-        botaoAvaliar.href = "/pages/23-avaliacao-os.html";
-        divBotoesAcoes.appendChild(botaoAvaliar);
+    tdAcoes.appendChild(divAcoes);
+    tableRow.appendChild(tdTitulo);
+    tableRow.appendChild(tdStatus);
+    tableRow.appendChild(tdEmpresa);
+    tableRow.appendChild(tdLocal);
+    tableRow.appendChild(tdValor);
+    tableRow.appendChild(tdPrazo);
+    tableRow.appendChild(tdDataCandidatura);
+    tableRow.appendChild(tdAcoes);
+
+    tdTitulo.setAttribute('data-label', 'Título');
+    tdStatus.setAttribute('data-label', 'Status');
+    tdEmpresa.setAttribute('data-label', 'Empresa');
+    tdLocal.setAttribute('data-label', 'Local');
+    tdValor.setAttribute('data-label', 'Valor');
+    tdPrazo.setAttribute('data-label', 'Prazo');
+    tdDataCandidatura.setAttribute('data-label', 'Data Candidatura');
+    tdAcoes.setAttribute('data-label', 'Ações');
+
+    bodyLista.appendChild(tableRow);
+}
+
+/* ------------------------- eventos de filtro ------------------------------ */
+
+// Filtros aplicados em tempo real, no mesmo padrão do mural de vagas (07).
+filtroTituloVaga.addEventListener('input', aplicarFiltros);
+filtroStatusVaga.addEventListener('change', aplicarFiltros);
+if (filtroOrdenar) filtroOrdenar.addEventListener('change', aplicarFiltros);
+if (filtroEstado) filtroEstado.addEventListener('change', aplicarFiltros);
+if (filtroCidade) filtroCidade.addEventListener('input', aplicarFiltros);
+
+btnLimparFiltros.addEventListener('click', function () {
+    filtroTituloVaga.value = '';
+    filtroStatusVaga.value = '';
+    if (filtroOrdenar) filtroOrdenar.value = 'recentes';
+    if (filtroEstado) filtroEstado.value = '';
+    if (filtroCidade) filtroCidade.value = '';
+    aplicarFiltros();
+});
+
+btnPaginaAnterior.addEventListener('click', function () {
+    if (paginaAtual > 1) {
+        paginaAtual--;
+        renderizarPagina();
     }
+});
 
-    tdBotoesAcoes.appendChild(divBotoesAcoes);
-    tableRow.appendChild(tdTipoVaga);
-    tableRow.appendChild(tdTituloVaga);
-    tableRow.appendChild(tdNomeEmpresa);
-    tableRow.appendChild(tdStatusCandidatura);
-    tableRow.appendChild(tdBotoesAcoes);
-    bodyListaCandidaturas.appendChild(tableRow);
-}
+btnPaginaProxima.addEventListener('click', function () {
+    const totalPaginas = Math.ceil(itensFiltrados.length / PAGE_SIZE);
+    if (paginaAtual < totalPaginas) {
+        paginaAtual++;
+        renderizarPagina();
+    }
+});
 
-if (freelancerId) {
-    carregarDadosFreelancer();
-    carregarConvites();
-}
+/* ------------------------- convites ---------------------------------------- */
 
-// ── Convites recebidos ──────────────────────────────────────────────────────
-
-// Carrega os convites pendentes desse freelancer e renderiza a seção
-async function carregarConvites()
-{
+async function carregarConvites() {
     if (!cardConvites || !listaConvites) return;
 
-    try
-    {
-        const resposta = await fetch(`${API_URL_CONVITES}?freelancerId=${freelancerId}&status=Pendente`);
-        if (!resposta.ok)
-        {
-            throw new Error(`Erro HTTP: ${resposta.status}`);
-        }
+    try {
+        const resposta = await fetch(`${API_URL_CONVITES}?freelancerId=${encodeURIComponent(freelancerId)}&status=Pendente`);
+        if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
 
         const convites = await resposta.json();
-        listaConvites.innerHTML = "";
+        listaConvites.innerHTML = '';
 
-        if (convites.length === 0)
-        {
+        if (convites.length === 0) {
             cardConvites.hidden = true;
             return;
         }
 
         cardConvites.hidden = false;
 
-        convites.forEach(function (convite)
-        {
-            const item = document.createElement("div");
-            item.className = "company-job-item";
-            item.innerHTML = `
-                <div class="job-details">
-                    <h3>${convite.empresaNome || "Empresa"}</h3>
-                    <span>Convidou você para a vaga: <strong>${convite.vagaTitulo}</strong></span>
-                </div>
-                <div class="job-actions">
-                    <button class="btn btn-outline-purple btnRecusarConvite" style="padding: 6px 12px; font-size: 0.82rem;">Recusar</button>
-                    <button class="btn btn-purple-bright btnAceitarConvite" style="padding: 6px 12px; font-size: 0.82rem;">Aceitar</button>
-                </div>
-            `;
+        convites.forEach(function (convite) {
+            const item = document.createElement('div');
+            item.className = 'company-job-item';
 
-            item.querySelector(".btnAceitarConvite").addEventListener("click", function ()
-            {
-                conviteSelecionado = convite;
-                if (conviteTituloModal) conviteTituloModal.textContent = convite.vagaTitulo;
-                if (modalAceitarConvite) modalAceitarConvite.style.display = "flex";
-            });
+            const detalhes = document.createElement('div');
+            detalhes.className = 'job-details';
+            const nomeEmpresa = document.createElement('h3');
+            if (convite.empresaId) {
+                const linkEmpresa = document.createElement('a');
+                linkEmpresa.href = `/pages/26-perfil-empresa-publico.html?id=${encodeURIComponent(convite.empresaId)}`;
+                linkEmpresa.textContent = convite.empresaNome || 'Empresa';
+                nomeEmpresa.appendChild(linkEmpresa);
+            } else {
+                nomeEmpresa.textContent = convite.empresaNome || 'Empresa';
+            }
+            const textoVaga = document.createElement('span');
+            textoVaga.textContent = `Convidou você para a vaga: ${convite.vagaTitulo}`;
+            detalhes.appendChild(nomeEmpresa);
+            detalhes.appendChild(textoVaga);
 
-            item.querySelector(".btnRecusarConvite").addEventListener("click", function ()
-            {
+            const acoes = document.createElement('div');
+            acoes.className = 'job-actions';
+
+            const btnRecusar = document.createElement('button');
+            btnRecusar.className = 'btn btn-outline-purple';
+            btnRecusar.style.cssText = 'padding: 6px 12px; font-size: 0.82rem;';
+            btnRecusar.textContent = 'Recusar';
+            btnRecusar.addEventListener('click', function () {
                 recusarConvite(convite.id);
             });
 
+            const btnAceitar = document.createElement('button');
+            btnAceitar.className = 'btn btn-purple-bright';
+            btnAceitar.style.cssText = 'padding: 6px 12px; font-size: 0.82rem;';
+            btnAceitar.textContent = 'Aceitar';
+            btnAceitar.addEventListener('click', function () {
+                conviteSelecionado = convite;
+                if (conviteTituloModal) conviteTituloModal.textContent = convite.vagaTitulo;
+                if (modalAceitarConvite) modalAceitarConvite.style.display = 'flex';
+            });
+
+            acoes.appendChild(btnRecusar);
+            acoes.appendChild(btnAceitar);
+
+            item.appendChild(detalhes);
+            item.appendChild(acoes);
             listaConvites.appendChild(item);
         });
-    }
-    catch (erro)
-    {
-        console.error("Erro ao carregar convites:", erro);
+    } catch (erro) {
+        console.error('Erro ao carregar convites:', erro);
     }
 }
 
-async function recusarConvite(conviteId)
-{
-    try
-    {
-        const resposta = await fetch(`${API_URL_CONVITES}/${conviteId}`,
-        {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ status: "Recusado" })
+async function recusarConvite(conviteId) {
+    try {
+        const resposta = await fetch(`${API_URL_CONVITES}/${conviteId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'Recusado' })
         });
-        if (!resposta.ok)
-        {
-            throw new Error(`Erro HTTP: ${resposta.status}`);
-        }
+        if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
+        mostrarMensagem('Convite recusado.', 'success');
         carregarConvites();
-    }
-    catch (erro)
-    {
-        console.error("Erro ao recusar convite:", erro);
-        mensagemErro.removeAttribute("hidden");
+    } catch (erro) {
+        console.error('Erro ao recusar convite:', erro);
+        mensagemErro.hidden = false;
     }
 }
 
-if (btnCancelarAceiteConvite)
-{
-    btnCancelarAceiteConvite.addEventListener("click", function ()
-    {
+if (btnCancelarAceiteConvite) {
+    btnCancelarAceiteConvite.addEventListener('click', function () {
         conviteSelecionado = null;
-        if (modalAceitarConvite) modalAceitarConvite.style.display = "none";
+        if (modalAceitarConvite) modalAceitarConvite.style.display = 'none';
     });
 }
 
 // Aceitar um convite equivale a um match: gera/atualiza a candidatura como
 // "Selecionado", rejeita as demais candidaturas em análise daquela vaga,
-// encerra a vaga, garante a conversa de chat e cria a Ordem de Serviço — os
-// mesmos efeitos de quando a empresa aprova alguém em "Candidatos da Vaga".
-if (btnConfirmarAceiteConvite)
-{
-    btnConfirmarAceiteConvite.addEventListener("click", async function ()
-    {
+// encerra a vaga, garante a conversa de chat e cria a Ordem de Serviço.
+if (btnConfirmarAceiteConvite) {
+    btnConfirmarAceiteConvite.addEventListener('click', async function () {
         if (!conviteSelecionado) return;
 
         const convite = conviteSelecionado;
-        if (modalAceitarConvite) modalAceitarConvite.style.display = "none";
+        if (modalAceitarConvite) modalAceitarConvite.style.display = 'none';
 
         btnConfirmarAceiteConvite.disabled = true;
         const textoOriginal = btnConfirmarAceiteConvite.innerHTML;
-        btnConfirmarAceiteConvite.innerHTML = "<span class=\"spinner\"></span> Processando...";
+        btnConfirmarAceiteConvite.innerHTML = '<span class="spinner"></span> Processando...';
 
-        try
-        {
-            // 1. Busca (ou cria) a candidatura desse freelancer para essa vaga e a marca "Selecionado".
+        try {
+            // Revalida o estado atual antes de executar o match: o convite deve
+            // continuar "Pendente" e a vaga "Aberta" (evita duplicar OS e gravar
+            // OS sem cidade/estado quando a vaga não é encontrada).
+            const respConviteAtual = await fetch(`${API_URL_CONVITES}/${convite.id}`);
+            if (!respConviteAtual.ok) throw new Error('Convite não encontrado.');
+            const conviteAtual = await respConviteAtual.json();
+            if (conviteAtual.status !== 'Pendente') {
+                mensagemErro.textContent = 'Este convite não está mais pendente. Recarregue a página.';
+                mensagemErro.hidden = false;
+                btnConfirmarAceiteConvite.disabled = false;
+                btnConfirmarAceiteConvite.innerHTML = textoOriginal;
+                return;
+            }
+
+            const respVaga = await fetch(`${API_BASE}/vagas/${convite.vagaId}`);
+            if (!respVaga.ok) throw new Error('Vaga não encontrada.');
+            const vaga = await respVaga.json();
+            if (vaga.status !== 'Aberta') {
+                mensagemErro.textContent = 'Esta vaga não está mais aberta para receber candidaturas.';
+                mensagemErro.hidden = false;
+                btnConfirmarAceiteConvite.disabled = false;
+                btnConfirmarAceiteConvite.innerHTML = textoOriginal;
+                return;
+            }
+
+            const respOSExistentes = await fetch(`${API_BASE}/ordensServico`);
+            const osExistentes = respOSExistentes.ok ? await respOSExistentes.json() : [];
+            const jaTemOS = osExistentes.some(function (o) {
+                return String(o.freelancerId) === String(freelancerId) && o.titulo === convite.vagaTitulo;
+            });
+            if (jaTemOS) {
+                mensagemErro.textContent = 'Uma ordem de serviço para esta vaga já foi criada. Recarregue a página.';
+                mensagemErro.hidden = false;
+                btnConfirmarAceiteConvite.disabled = false;
+                btnConfirmarAceiteConvite.innerHTML = textoOriginal;
+                return;
+            }
+
             const respCandidaturas = await fetch(`${API_BASE}/candidaturas?empresaId=${convite.empresaId}`);
             const candidaturasDaEmpresa = respCandidaturas.ok ? await respCandidaturas.json() : [];
             const candidaturasDaVaga = candidaturasDaEmpresa.filter(function (c) { return String(c.vagaId) === String(convite.vagaId); });
             const candidaturaExistente = candidaturasDaVaga.find(function (c) { return String(c.freelancerId) === String(freelancerId); });
 
-            if (candidaturaExistente)
-            {
-                await fetch(`${API_BASE}/candidaturas/${candidaturaExistente.id}`,
-                {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ status: "Selecionado" })
+            if (candidaturaExistente) {
+                await fetch(`${API_BASE}/candidaturas/${candidaturaExistente.id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'Selecionado' })
                 });
-            }
-            else
-            {
-                await fetch(`${API_BASE}/candidaturas`,
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
+            } else {
+                await fetch(`${API_BASE}/candidaturas`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         vagaId: convite.vagaId,
                         empresaId: convite.empresaId,
                         empresaNome: convite.empresaNome,
                         nomeEmpresa: convite.empresaNome,
                         titulo: convite.vagaTitulo,
+                        cidade: vaga.cidade || '',
+                        estado: vaga.estado || '',
+                        valor: vaga.valor || '',
+                        prazo: vaga.prazo || '',
+                        dataCandidatura: new Date().toISOString(),
                         freelancerId: freelancerId,
                         freelancerNome: convite.freelancerNome,
-                        status: "Selecionado",
-                        tipo: "Vaga",
-                        link: "18-vaga-detalhe.html"
+                        status: 'Selecionado',
+                        tipo: 'Vaga',
+                        link: '18-vaga-detalhe.html'
                     })
                 });
             }
 
-            // 2. Rejeita as demais candidaturas dessa vaga que ainda estavam em análise.
+            // Rejeita as demais candidaturas dessa vaga que ainda estavam em análise.
             await Promise.all(candidaturasDaVaga
-                .filter(function (c) { return c.status === "Em análise" && String(c.freelancerId) !== String(freelancerId); })
+                .filter(function (c) { return c.status === 'Em análise' && String(c.freelancerId) !== String(freelancerId); })
                 .map(function (c) {
-                    return fetch(`${API_BASE}/candidaturas/${c.id}`,
-                    {
-                        method: "PATCH",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ status: "Rejeitado" })
+                    return fetch(`${API_BASE}/candidaturas/${c.id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: 'Rejeitado' })
                     });
                 }));
 
-            // 3. Encerra a vaga — foi preenchida.
-            await fetch(`${API_BASE}/vagas/${convite.vagaId}`,
-            {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status: "Encerrada" })
+            // Encerra a vaga — foi preenchida.
+            await fetch(`${API_BASE}/vagas/${convite.vagaId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'Encerrada' })
             });
 
-            // 4. Garante a conversa de chat entre freelancer e empresa (mesma lógica de "Candidatos da Vaga").
+            // Garante a conversa de chat entre freelancer e empresa.
             const respConversas = await fetch(`${API_BASE}/conversas`);
             const todasConversas = respConversas.ok ? await respConversas.json() : [];
             const alvoConversa = [String(freelancerId), String(convite.empresaId)].sort();
@@ -426,69 +546,71 @@ if (btnConfirmarAceiteConvite)
                 return par[0] === alvoConversa[0] && par[1] === alvoConversa[1];
             });
 
-            if (!jaExisteConversa)
-            {
-                await fetch(`${API_BASE}/conversas`,
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
+            if (!jaExisteConversa) {
+                await fetch(`${API_BASE}/conversas`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         participanteAId: freelancerId,
                         participanteANome: convite.freelancerNome,
-                        participanteATipo: "freelancers",
+                        participanteATipo: 'freelancers',
                         participanteBId: convite.empresaId,
                         participanteBNome: convite.empresaNome,
-                        participanteBTipo: "empresas",
-                        ultimaMensagem: "",
+                        participanteBTipo: 'empresas',
+                        ultimaMensagem: '',
                         ultimaAtualizacao: new Date().toISOString()
                     })
                 });
             }
 
-            // 5. Marca o convite como aceito.
-            await fetch(`${API_URL_CONVITES}/${convite.id}`,
-            {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status: "Aceito" })
+            // Marca o convite como aceito.
+            await fetch(`${API_URL_CONVITES}/${convite.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'Aceito' })
             });
 
-            // 6. Gera a Ordem de Serviço.
-            const respVaga = await fetch(`${API_BASE}/vagas/${convite.vagaId}`);
-            const vaga = respVaga.ok ? await respVaga.json() : {};
+            // Avisa a empresa que o freelancer aceitou o convite.
+            criarNotificacao({
+                usuarioId: convite.empresaId,
+                usuarioTipo: 'empresas',
+                tipo: 'convite',
+                titulo: 'Convite aceito',
+                mensagem: `${convite.freelancerNome} aceitou seu convite para a vaga "${convite.vagaTitulo}".`,
+                link: '/pages/16-ordens-servico.html'
+            });
 
+            // Gera a Ordem de Serviço (com cidade/estado da vaga).
             const novaOS = {
                 titulo: convite.vagaTitulo,
-                categoria: vaga.especialidade || "A definir",
-                modalidade: vaga.modalidade || "Presencial",
+                categoria: vaga.especialidade || 'A definir',
+                modalidade: vaga.modalidade || 'Presencial',
                 empresaId: convite.empresaId,
                 empresaNome: convite.empresaNome,
                 freelancerId: freelancerId,
                 freelancerNome: convite.freelancerNome,
-                cidade: "",
-                estado: "",
-                valor: vaga.valor || "",
+                cidade: vaga.cidade || '',
+                estado: vaga.estado || '',
+                valor: vaga.valor || '',
                 descricao: `Ordem de serviço gerada a partir do convite aceito para a vaga "${convite.vagaTitulo}".`,
-                requisitos: "",
                 habilidades: [],
-                status: "Em andamento",
+                status: 'Em andamento',
                 dataPublicacao: new Date().toISOString(),
-                prazo: vaga.prazo || "",
-                previsaoConclusao: "",
-                avaliacaoFreelancer: "Pendente",
-                avaliacaoConfeccao: "Pendente",
-                observacoes: "",
-                referenciaBriefing: "",
-                referenciaEntrega: "",
+                prazo: vaga.prazo || '',
+                previsaoConclusao: '',
+                avaliacaoFreelancer: 'Pendente',
+                avaliacaoConfeccao: 'Pendente',
+                observacoes: '',
+                referenciaBriefing: '',
+                referenciaEntrega: '',
                 historico: [
-                    { data: new Date().toISOString().slice(0, 10), evento: "OS criada a partir da aceitação do convite." }
+                    { data: hojeLocalISO(), evento: 'OS criada a partir da aceitação do convite.' }
                 ]
             };
 
-            const respOS = await fetch(`${API_BASE}/ordensServico`,
-            {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
+            const respOS = await fetch(`${API_BASE}/ordensServico`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(novaOS)
             });
             const osCriada = respOS.ok ? await respOS.json() : null;
@@ -497,134 +619,20 @@ if (btnConfirmarAceiteConvite)
             carregarConvites();
             carregarDadosFreelancer();
 
-            if (osCriada)
-            {
+            if (osCriada) {
                 window.location.href = `/pages/19-ordem-servico-detalhe.html?id=${osCriada.id}`;
             }
-        }
-        catch (erro)
-        {
-            console.error("Erro ao aceitar convite:", erro);
-            mensagemErro.removeAttribute("hidden");
-        }
-        finally
-        {
+        } catch (erro) {
+            console.error('Erro ao aceitar convite:', erro);
+            mensagemErro.hidden = false;
+        } finally {
             btnConfirmarAceiteConvite.disabled = false;
             btnConfirmarAceiteConvite.innerHTML = textoOriginal;
         }
     });
 }
 
-// Gera URL customizada com os filtros aplicados na página
-function geraURLFiltros() 
-{
-    let urlFiltro = "";    
+/* ------------------------- iniciar ----------------------------------------- */
 
-    if (filtroTituloVaga.value != "")
-    {
-        const urlFiltroTitulo = `&titulo_contains=${filtroTituloVaga.value}`;
-        urlFiltro = urlFiltro.concat(urlFiltroTitulo);
-    }
-
-    if (filtroStatusVaga.value != "")
-    {
-        const urlFiltroStatus = `&status=${filtroStatusVaga.value}`;
-        urlFiltro = urlFiltro.concat(urlFiltroStatus);
-    }
-
-    if (filtroTipoVaga.value != "")
-    {
-        const urlFiltroTipo = `&tipo=${filtroTipoVaga.value}`;
-        urlFiltro = urlFiltro.concat(urlFiltroTipo);
-    }
-
-    if (urlFiltro != "")
-    {
-        urlFiltro = urlFiltro.replaceAll(" ", "%20");
-    }
-
-    return urlFiltro;
-}
-
-// Apaga todas as linhas da lista existente
-function limparLista()
-{
-    const tabela = document.querySelector("tbody");
-
-    while (tabela.rows.length > 0)
-    {
-        tabela.deleteRow(0);
-    }
-}
-
-botaoFiltrar.addEventListener("click", (evento) => {
-    evento.preventDefault();
-    carregarDadosFreelancer();
-})
-
-
-botaoLimparFiltros.addEventListener("click", (evento) => {
-    evento.preventDefault();
-    filtroTituloVaga.value = "";
-    filtroStatusVaga.value = "";
-    filtroTipoVaga.value = "";
-    carregarDadosFreelancer();
-})
-
-btnFecharCancelamento.addEventListener("click", () => {
-    modalCancelamento.hidden = true;
-    candidaturaIdParaCancelar = null;
-});
-
-btnConfirmarCancelamento.addEventListener("click", async () => {
-    if (!candidaturaIdParaCancelar) return;
-
-    try
-    {
-        const resposta = await fetch(`${API_URL}/${candidaturaIdParaCancelar}`,
-        {
-            method: "PATCH",
-            headers:
-            {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({ status: "Cancelada" })
-        });
-
-        if (!resposta.ok)
-        {
-            throw new Error(`Erro HTTP: ${resposta.status}`);
-        }
-
-        modalCancelamento.hidden = true;
-        candidaturaIdParaCancelar = null;
-        carregarDadosFreelancer();
-    }
-    catch (erro)
-    {
-        console.error(erro);
-        mensagemErro.removeAttribute("hidden");
-    }
-});
-
-// Retorna a classe css do badge de acordo com o status da candidatura
-function obterClasseBadgeStatus(status)
-{
-    if(status == "Em análise" || status == "Cancelada" || status == "Rejeitado")
-    {
-        return "badge-danger";
-    }
-    else if(status == "Em andamento")
-    {
-        return "badge-warning";
-    }
-    else if(status == "Concluída" || status == "Finalizado" || status == "Selecionado")
-    {
-        return "badge-success";
-    }
-    else
-    {
-        return "badge";
-    }
-}
+carregarDadosFreelancer();
+carregarConvites();

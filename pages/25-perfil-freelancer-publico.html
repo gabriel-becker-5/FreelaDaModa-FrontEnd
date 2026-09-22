@@ -17,29 +17,19 @@
   </head>
   <body>
     <div class="app">
-      <button class="sidebar-toggle-btn" type="button" aria-label="Abrir menu" aria-expanded="false">
-  <span class="hamburger-line"></span>
-</button>
-<div class="sidebar-overlay"></div>
-<aside class="sidebar" role="navigation" aria-label="Menu principal">
-        <a href="/pages/01-homepage.html" class="brand">
-          <img
-            src="/assets/logo-icone-branco-2048.png"
-            alt="Logo Freela"
-            class="brand-logo"
-          /><span class="brand-text">FREELA<span class="brand-sub">DA MODA</span></span>
-        </a>
-        <button
-          class="theme-toggle"
-          type="button"
-          aria-label="Alternar tema claro e escuro"
-        ><i class="bi bi-moon-stars" aria-hidden="true"></i></button>
-        <a href="/pages/07-vagas.html"><i class="bi bi-arrow-left"></i> Voltar para Vagas</a
-        ><a href="/pages/11-chat.html"><i class="bi bi-chat-dots"></i> Chat</a>
-      </aside>
       <main class="main" role="main" aria-label="Conteúdo principal">
 
-        <div id="mensagemStatus" class="alert" role="alert" aria-live="polite" hidden></div>
+        <div class="header">
+          <h2>Perfil do Freelancer</h2>
+          <div class="header-actions">
+            <a href="javascript:history.back()" class="btn btn-outline">
+              <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+            <div id="header-acoes"></div>
+          </div>
+        </div>
+
+        <div id="mensagemStatus" class="alert mb-md" role="alert" aria-live="polite" hidden></div>
 
         <!-- Estado de carregamento -->
         <div id="perfil-loading" class="text-center">
@@ -66,9 +56,8 @@
                 <i class="bi bi-geo-alt-fill"></i>
                 <span id="localizacao-freelancer"></span>
               </div>
-              <div class="multi-select" style="margin-top: 4px;">
-                <span class="badge badge-success">Disponível</span
-                ><span class="badge" id="badge-tipo-negocio"></span>
+              <div class="multi-select" style="margin-top: 4px;" id="selo-container">
+                <span class="badge badge-primary-bg" id="selo-verificado" hidden><i class="bi bi-patch-check-fill"></i> Verificado</span>
               </div>
             </div>
             <div class="profile-actions">
@@ -94,6 +83,11 @@
                 <div class="section-title">Máquinas que possui</div>
                 <div class="multi-select" id="lista-maquinas"></div>
               </section>
+
+              <section class="card">
+                <div class="section-title">Referências do trabalho</div>
+                <div class="referencias-grid" id="lista-referencias"></div>
+              </section>
             </div>
 
             <div class="stack">
@@ -101,40 +95,12 @@
                 <div class="section-title">Informações Profissionais</div>
                 <div class="profile-section">
                   <div class="profile-meta-row">
-                    <span class="profile-meta-label">Tipo de negócio</span>
-                    <span class="profile-meta-value" id="info-tipo-negocio"></span>
-                  </div>
-                  <div class="profile-meta-row">
                     <span class="profile-meta-label">Experiência</span>
                     <span class="profile-meta-value" id="info-experiencia"></span>
                   </div>
                   <div class="profile-meta-row">
-                    <span class="profile-meta-label">Tamanho da oficina</span>
-                    <span class="profile-meta-value" id="info-oficina"></span>
-                  </div>
-                  <div class="profile-meta-row">
                     <span class="profile-meta-label">Disponibilidade</span>
                     <span class="profile-meta-value" id="info-disponibilidade"></span>
-                  </div>
-                  <div class="profile-meta-row">
-                    <span class="profile-meta-label">Preferências</span>
-                    <span class="profile-meta-value" id="info-preferencias"></span>
-                  </div>
-                  <div class="profile-meta-row">
-                    <span class="profile-meta-label">Como fecha serviço</span>
-                    <span class="profile-meta-value" id="info-fechamento"></span>
-                  </div>
-                  <div class="profile-meta-row">
-                    <span class="profile-meta-label">Produtor fixo</span>
-                    <span class="profile-meta-value" id="info-produtor-fixo"></span>
-                  </div>
-                  <div class="profile-meta-row">
-                    <span class="profile-meta-label">Veículo próprio</span>
-                    <span class="profile-meta-value" id="info-veiculo"></span>
-                  </div>
-                  <div class="profile-meta-row">
-                    <span class="profile-meta-label">Faturamento médio</span>
-                    <span class="profile-meta-value" id="info-faturamento"></span>
                   </div>
                 </div>
               </section>
@@ -169,6 +135,8 @@
     </div>
 
     <script src="/js/config.js"></script>
+    <script src="/js/ui.js"></script>
+    <script src="/js/nav.js"></script>
     <script src="/js/25-perfil-freelancer-publico.js"></script>
   </body>
 </html>

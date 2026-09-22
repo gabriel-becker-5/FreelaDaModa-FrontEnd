@@ -1,224 +1,376 @@
-document.addEventListener('DOMContentLoaded', function () {
-    'use strict';
+// Ordens de Serviço (empresa)
 
-    // ── 2. Menu Lateral no Celular (Hambúrguer) ──
-    const sidebarToggleBtn = document.querySelector('.sidebar-toggle-btn');
-    const sidebar = document.querySelector('.sidebar');
-    const sidebarOverlay = document.querySelector('.sidebar-overlay');
+const API_URL_OS = `${API_BASE}/ordensServico`;
 
-    if (sidebarToggleBtn && sidebar && sidebarOverlay) {
-        sidebarToggleBtn.addEventListener('click', function () {
-            const abrindo = !sidebar.classList.contains('open');
-            sidebar.classList.toggle('open', abrindo);
-            sidebarOverlay.classList.toggle('open', abrindo);
-            sidebarToggleBtn.setAttribute('aria-expanded', String(abrindo));
-        });
-        sidebarOverlay.addEventListener('click', function () {
-            sidebar.classList.remove('open');
-            sidebarOverlay.classList.remove('open');
-            sidebarToggleBtn.setAttribute('aria-expanded', 'false');
-        });
-    }
+const sessao = exigirTipo('empresas');
+if (!sessao) {
+    throw new Error('Sessão inválida');
+}
+let token;
 
-    // ── 3. Proteção de rota (só empresa logada; só vê as próprias OS) ──
-    const sessao = JSON.parse(sessionStorage.getItem('usuarioLogado') || 'null');
-    if (!sessao || sessao.tipo !== 'empresas') {
-        window.location.href = '/pages/02-login.html';
-        return;
-    }
+renderizarSidebar(document.querySelector('.sidebar'), 'empresas', '16-ordens-servico');
+renderizarTopbar(document.querySelector('#header-acoes'), sessao);
+renderizarBannerValidacao(document.querySelector('.main'), sessao);
 
-    // ── 4. Carregar Ordens de Serviço ──
-    const loadingSkeleton = document.querySelector('.loading-skeleton');
-    const emptyState = document.querySelector('.empty-state');
-    const alertaErro = document.querySelector('.alert-error');
-    const tabela = document.querySelector('table.table');
-    const tbody = tabela ? tabela.querySelector('tbody') : null;
+const loadingBar = document.querySelector('#perfil-loading');
+const erroBar = document.querySelector('#perfil-erro');
+const conteudoPerfil = document.querySelector('#perfil-conteudo');
+const filtroTitulo = document.querySelector('#filtroTitulo');
+const filtroStatus = document.querySelector('#filtroStatus');
+const filtroOrdenar = document.querySelector('#filtroOrdenar');
+const filtroEstado = document.querySelector('#filtroEstado');
+const filtroCidade = document.querySelector('#filtroCidade');
+const btnLimparFiltros = document.querySelector('#btnLimparFiltros');
+const tbody = document.querySelector('#tbodyOS');
+const msgEmpty = document.querySelector('#msg-empty');
+const cardFiltros = document.querySelector('#cardFiltros');
+const cardTabela = document.querySelector('#cardTabela');
+const btnPaginaAnterior = document.querySelector('#btnPaginaAnterior');
+const btnPaginaProxima = document.querySelector('#btnPaginaProxima');
+const resumoPaginas = document.querySelector('#resumoPaginas');
 
-    let todasOrdens = [];
+const PAGE_SIZE = 10;
 
-    function mostrarMensagem(texto, tipo) {
-        const el = document.getElementById('mensagemStatus');
-        if (!el) return;
-        el.className = `alert alert-${tipo}`;
-        el.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${texto}`;
-        el.hidden = false;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+let todasOS = [];
+let osFiltradas = [];
+let paginaAtual = 1;
 
-    function escapeHtml(str) {
-        return String(str ?? '').replace(/[&<>"']/g, function (ch) {
-            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
-        });
-    }
+/* ------------------------- menu mobile ------------------------------------ */
 
-    function classeBadgeStatus(status) {
-        if (status === 'Concluída') return 'badge-success';
-        if (status === 'Cancelada') return 'badge-danger';
-        return 'badge-warning';
-    }
+const sidebarToggleBtn = document.querySelector('.sidebar-toggle-btn');
+const sidebar = document.querySelector('.sidebar');
+const sidebarOverlay = document.querySelector('.sidebar-overlay');
 
-    function criarLinha(os) {
-        const tr = document.createElement('tr');
-        tr.dataset.id = os.id;
-        tr.innerHTML = `
-            <td data-label="Id">OS-${escapeHtml(os.id)}</td>
-            <td data-label="Título">${escapeHtml(os.titulo)}</td>
-            <td data-label="Freelancer">${escapeHtml(os.freelancerNome || '—')}</td>
-            <td data-label="Valor">${os.valor ? `R$ ${escapeHtml(os.valor)}` : '—'}</td>
-            <td data-label="Status"><span class="badge ${classeBadgeStatus(os.status)}">${escapeHtml(os.status)}</span></td>
-            <td data-label="Ações">
-                <div class="table-actions">
-                    <a href="/pages/19-ordem-servico-detalhe.html?id=${os.id}" class="btn btn-primary">Ver</a>
-                    <a href="/pages/14-editar-os.html?id=${os.id}" class="btn">Editar</a>
-                    ${os.status === 'Em andamento' ? '<button class="btn btn-finalizar" type="button">Finalizar</button>' : ''}
-                    <button class="btn btn-danger btn-excluir" type="button">Excluir</button>
-                </div>
-            </td>
-        `;
-        return tr;
-    }
+function abrirMenu() {
+    sidebar.classList.add('open');
+    sidebarOverlay.classList.add('open');
+    sidebarToggleBtn.classList.add('open');
+    sidebarToggleBtn.setAttribute('aria-expanded', 'true');
+}
 
-    function renderizarOrdens(lista) {
-        if (!tbody) return;
-        tbody.innerHTML = '';
+function fecharMenu() {
+    sidebar.classList.remove('open');
+    sidebarOverlay.classList.remove('open');
+    sidebarToggleBtn.classList.remove('open');
+    sidebarToggleBtn.setAttribute('aria-expanded', 'false');
+}
 
-        if (lista.length === 0) {
-            if (emptyState) emptyState.style.display = 'block';
+sidebarToggleBtn.addEventListener('click', () => {
+    sidebar.classList.contains('open') ? fecharMenu() : abrirMenu();
+});
+sidebarOverlay.addEventListener('click', fecharMenu);
+
+/* ------------------------- filtros de localidade -------------------------- */
+
+if (filtroEstado) carregarUFs(filtroEstado);
+if (filtroEstado && filtroCidade) montarAutocompleteCidade(filtroCidade, filtroEstado);
+
+/* ------------------------- badges ----------------------------------------- */
+
+function classeBadgeStatus(status) {
+    if (status === 'Concluída') return 'badge-success';
+    if (status === 'Cancelada') return 'badge-danger';
+    return 'badge-warning';
+}
+
+/* ------------------------- carregar dados --------------------------------- */
+
+async function carregarOrdens() {
+    msgEmpty.hidden = true;
+    loadingBar.removeAttribute('hidden');
+    erroBar.setAttribute('hidden', '');
+    conteudoPerfil.setAttribute('hidden', '');
+
+    try {
+        const resposta = await fetch(`${API_URL_OS}?empresaId=${encodeURIComponent(sessao.id)}`);
+        if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
+
+        todasOS = await resposta.json();
+
+        loadingBar.setAttribute('hidden', '');
+        conteudoPerfil.removeAttribute('hidden');
+
+        // Sem nenhuma OS: exibe somente a mensagem em vermelho,
+        // sem lista nem opção de pesquisa.
+        if (todasOS.length === 0) {
+            cardFiltros.hidden = true;
+            cardTabela.hidden = true;
+            msgEmpty.textContent = 'Você ainda não tem ordens de serviço.';
+            msgEmpty.hidden = false;
             return;
         }
 
-        if (emptyState) emptyState.style.display = 'none';
-        lista.forEach(function (os) {
-            tbody.appendChild(criarLinha(os));
-        });
-    }
-
-    async function carregarOrdens() {
-        if (loadingSkeleton) loadingSkeleton.style.display = 'flex';
-        if (emptyState) emptyState.style.display = 'none';
-        if (alertaErro) alertaErro.style.display = 'none';
-
-        try {
-            const res = await fetch(`${API_BASE}/ordensServico?empresaId=${sessao.id}`);
-            if (!res.ok) throw new Error('Falha ao buscar ordens de serviço.');
-
-            todasOrdens = await res.json();
-            renderizarOrdens(todasOrdens);
-        } catch (erro) {
-            console.error('Erro ao carregar ordens de serviço:', erro);
-            if (alertaErro) alertaErro.style.display = 'block';
-        } finally {
-            if (loadingSkeleton) loadingSkeleton.style.display = 'none';
-        }
-    }
-
-    // ── 4. Filtros (busca, status e ordenação) ──
-    const inputBusca = document.querySelector('.filters .input-grow, .filters input[placeholder]');
-    const selectStatus = document.querySelectorAll('.filters select')[0];
-    const selectOrdenar = document.querySelectorAll('.filters select')[1];
-    const btnFiltrar = document.querySelector('.filters .btn-primary');
-
-    function aplicarFiltros() {
-        const termo = inputBusca ? inputBusca.value.toLowerCase().trim() : '';
-        const status = selectStatus ? selectStatus.value : 'Status';
-        const ordenacao = selectOrdenar ? selectOrdenar.value : 'Ordenar por';
-
-        let filtradas = todasOrdens.filter(function (os) {
-            const bateTermo = !termo || os.titulo.toLowerCase().includes(termo);
-            const bateStatus = status === 'Status' || os.status === status;
-            return bateTermo && bateStatus;
-        });
-
-        if (ordenacao === 'Valor') {
-            filtradas = filtradas.slice().sort(function (a, b) { return Number(b.valor || 0) - Number(a.valor || 0); });
-        } else if (ordenacao === 'Prazo') {
-            filtradas = filtradas.slice().sort(function (a, b) { return new Date(a.prazo || 0) - new Date(b.prazo || 0); });
-        } else if (ordenacao === 'Mais recentes') {
-            filtradas = filtradas.slice().reverse();
-        }
-
-        renderizarOrdens(filtradas);
-    }
-
-    if (btnFiltrar) btnFiltrar.addEventListener('click', function (e) {
-        e.preventDefault();
+        cardFiltros.hidden = false;
+        cardTabela.hidden = false;
         aplicarFiltros();
+    } catch (erro) {
+        console.error('Erro ao carregar ordens de serviço:', erro);
+        loadingBar.setAttribute('hidden', '');
+        erroBar.removeAttribute('hidden');
+    }
+}
+
+/* ------------------------- ordenação -------------------------------------- */
+
+function ordenarOS(lista) {
+    const ordenacao = filtroOrdenar ? filtroOrdenar.value : 'recentes';
+
+    if (ordenacao === 'valor') {
+        lista.sort(function (a, b) {
+            return moedaParaNumero(b.valor) - moedaParaNumero(a.valor);
+        });
+        return;
+    }
+
+    if (ordenacao === 'prazo') {
+        lista.sort(function (a, b) {
+            const da = a.prazo ? new Date(a.prazo).getTime() : NaN;
+            const db_ = b.prazo ? new Date(b.prazo).getTime() : NaN;
+            const va = isNaN(da) ? Infinity : da;
+            const vb = isNaN(db_) ? Infinity : db_;
+            return va - vb;
+        });
+        return;
+    }
+
+    // "Mais recentes": por data de publicação (fallback: ordem da API).
+    lista.sort(function (a, b) {
+        const da = a.dataPublicacao ? new Date(a.dataPublicacao).getTime() : 0;
+        const db_ = b.dataPublicacao ? new Date(b.dataPublicacao).getTime() : 0;
+        return db_ - da;
+    });
+}
+
+/* ------------------------- filtros e render ------------------------------- */
+
+function aplicarFiltros() {
+    const termo = removerAcentos(filtroTitulo.value.trim().toLowerCase());
+    const status = filtroStatus.value;
+    const uf = filtroEstado ? filtroEstado.value : '';
+    const cidade = filtroCidade ? removerAcentos(filtroCidade.value.trim().toLowerCase()) : '';
+
+    osFiltradas = todasOS.filter(function (os) {
+        const bateTermo = !termo || removerAcentos(String(os.titulo || '')).toLowerCase().includes(termo);
+        const bateStatus = !status || os.status === status;
+        const bateUf = !uf || String(os.estado || '').toUpperCase() === uf.toUpperCase();
+        const bateCidade = !cidade || removerAcentos(String(os.cidade || '')).toLowerCase().includes(cidade);
+        return bateTermo && bateStatus && bateUf && bateCidade;
     });
 
-    // ── 5. Finalizar e Excluir (delegação de eventos no tbody) ──
-    if (tbody) {
-        tbody.addEventListener('click', async function (e) {
-            const linha = e.target.closest('tr');
-            if (!linha) return;
-            const id = linha.dataset.id;
+    ordenarOS(osFiltradas);
 
-            if (e.target.closest('.btn-finalizar')) {
-                if (!confirm('Confirmar a finalização desta ordem de serviço?')) return;
-                try {
-                    const res = await fetch(`${API_BASE}/ordensServico/${id}`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ status: 'Concluída' })
-                    });
-                    if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
-                } catch (erro) {
-                    console.error('Erro ao finalizar ordem de serviço:', erro);
-                    mostrarMensagem('Não foi possível finalizar a ordem de serviço. Verifique se o json-server está rodando.', 'error');
-                    return;
-                }
-                const badge = linha.querySelector('.badge');
-                if (badge) {
-                    badge.className = 'badge badge-success';
-                    badge.textContent = 'Concluída';
-                }
-                const os = todasOrdens.find(function (o) { return String(o.id) === String(id); });
-                if (os) os.status = 'Concluída';
-                return;
-            }
+    paginaAtual = 1;
+    renderizarPagina();
+}
 
-            if (e.target.closest('.btn-excluir')) {
-                abrirModalExclusao(id);
-            }
+function renderizarPagina() {
+    const totalPaginas = Math.max(1, Math.ceil(osFiltradas.length / PAGE_SIZE));
+    if (paginaAtual > totalPaginas) paginaAtual = totalPaginas;
+
+    const inicio = (paginaAtual - 1) * PAGE_SIZE;
+    const pagina = osFiltradas.slice(inicio, inicio + PAGE_SIZE);
+
+    tbody.innerHTML = '';
+
+    if (osFiltradas.length === 0) {
+        msgEmpty.textContent = 'Nenhuma ordem de serviço encontrada para os filtros selecionados.';
+        msgEmpty.hidden = false;
+        cardTabela.hidden = true;
+    } else {
+        msgEmpty.hidden = true;
+        cardTabela.hidden = false;
+        pagina.forEach(preencherLinha);
+    }
+
+    const total = osFiltradas.length;
+    const fim = Math.min(inicio + PAGE_SIZE, total);
+    resumoPaginas.textContent = total > 0 ? `Mostrando ${inicio + 1}-${fim} de ${total}` : 'Mostrando 0 de 0';
+    btnPaginaAnterior.disabled = paginaAtual <= 1;
+    btnPaginaProxima.disabled = paginaAtual >= totalPaginas;
+}
+
+function preencherLinha(os) {
+    const tr = document.createElement('tr');
+
+    const tdTitulo = document.createElement('td');
+    tdTitulo.textContent = os.titulo || '—';
+
+    const tdFreelancer = document.createElement('td');
+    if (os.freelancerId) {
+        const linkFreelancer = document.createElement('a');
+        linkFreelancer.href = `/pages/25-perfil-freelancer-publico.html?id=${encodeURIComponent(os.freelancerId)}`;
+        linkFreelancer.className = 'text-primary';
+        linkFreelancer.textContent = os.freelancerNome || '—';
+        tdFreelancer.appendChild(linkFreelancer);
+    } else {
+        tdFreelancer.textContent = os.freelancerNome || '—';
+    }
+
+    const tdLocal = document.createElement('td');
+    tdLocal.textContent = [os.cidade, os.estado].filter(Boolean).join(' - ') || '—';
+
+    const tdValor = document.createElement('td');
+    tdValor.textContent = os.valor || '—';
+
+    const tdPrazo = document.createElement('td');
+    tdPrazo.textContent = formatarData(os.prazo) || '—';
+
+    const tdDataInicio = document.createElement('td');
+    tdDataInicio.textContent = formatarData(os.dataPublicacao) || '—';
+
+    const tdStatus = document.createElement('td');
+    const badge = document.createElement('span');
+    badge.className = `badge ${classeBadgeStatus(os.status)}`;
+    badge.textContent = os.status || '';
+    tdStatus.appendChild(badge);
+
+    const tdAcoes = document.createElement('td');
+    const divAcoes = document.createElement('div');
+    divAcoes.className = 'table-actions';
+
+    const linkDetalhar = document.createElement('a');
+    linkDetalhar.className = 'btn btn-primary';
+    linkDetalhar.textContent = 'Detalhar';
+    linkDetalhar.href = `/pages/19-ordem-servico-detalhe.html?id=${encodeURIComponent(os.id)}`;
+    divAcoes.appendChild(linkDetalhar);
+
+    const linkEditar = document.createElement('a');
+    linkEditar.className = 'btn';
+    linkEditar.textContent = 'Editar';
+    linkEditar.href = `/pages/14-editar-os.html?id=${encodeURIComponent(os.id)}`;
+    divAcoes.appendChild(linkEditar);
+
+    if (os.status === 'Em andamento') {
+        const botaoFinalizar = document.createElement('button');
+        botaoFinalizar.type = 'button';
+        botaoFinalizar.className = 'btn btn-outline';
+        botaoFinalizar.style.color = '#d93025';
+        botaoFinalizar.style.borderColor = '#ffc1bc';
+        botaoFinalizar.innerHTML = '<i class="bi bi-check-circle"></i> Encerrar';
+        
+        botaoFinalizar.addEventListener('click', function () {
+            alterarStatus(os, 'Concluída');
         });
-    }
+        divAcoes.appendChild(botaoFinalizar);
 
-    // ── 6. Excluir Ordem de Serviço (modal de confirmação) ──
-    const modalExcluir = document.getElementById('modalExcluir');
-    const btnCancelarExclusao = document.getElementById('btnCancelarExclusao');
-    const btnConfirmarExclusao = document.getElementById('btnConfirmarExclusao');
-    let idParaExcluir = null;
-
-    function abrirModalExclusao(id) {
-        idParaExcluir = id;
-        if (modalExcluir) modalExcluir.style.display = 'flex';
-    }
-
-    function fecharModalExclusao() {
-        idParaExcluir = null;
-        if (modalExcluir) modalExcluir.style.display = 'none';
-    }
-
-    if (btnCancelarExclusao) btnCancelarExclusao.addEventListener('click', fecharModalExclusao);
-
-    if (btnConfirmarExclusao) {
-        btnConfirmarExclusao.addEventListener('click', async function () {
-            if (!idParaExcluir) return;
-            try {
-                const res = await fetch(`${API_BASE}/ordensServico/${idParaExcluir}`, { method: 'DELETE' });
-                if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
-            } catch (erro) {
-                console.error('Erro ao excluir ordem de serviço:', erro);
-                mostrarMensagem('Não foi possível excluir a ordem de serviço. Verifique se o json-server está rodando.', 'error');
-                fecharModalExclusao();
-                return;
-            }
-            todasOrdens = todasOrdens.filter(function (os) { return String(os.id) !== String(idParaExcluir); });
-            const linha = tbody ? tbody.querySelector(`tr[data-id="${idParaExcluir}"]`) : null;
-            if (linha) linha.remove();
-            if (todasOrdens.length === 0 && emptyState) emptyState.style.display = 'block';
-            fecharModalExclusao();
+        const botaoCancelar = document.createElement('button');
+        botaoCancelar.type = 'button';
+        botaoCancelar.className = 'btn btn-danger';
+        botaoCancelar.innerHTML = '<i class="bi bi-x-circle"></i> Cancelar';
+        botaoCancelar.addEventListener('click', function () {
+            alterarStatus(os, 'Cancelada');
         });
+        divAcoes.appendChild(botaoCancelar);
     }
 
-    carregarOrdens();
+    tdAcoes.appendChild(divAcoes);
+
+    tr.appendChild(tdTitulo);
+    tr.appendChild(tdStatus);
+    tr.appendChild(tdLocal);
+    tr.appendChild(tdValor);
+    tr.appendChild(tdPrazo);
+    tr.appendChild(tdDataInicio);
+    tr.appendChild(tdFreelancer);
+    tr.appendChild(tdAcoes);
+
+    tdTitulo.setAttribute('data-label', 'Título');
+    tdStatus.setAttribute('data-label', 'Status');
+    tdLocal.setAttribute('data-label', 'Local');
+    tdValor.setAttribute('data-label', 'Valor');
+    tdPrazo.setAttribute('data-label', 'Prazo');
+    tdDataInicio.setAttribute('data-label', 'Data Início');
+    tdFreelancer.setAttribute('data-label', 'Freelancer');
+    tdAcoes.setAttribute('data-label', 'Ações');
+
+    tbody.appendChild(tr);
+}
+
+/* ------------------------- finalizar / cancelar --------------------------- */
+
+async function alterarStatus(os, novoStatus) {
+    const finalizando = novoStatus === 'Concluída';
+    const confirmou = await modalConfirmar({
+        titulo: finalizando ? 'Finalizar ordem de serviço' : 'Cancelar ordem de serviço',
+        mensagem: finalizando
+            ? `Confirmar a finalização da OS "${os.titulo}"? Ela passará a aguardar avaliação.`
+            : `Deseja cancelar a OS "${os.titulo}"? O histórico será preservado e essa ação não poderá ser desfeita.`,
+        textoConfirmar: finalizando ? 'Finalizar' : 'Cancelar',
+        textoCancelar: 'Voltar',
+        perigoso: !finalizando
+    });
+    if (!confirmou) return;
+
+    try {
+        const novoHistorico = (os.historico || []).concat([
+            {
+                data: hojeLocalISO(),
+                evento: finalizando ? 'OS finalizada pela empresa.' : 'OS cancelada pela empresa.'
+            }
+        ]);
+
+        const resposta = await fetch(`${API_URL_OS}/${os.id}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ status: novoStatus, historico: novoHistorico })
+        });
+        if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
+
+        // Avisa o freelancer sobre a mudança de status da OS.
+        if (os.freelancerId) {
+            criarNotificacao({
+                usuarioId: os.freelancerId,
+                usuarioTipo: 'freelancers',
+                tipo: 'os',
+                titulo: 'Ordem de serviço atualizada',
+                mensagem: `A OS "${os.titulo}" foi ${finalizando ? 'finalizada' : 'cancelada'} pela empresa.`,
+                link: `/pages/19-ordem-servico-detalhe.html?id=${encodeURIComponent(os.id)}`
+            });
+        }
+
+        toastMsg(finalizando ? 'Ordem de serviço finalizada com sucesso.' : 'Ordem de serviço cancelada.', 'success');
+        carregarOrdens();
+    } catch (erro) {
+        console.error('Erro ao atualizar status da ordem de serviço:', erro);
+        erroBar.textContent = 'Não foi possível atualizar a ordem de serviço. Tente novamente em instantes.';
+        erroBar.removeAttribute('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+}
+
+/* ------------------------- eventos de filtro ------------------------------ */
+
+filtroTitulo.addEventListener('input', aplicarFiltros);
+filtroStatus.addEventListener('change', aplicarFiltros);
+filtroOrdenar.addEventListener('change', aplicarFiltros);
+if (filtroEstado) filtroEstado.addEventListener('change', aplicarFiltros);
+if (filtroCidade) filtroCidade.addEventListener('input', aplicarFiltros);
+
+btnLimparFiltros.addEventListener('click', function () {
+    filtroTitulo.value = '';
+    filtroStatus.value = '';
+    filtroOrdenar.value = 'recentes';
+    if (filtroEstado) filtroEstado.value = '';
+    if (filtroCidade) filtroCidade.value = '';
+    aplicarFiltros();
 });
+
+btnPaginaAnterior.addEventListener('click', function () {
+    if (paginaAtual > 1) {
+        paginaAtual--;
+        renderizarPagina();
+    }
+});
+
+btnPaginaProxima.addEventListener('click', function () {
+    const totalPaginas = Math.ceil(osFiltradas.length / PAGE_SIZE);
+    if (paginaAtual < totalPaginas) {
+        paginaAtual++;
+        renderizarPagina();
+    }
+});
+
+carregarOrdens();

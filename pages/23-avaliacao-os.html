@@ -18,36 +18,14 @@
   <body>
     <div class="app">
       <button class="sidebar-toggle-btn" type="button" aria-label="Abrir menu" aria-expanded="false">
-  <span class="hamburger-line"></span>
-</button>
-<div class="sidebar-overlay"></div>
-<aside class="sidebar" role="navigation" aria-label="Menu principal">
-        <a href="/pages/01-homepage.html" class="brand">
-          <img
-            src="/assets/logo-icone-branco-2048.png"
-            alt="Logo Freela"
-            class="brand-logo"
-          /><span class="brand-text">FREELA<span class="brand-sub">DA MODA</span></span>
-        </a>
-        <button
-          class="theme-toggle"
-          type="button"
-          aria-label="Alternar tema claro e escuro"
-        ><i class="bi bi-moon-stars" aria-hidden="true"></i></button>
-        <a href="/pages/04-dashboard-empresa.html">Dashboard</a
-        ><a href="/pages/12-publicar-vaga.html">Publicar Vaga</a
-        ><a href="/pages/15-minhas-vagas.html">Minhas Vagas</a
-        ><a href="/pages/27-mural-freelancers.html">Buscar Freelancers</a
-        ><a href="/pages/11-chat.html">Chat</a
-        ><a class="active" href="/pages/16-ordens-servico.html" aria-current="page">Ordens de Serviço</a
-        ><a href="/pages/09-perfil-empresa.html">Perfil</a
-        ><a href="/pages/21-assinatura.html">Assinatura</a
-        ><a href="/pages/24-suporte.html">Suporte</a>
-      </aside>
+        <span class="hamburger-line"></span>
+      </button>
+      <div class="sidebar-overlay"></div>
+      <aside class="sidebar" role="navigation" aria-label="Menu principal"></aside>
       <main class="main" role="main" aria-label="Conteúdo principal">
         <div class="header">
           <h2>Avaliação da Ordem de Serviço</h2>
-          <a href="/pages/19-ordem-servico-detalhe.html" class="btn" id="link-voltar-topo">Voltar</a>
+          <div class="header-actions" id="header-acoes"></div>
         </div>
         <section class="card mb-md">
           <div class="section-title">Resumo do serviço</div>
@@ -59,17 +37,23 @@
         <div id="avisoNaoConcluida" class="alert alert-error mb-md" role="alert" aria-live="polite" hidden>
           <i class="bi bi-exclamation-circle-fill"></i> Esta Ordem de Serviço ainda não foi concluída. A avaliação só fica disponível depois que o serviço é finalizado.
         </div>
-        <form class="card" id="formAvaliacao">
-          <div class="alert alert-success" role="alert" aria-live="polite">
+        <div id="avisoSemAcesso" class="alert alert-error mb-md" role="alert" aria-live="polite" hidden>
+          <i class="bi bi-exclamation-circle-fill"></i> Esta Ordem de Serviço não está vinculada à sua conta.
+        </div>
+        <div id="avisoJaAvaliado" class="alert alert-success mb-md" role="alert" aria-live="polite" hidden>
+          <i class="bi bi-check-circle-fill"></i> Você já enviou a sua avaliação para este serviço.
+        </div>
+        <form class="card" id="formAvaliacao" hidden>
+          <div class="alert alert-success mb-md" role="alert" aria-live="polite" id="alerta-avaliacao" hidden>
             Área para confirmação de envio da avaliação.
           </div>
-          <div class="section-title">Sua avaliação</div>
+          <div class="section-title">Sua avaliação — <span id="avaliado-alvo">serviço</span></div>
           <div class="form-group">
             <label>Nota</label>
             <div class="star-rating">
               <input type="radio" id="star5" name="nota" value="5" /><label for="star5" title="5 estrelas"><i class="bi bi-star-fill"></i></label>
               <input type="radio" id="star4" name="nota" value="4" /><label for="star4" title="4 estrelas"><i class="bi bi-star-fill"></i></label>
-              <input type="radio" id="star3" name="nota" value="3" checked /><label for="star3" title="3 estrelas"><i class="bi bi-star-fill"></i></label>
+              <input type="radio" id="star3" name="nota" value="3" /><label for="star3" title="3 estrelas"><i class="bi bi-star-fill"></i></label>
               <input type="radio" id="star2" name="nota" value="2" /><label for="star2" title="2 estrelas"><i class="bi bi-star-fill"></i></label>
               <input type="radio" id="star1" name="nota" value="1" /><label for="star1" title="1 estrela"><i class="bi bi-star-fill"></i></label>
             </div>
@@ -95,6 +79,8 @@
       </main>
     </div>
     <script src="/js/config.js"></script>
+    <script src="/js/ui.js"></script>
+    <script src="/js/nav.js"></script>
     <script src="/js/23-avaliacao-os.js"></script>
   </body>
 </html>

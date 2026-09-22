@@ -1,112 +1,47 @@
-﻿<!doctype html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR" data-theme="light">
-  <head>
-    <meta charset="UTF-8" />
+<head>
+    <meta charset="UTF-8">
     <script src="/js/theme.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Assinatura</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-    />
-    <link rel="stylesheet" href="/css/global.css" />
-  </head>
-  <body>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freela da Moda - Assinatura</title>
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
     <div class="app">
-      <button class="sidebar-toggle-btn" type="button" aria-label="Abrir menu" aria-expanded="false">
-  <span class="hamburger-line"></span>
-</button>
-<div class="sidebar-overlay"></div>
-<aside class="sidebar" role="navigation" aria-label="Menu principal">
-        <a href="/pages/01-homepage.html" class="brand">
-          <img
-            src="/assets/logo-icone-branco-2048.png"
-            alt="Logo Freela"
-            class="brand-logo"
-          /><span class="brand-text">FREELA<span class="brand-sub">DA MODA</span></span>
-        </a>
-        <button
-          class="theme-toggle"
-          type="button"
-          aria-label="Alternar tema claro e escuro"
-        ><i class="bi bi-moon-stars" aria-hidden="true"></i></button>
-        <a href="/pages/04-dashboard-empresa.html">Dashboard</a
-        ><a href="/pages/12-publicar-vaga.html">Publicar Vaga</a
-        ><a href="/pages/15-minhas-vagas.html">Minhas Vagas</a
-        ><a href="/pages/27-mural-freelancers.html">Buscar Freelancers</a
-        ><a href="/pages/11-chat.html">Chat</a
-        ><a href="/pages/16-ordens-servico.html">Ordens de Serviço</a
-        ><a href="/pages/09-perfil-empresa.html">Perfil</a
-        ><a class="active" href="/pages/21-assinatura.html" aria-current="page">Assinatura</a
-        ><a href="/pages/24-suporte.html">Suporte</a>
-      </aside>
-      <main class="main" role="main" aria-label="Conteúdo principal">
-        <div class="header"><h2>Assinatura</h2></div>
-        <div id="mensagemStatus" class="alert" role="alert" aria-live="polite" hidden></div>
-        <section class="grid grid-2">
-          <div class="card">
-            <div class="section-title">Plano Atual</div>
-            <p>Empresa Básico</p>
-            <p>Status: ativo</p>
-            <p>Próxima cobrança: 10/09/2026</p>
-          </div>
-          <div class="card">
-            <div class="section-title">Dados da Empresa</div>
-            <p>Razão Social, CNPJ e status vinculados ao perfil da empresa.</p>
-          </div>
-        </section>
-        <section class="card mt-md">
-          <div class="section-title">Planos Existentes</div>
-          <div class="grid grid-3">
-            <div class="card stack-sm">
-              <h3>Básico</h3>
-              <p style="font-size: 22px; font-weight: 800; color: var(--color-primary);">R$ 49,90<span style="font-size: 14px; font-weight: 400;">/mês</span></p>
-              <p>Publicação limitada de vagas.</p>
-              <ul class="pricing-features" hidden>
-                <li><i class="bi bi-check-circle-fill"></i> Até 5 vagas publicadas simultaneamente</li>
-                <li><i class="bi bi-check-circle-fill"></i> Busca padrão de freelancers</li>
-                <li><i class="bi bi-check-circle-fill"></i> Chat com candidatos</li>
-                <li><i class="bi bi-check-circle-fill"></i> Ordens de serviço ilimitadas</li>
-                <li><i class="bi bi-check-circle-fill"></i> Suporte por e-mail</li>
-              </ul>
-              <button class="btn btn-outline-primary btn-ver-detalhes-plano" type="button">Ver detalhes</button>
-              <button class="btn btn-contratar">Plano atual</button>
+    <button class="sidebar-toggle-btn" type="button" aria-label="Abrir menu" aria-expanded="false">
+        <span class="hamburger-line"></span>
+    </button>
+    <div class="sidebar-overlay"></div>
+    <aside class="sidebar" role="navigation" aria-label="Menu principal"></aside>
+
+        <!-- Conteúdo Principal -->
+        <main class="main">
+            <div class="header">
+                <h2>Assinatura</h2>
+                <div class="header-actions" id="header-acoes"></div>
             </div>
-            <div class="card stack-sm">
-              <h3>Pro</h3>
-              <p style="font-size: 22px; font-weight: 800; color: var(--color-primary);">R$ 79,90<span style="font-size: 14px; font-weight: 400;">/mês</span></p>
-              <p>Acesso completo ao banco de talentos.</p>
-              <ul class="pricing-features" hidden>
-                <li><i class="bi bi-check-circle-fill"></i> Vagas ilimitadas</li>
-                <li><i class="bi bi-check-circle-fill"></i> Busca avançada de freelancers (filtro por especialidade, avaliação e localização)</li>
-                <li><i class="bi bi-check-circle-fill"></i> Relatórios de desempenho das vagas</li>
-                <li><i class="bi bi-check-circle-fill"></i> Suporte prioritário</li>
-                <li><i class="bi bi-check-circle-fill"></i> Tudo do plano Básico</li>
-              </ul>
-              <button class="btn btn-outline-primary btn-ver-detalhes-plano" type="button">Ver detalhes</button>
-              <button class="btn btn-primary btn-contratar">Contratar</button>
-            </div>
-            <div class="card stack-sm">
-              <h3>Premium</h3>
-              <p style="font-size: 22px; font-weight: 800; color: var(--color-primary);">R$ 99,90<span style="font-size: 14px; font-weight: 400;">/mês</span></p>
-              <p>Destaque nas buscas e suporte prioritário.</p>
-              <ul class="pricing-features" hidden>
-                <li><i class="bi bi-check-circle-fill"></i> Destaque das vagas no mural de freelancers</li>
-                <li><i class="bi bi-check-circle-fill"></i> Múltiplos usuários da equipe com acesso ao painel</li>
-                <li><i class="bi bi-check-circle-fill"></i> Gerente de conta dedicado</li>
-                <li><i class="bi bi-check-circle-fill"></i> Relatórios avançados de desempenho</li>
-                <li><i class="bi bi-check-circle-fill"></i> Tudo do plano Pro</li>
-              </ul>
-              <button class="btn btn-outline-primary btn-ver-detalhes-plano" type="button">Ver detalhes</button>
-              <button class="btn btn-primary btn-contratar">Contratar</button>
-            </div>
-          </div>
-        </section>
-      </main>
+
+            <div id="mensagemStatus" class="alert mb-md" role="alert" aria-live="polite" hidden></div>
+
+            <section>
+                <div class="card">
+                    <div class="section-title">Plano Atual</div>
+                    <p id="plano-atual-nome"></p>
+                    <p id="plano-atual-status"></p>
+                    <p id="plano-atual-cobranca"></p>
+                </div>
+            </section>
+
+            <section class="card mt-md">
+                <div class="section-title">Planos Existentes</div>
+                <div class="grid grid-3" id="planos-assinatura"></div>
+            </section>
+        </main>
     </div>
 
     <!-- Modal: Detalhes do Plano -->
@@ -127,6 +62,8 @@
     </div>
 
     <script src="/js/config.js"></script>
+    <script src="/js/ui.js"></script>
+    <script src="/js/nav.js"></script>
     <script src="/js/21-assinatura.js"></script>
-  </body>
+</body>
 </html>

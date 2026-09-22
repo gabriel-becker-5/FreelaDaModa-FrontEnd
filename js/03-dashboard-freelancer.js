@@ -1,123 +1,183 @@
-document.addEventListener('DOMContentLoaded', () => {
-    protegerRota();
-    carregarDadosFreelancer();
-    carregarVagasRecomendadas();
-    carregarMetricasEProducoes();
-    carregarNotificacoes();
-    carregarPreviewConversas();
-    initLogout();
-});
-
-/* -------------------------------------------------------------------------- */
-/* 1. PROTEÇÃO DE ROTA (Verifica se está logado como freelancer)             */
-/* -------------------------------------------------------------------------- */
-function protegerRota() {
-    const sessao = JSON.parse(sessionStorage.getItem('usuarioLogado'));
-
-    if (!sessao) {
-        window.location.href = '/pages/02-login.html';
-        return;
-    }
-
-    if (sessao.tipo !== 'freelancers') {
-        window.location.href = '/pages/04-dashboard-empresa.html';
-    }
-}
-
-/* -------------------------------------------------------------------------- */
-/* 2. CARREGAR DADOS DO PERFIL (Do db.json ou sessionStorage)                 */
-/* -------------------------------------------------------------------------- */
-async function carregarDadosFreelancer() {
-    const sessao = JSON.parse(sessionStorage.getItem('usuarioLogado'));
+document.addEventListener('DOMContentLoaded', function () {
+    const sessao = exigirTipo('freelancers');
     if (!sessao) return;
 
+    renderizarSidebar(document.querySelector('.sidebar'), 'freelancers', '03-dashboard-freelancer');
+    renderizarTopbar(document.getElementById('header-acoes'), sessao);
+    renderizarBannerValidacao(document.querySelector('.main'), sessao);
+    configurarMenuMobile();
+
+    carregarPainel(sessao);
+});
+
+function classeBadgeOS(status) {
+    if (status === 'Concluída') return 'badge-success';
+    if (status === 'Cancelada') return 'badge-danger';
+    return 'badge-warning';
+}
+
+/* -------------------------------------------------------------------------- */
+/* 1. CARREGAR PAINEL (dados do perfil + seções)                              */
+/* -------------------------------------------------------------------------- */
+async function carregarPainel(sessao) {
+    let freela = null;
     try {
-        const response = await fetch(`${API_BASE}/freelancers/${sessao.id}`);
-        if (!response.ok) throw new Error('Não foi possível obter os dados do freelancer.');
+        const res = await fetch(`${API_BASE}/freelancers/${sessao.id}`);
+        if (res.ok) freela = await res.json();
+    } catch (erro) {
+        console.error('Erro ao carregar dados do freelancer:', erro);
+    }
 
-        const freela = await response.json();
+    const nomeCompleto = (freela && freela.nome) || sessao.nome || '';
+    const primeiroNome = nomeCompleto.split(' ')[0];
+    document.getElementById('welcome-name').textContent = `Olá, ${primeiroNome}!`;
 
-        // Atualiza elementos na tela
-        const primeiroNome = freela.nome.split(' ')[0];
-        document.getElementById('welcome-name').textContent = `Olá, ${primeiroNome}!`;
-        document.getElementById('profile-nome').textContent = freela.nome;
-        document.getElementById('profile-email').textContent = freela.email;
-        document.getElementById('profile-tipo').textContent = freela.tipoNegocio || 'Autônomo';
-        document.getElementById('profile-exp').textContent = freela.experiencia || 'Não informado';
-        document.getElementById('profile-disp').textContent = freela.disponibilidade || 'Sob demanda';
+    carregarAvaliacoes(sessao.id);
+    carregarVagasRecomendadas(freela);
+    carregarMetricasEProducoes(sessao.id);
+    carregarPreviewConversas(sessao);
+}
 
-        if (freela.enderecoResidencial) {
-            document.getElementById('profile-local').textContent = `${freela.enderecoResidencial.cidade || ''} / ${freela.enderecoResidencial.estado || ''}`;
+/* -------------------------------------------------------------------------- */
+/* 2. AVALIAÇÕES                                                              */
+/* -------------------------------------------------------------------------- */
+async function carregarAvaliacoes(freelancerId) {
+    const metricAvaliacao = document.getElementById('metric-avaliacao');
+    if (!metricAvaliacao) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/avaliacoes?freelancerId=${encodeURIComponent(freelancerId)}`);
+        if (!res.ok) throw new Error('Erro ao carregar avaliações.');
+
+        const avaliacoes = await res.json();
+
+        if (!avaliacoes.length) {
+            metricAvaliacao.textContent = 'Sem avaliações';
+            return;
         }
 
-        const metricAvaliacao = document.getElementById('metric-avaliacao');
-        if (metricAvaliacao) {
-            metricAvaliacao.textContent = freela.mediaAvaliacoes
-                ? `${Number(freela.mediaAvaliacoes).toFixed(1)} / 5.0`
-                : 'Sem avaliações';
-        }
-
-        // Iniciais para o Avatar
-        const partesNome = freela.nome.split(' ');
-        const iniciais = partesNome.length > 1 
-            ? `${partesNome[0][0]}${partesNome[1][0]}`.toUpperCase()
-            : partesNome[0].substring(0, 2).toUpperCase();
-        document.getElementById('avatar-iniciais').textContent = iniciais;
-
-    } catch (error) {
-        console.error('Erro ao carregar perfil:', error);
-        // Fallback usando dados da sessão
-        document.getElementById('welcome-name').textContent = `Olá, ${sessao.nome}!`;
-        document.getElementById('profile-nome').textContent = sessao.nome;
-        document.getElementById('profile-email').textContent = sessao.email;
+        const soma = avaliacoes.reduce(function (total, avaliacao) {
+            return total + (Number(avaliacao.nota) || 0);
+        }, 0);
+        const media = soma / avaliacoes.length;
+        metricAvaliacao.textContent = `${media.toFixed(1)} / 5.0`;
+    } catch (erro) {
+        console.error('Erro ao carregar avaliações:', erro);
+        metricAvaliacao.textContent = '—';
     }
 }
 
 /* -------------------------------------------------------------------------- */
-/* 3. CARREGAR VAGAS RECOMENDADAS                                             */
+/* 3. VAGAS RECOMENDADAS                                                      */
 /* -------------------------------------------------------------------------- */
-async function carregarVagasRecomendadas() {
+// Implementado filtro por cidade e estado do freelancer, caso disponíveis.
+function classeBadgeStatus(status) {
+    const statusNormalizado = (status || '').toLowerCase();
+    if (statusNormalizado.includes('pausada')) return 'badge-warning';
+    if (statusNormalizado.includes('encerrada')) return 'badge-danger';
+    return 'badge-success';
+}
+
+function classeBadgeOS(status) {
+    if (status === 'Concluída') return 'badge-success';
+    if (status === 'Cancelada') return 'badge-danger';
+    return 'badge-warning';
+}
+
+async function carregarVagasRecomendadas(freela) {
     const container = document.getElementById('vagas-recomendadas');
+    if (!container) return;
 
     try {
-        const res = await fetch(`${API_BASE}/vagas?_limit=2`);
+        const res = await fetch(`${API_BASE}/vagas?status=Aberta`);
         if (!res.ok) throw new Error('Erro ao carregar vagas.');
 
-        const vagas = await res.json();
+        const abertas = await res.json();
+
+        let candidatas = abertas;
+        if (freela && (freela.cidadeResidencial || freela.estadoResidencial)) {
+            const naCidade = abertas.filter(function (vaga) {
+                return freela.cidadeResidencial &&
+                    String(vaga.cidade || '').toLowerCase() === String(freela.cidadeResidencial).toLowerCase();
+            });
+            if (naCidade.length) {
+                candidatas = naCidade;
+            } else {
+                const noEstado = abertas.filter(function (vaga) {
+                    return freela.estadoResidencial &&
+                        String(vaga.estado || '').toUpperCase() === String(freela.estadoResidencial).toUpperCase();
+                });
+                candidatas = noEstado.length ? noEstado : abertas;
+            }
+        }
+
+        const vagas = candidatas.slice(0, 2);
         container.innerHTML = '';
 
-        if (vagas.length === 0) {
+        if (!vagas.length) {
             container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem;">Nenhuma vaga nova no momento.</p>';
             return;
         }
 
-        vagas.forEach(vaga => {
+        vagas.forEach(function (vaga) {
             const vagaEl = document.createElement('div');
             vagaEl.className = 'service-item';
-            vagaEl.innerHTML = `
-                <div class="service-info">
-                    <h3>${vaga.titulo}</h3>
-                    <span>${vaga.empresaNome || 'Confecção'} • <strong>${vaga.valor}</strong></span>
-                </div>
-                <a href="/pages/07-vagas.html" class="btn btn-outline-purple" style="padding: 6px 14px; font-size: 0.8rem;">
-                    Ver Detalhes
-                </a>
-            `;
+
+            const info = document.createElement('div');
+            info.className = 'service-info';
+
+            const badge = document.createElement('span');
+            badge.className = `badge ${classeBadgeStatus(vaga.status)}`;
+            badge.textContent = vaga.status || 'Aberta';
+
+            const tituloLinha = document.createElement('div');
+            tituloLinha.style.cssText = 'display:flex; align-items:center; gap:8px; flex-wrap:wrap;';
+
+            const titulo = document.createElement('h3');
+            titulo.textContent = vaga.titulo;
+            
+            tituloLinha.appendChild(titulo);
+
+            titulo.appendChild(badge);
+            badge.style.marginLeft = '8px';            
+
+            const detalhes = document.createElement('span');
+            if (vaga.empresaId) {
+                const linkEmpresa = document.createElement('a');
+                linkEmpresa.href = `/pages/26-perfil-empresa-publico.html?id=${encodeURIComponent(vaga.empresaId)}`;
+                linkEmpresa.textContent = vaga.empresaNome || 'Confecção';
+                linkEmpresa.style.cssText = 'color: var(--color-primary); font-weight: 600;';
+                detalhes.appendChild(linkEmpresa);
+                detalhes.appendChild(document.createTextNode(` | Prazo: ${formatarData(vaga.prazo)} • Valor: ${vaga.valor || 'A combinar'}`));
+            } else {
+                detalhes.textContent = `${vaga.empresaNome || 'Confecção'} | ${vaga.valor || 'A combinar'}`;
+            }
+
+            info.appendChild(titulo);
+            info.appendChild(tituloLinha);
+            info.appendChild(detalhes);
+
+            const botao = document.createElement('a');
+            botao.href = `/pages/18-vaga-detalhe.html?id=${encodeURIComponent(vaga.id)}`;
+            botao.className = 'btn btn-outline-purple bi-folder2-open';
+            botao.style.padding = '6px 14px';
+            botao.style.fontSize = '0.8rem';
+            botao.textContent = 'Detalhar';
+
+            vagaEl.appendChild(info);
+            vagaEl.appendChild(botao);
             container.appendChild(vagaEl);
         });
-
-    } catch (error) {
+    } catch (erro) {
+        console.error('Erro ao carregar vagas recomendadas:', erro);
         container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem;">Erro ao carregar recomendações.</p>';
     }
 }
 
 /* -------------------------------------------------------------------------- */
-/* 4. CARREGAR MÉTRICAS DO PAINEL E PRODUÇÕES ATUAIS                          */
+/* 4. MÉTRICAS DO PAINEL E PRODUÇÕES ATUAIS                                   */
 /* -------------------------------------------------------------------------- */
-async function carregarMetricasEProducoes() {
-    const sessao = JSON.parse(sessionStorage.getItem('usuarioLogado'));
-    if (!sessao) return;
-
+async function carregarMetricasEProducoes(freelancerId) {
     const listaServicos = document.getElementById('lista-servicos');
     const contadorServicosTexto = document.getElementById('contador-servicos-texto');
     const metricAtivos = document.getElementById('metric-ativos');
@@ -126,8 +186,8 @@ async function carregarMetricasEProducoes() {
 
     try {
         const [resOS, resCandidaturas] = await Promise.all([
-            fetch(`${API_BASE}/ordensServico?freelancerId=${sessao.id}`),
-            fetch(`${API_BASE}/candidaturas?freelancerId=${sessao.id}`)
+            fetch(`${API_BASE}/ordensServico?freelancerId=${encodeURIComponent(freelancerId)}`),
+            fetch(`${API_BASE}/candidaturas?freelancerId=${encodeURIComponent(freelancerId)}`)
         ]);
 
         if (!resOS.ok) throw new Error('Erro ao carregar ordens de serviço.');
@@ -136,19 +196,21 @@ async function carregarMetricasEProducoes() {
         const ordensServico = await resOS.json();
         const candidaturas = await resCandidaturas.json();
 
-        const ativas = ordensServico.filter(os => os.status === 'Em andamento');
-        const concluidas = ordensServico.filter(os => os.status === 'Concluída');
-        const ganhos = concluidas.reduce((total, os) => total + (parseFloat(os.valor) || 0), 0);
+        const ativas = ordensServico.filter(function (os) { return os.status === 'Em andamento'; });
+        const concluidas = ordensServico.filter(function (os) { return os.status === 'Concluída'; });
+        const ganhos = concluidas.reduce(function (total, os) {
+            return total + moedaParaNumero(os.valor);
+        }, 0);
         // Candidaturas canceladas pelo próprio freelancer não contam como "propostas enviadas" ativas.
-        const candidaturasAtivas = candidaturas.filter(c => c.status !== 'Cancelada');
+        const candidaturasAtivas = candidaturas.filter(function (c) { return c.status !== 'Cancelada'; });
 
         metricAtivos.textContent = ativas.length;
         metricCandidaturas.textContent = candidaturasAtivas.length;
-        metricFaturamento.textContent = ganhos.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        metricFaturamento.textContent = formatarMoeda(ganhos);
 
         renderizarProducoes(ativas);
-    } catch (error) {
-        console.error('Erro ao carregar métricas do painel:', error);
+    } catch (erro) {
+        console.error('Erro ao carregar métricas do painel:', erro);
         metricAtivos.textContent = '0';
         metricCandidaturas.textContent = '0';
         metricFaturamento.textContent = 'R$ 0';
@@ -162,161 +224,79 @@ async function carregarMetricasEProducoes() {
         if (!listaServicos) return;
         listaServicos.innerHTML = '';
 
-        if (contadorServicosTexto) {
-            contadorServicosTexto.textContent = `${ativas.length} ativa${ativas.length === 1 ? '' : 's'}`;
-        }
 
-        if (ativas.length === 0) {
+        if (!ativas.length) {
             listaServicos.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem;">Você não possui nenhuma produção em andamento no momento.</p>';
             return;
         }
 
-        ativas.forEach(os => {
+        ativas.forEach(function (os) {
             const item = document.createElement('div');
             item.className = 'service-item';
-            const prazo = os.prazo ? new Date(os.prazo).toLocaleDateString('pt-BR') : 'A definir';
-            const valor = os.valor ? `R$ ${Number(os.valor).toLocaleString('pt-BR')}` : 'A combinar';
-            item.innerHTML = `
-                <div class="service-info">
-                    <h3>${os.titulo} — ${os.empresaNome || 'Confecção'}</h3>
-                    <span>Prazo: ${prazo} • Valor: ${valor}</span>
-                </div>
-                <span class="status-badge status-em-producao">${os.categoria || os.status}</span>
-            `;
+
+            let prazo = 'A definir';
+            if (os.prazo) {
+                prazo = formatarData(os.prazo);
+            }
+            const valorNumerico = moedaParaNumero(os.valor);
+            const valor = valorNumerico > 0 ? formatarMoeda(valorNumerico) : 'A combinar';
+
+            const info = document.createElement('div');
+            info.className = 'service-info';
+
+            const tituloLinha = document.createElement('div');
+            tituloLinha.style.cssText = 'display:flex; align-items:center; gap:8px; flex-wrap:wrap;';
+
+            const titulo = document.createElement('h3');
+            titulo.textContent = os.titulo;
+
+            const badgeOS = document.createElement('span');
+            badgeOS.className = `badge ${classeBadgeOS(os.status)}`;
+            badgeOS.textContent = os.status || 'Em andamento';
+
+            const detalhes = document.createElement('span');
+            detalhes.textContent = `  | Prazo: ${prazo} • Valor: ${valor}`;
+            
+            info.appendChild(titulo);
+            info.appendChild(tituloLinha);
+           
+            if (os.empresaId) {
+                const linkEmpresa = document.createElement('a');
+                linkEmpresa.href = `/pages/26-perfil-empresa-publico.html?id=${encodeURIComponent(os.empresaId)}`;
+                linkEmpresa.textContent = os.empresaNome || 'Confecção';
+                linkEmpresa.style.cssText = 'color: var(--color-primary); font-size: 0.85rem; font-weight: 600;';
+                info.appendChild(linkEmpresa);
+            } else if (os.empresaNome) {
+                const nomeEmpresa = document.createElement('span');
+                nomeEmpresa.textContent = os.empresaNome;
+                nomeEmpresa.style.cssText = 'font-size: 0.85rem;';
+                info.appendChild(nomeEmpresa);
+            }
+            info.appendChild(detalhes);
+
+            const botaoDetalhar = document.createElement('a');
+            botaoDetalhar.href = `/pages/19-ordem-servico-detalhe.html?id=${encodeURIComponent(os.id)}`;
+            botaoDetalhar.className = 'btn btn-outline-purple bi-folder2-open';
+            botaoDetalhar.style.padding = '6px 14px';
+            botaoDetalhar.style.fontSize = '0.8rem';
+            botaoDetalhar.textContent = 'Detalhar';
+
+            tituloLinha.appendChild(titulo);
+            tituloLinha.appendChild(badgeOS);
+
+            item.appendChild(info);
+            item.appendChild(botaoDetalhar);
             listaServicos.appendChild(item);
         });
     }
 }
 
 /* -------------------------------------------------------------------------- */
-/* 5. LOGOUT                                                                  */
+/* 5. PREVIEW DE CONVERSAS (mensagens recentes)                               */
 /* -------------------------------------------------------------------------- */
-function initLogout() {
-    const btnLogout = document.getElementById('btn-logout');
-    btnLogout.addEventListener('click', () => {
-        sessionStorage.removeItem('usuarioLogado');
-        window.location.href = '/pages/02-login.html';
-    });
-}
-
-function escapeHtml(str) {
-    return String(str ?? '').replace(/[&<>"']/g, function (ch) {
-        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
-    });
-}
-
-/* -------------------------------------------------------------------------- */
-/* 6. NOTIFICAÇÕES (sino no cabeçalho)                                       */
-/* -------------------------------------------------------------------------- */
-async function carregarNotificacoes() {
-    const sessao = JSON.parse(sessionStorage.getItem('usuarioLogado'));
-    if (!sessao) return;
-
-    const btnNotificacoes = document.getElementById('btn-notificacoes');
-    const dropdown = document.getElementById('notif-dropdown');
-    const badge = document.getElementById('notif-badge');
-    const lista = document.getElementById('notif-lista');
-    const btnMarcarTodas = document.getElementById('btn-marcar-todas-lidas');
-    if (!btnNotificacoes || !dropdown || !badge || !lista) return;
-
-    let notificacoes = [];
-
-    function renderizarNotificacoes() {
-        const naoLidas = notificacoes.filter(function (n) { return !n.lida; }).length;
-        badge.hidden = naoLidas === 0;
-        badge.textContent = naoLidas > 9 ? '9+' : String(naoLidas);
-
-        if (notificacoes.length === 0) {
-            lista.innerHTML = '<p class="text-muted" style="font-size: 13px; padding: 8px 0;">Nenhuma notificação por enquanto.</p>';
-            return;
-        }
-
-        lista.innerHTML = notificacoes.slice(0, 10).map(function (n) {
-            const data = n.criadoEm ? new Date(n.criadoEm).toLocaleDateString('pt-BR') : '';
-            return `
-                <a href="${n.link || '#'}" class="notif-item ${!n.lida ? 'notif-nao-lida' : ''}" data-id="${n.id}">
-                    <strong>${escapeHtml(n.titulo)}</strong>
-                    <span>${escapeHtml(n.mensagem)}</span>
-                    <span style="display:block; margin-top:4px;">${data}</span>
-                </a>
-            `;
-        }).join('');
-
-        lista.querySelectorAll('.notif-item').forEach(function (item) {
-            item.addEventListener('click', function () {
-                marcarNotificacaoComoLida(item.dataset.id);
-            });
-        });
-    }
-
-    async function marcarNotificacaoComoLida(id) {
-        const notif = notificacoes.find(function (n) { return String(n.id) === String(id); });
-        if (!notif || notif.lida) return;
-        try {
-            await fetch(`${API_BASE}/notificacoes/${id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ lida: true })
-            });
-            notif.lida = true;
-            renderizarNotificacoes();
-        } catch (error) {
-            console.error('Erro ao marcar notificação como lida:', error);
-        }
-    }
-
-    btnNotificacoes.addEventListener('click', function (e) {
-        e.stopPropagation();
-        const abrindo = dropdown.hidden;
-        dropdown.hidden = !abrindo;
-        btnNotificacoes.setAttribute('aria-expanded', String(abrindo));
-    });
-
-    document.addEventListener('click', function (e) {
-        if (!dropdown.hidden && !dropdown.contains(e.target) && e.target !== btnNotificacoes) {
-            dropdown.hidden = true;
-            btnNotificacoes.setAttribute('aria-expanded', 'false');
-        }
-    });
-
-    if (btnMarcarTodas) {
-        btnMarcarTodas.addEventListener('click', async function () {
-            const naoLidas = notificacoes.filter(function (n) { return !n.lida; });
-            if (naoLidas.length === 0) return;
-            try {
-                await Promise.all(naoLidas.map(function (n) {
-                    return fetch(`${API_BASE}/notificacoes/${n.id}`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ lida: true })
-                    });
-                }));
-                naoLidas.forEach(function (n) { n.lida = true; });
-                renderizarNotificacoes();
-            } catch (error) {
-                console.error('Erro ao marcar todas como lidas:', error);
-            }
-        });
-    }
-
-    try {
-        const res = await fetch(`${API_BASE}/notificacoes?usuarioId=${sessao.id}`);
-        if (!res.ok) throw new Error('Erro ao buscar notificações.');
-        notificacoes = await res.json();
-        notificacoes.sort(function (a, b) { return new Date(b.criadoEm) - new Date(a.criadoEm); });
-        renderizarNotificacoes();
-    } catch (error) {
-        console.error('Erro ao carregar notificações:', error);
-    }
-}
-
-/* -------------------------------------------------------------------------- */
-/* 7. PREVIEW DE CONVERSAS (mensagens recentes)                              */
-/* -------------------------------------------------------------------------- */
-async function carregarPreviewConversas() {
-    const sessao = JSON.parse(sessionStorage.getItem('usuarioLogado'));
+async function carregarPreviewConversas(sessao) {
     const container = document.getElementById('preview-conversas');
-    if (!sessao || !container) return;
+    if (!container) return;
 
     try {
         const [resConversas, resMensagens] = await Promise.all([
@@ -332,7 +312,7 @@ async function carregarPreviewConversas() {
             return String(c.participanteAId) === String(sessao.id) || String(c.participanteBId) === String(sessao.id);
         });
 
-        if (minhasConversas.length === 0) {
+        if (!minhasConversas.length) {
             container.innerHTML = '<p class="text-muted" style="font-size: 0.85rem;">Nenhuma conversa ainda. Elas aparecem aqui depois que uma candidatura for aprovada (match).</p>';
             return;
         }
@@ -347,22 +327,45 @@ async function carregarPreviewConversas() {
                     : conversa.participanteANome;
                 return { conversa: conversa, naoLidas: naoLidas, contato: contato };
             })
-            .sort(function (a, b) { return new Date(b.conversa.ultimaAtualizacao || 0) - new Date(a.conversa.ultimaAtualizacao || 0); })
+            .sort(function (a, b) {
+                return new Date(b.conversa.ultimaAtualizacao || 0) - new Date(a.conversa.ultimaAtualizacao || 0);
+            })
             .slice(0, 3);
 
-        container.innerHTML = ordenadas.map(function (item) {
-            return `
-                <a href="/pages/11-chat.html?conversaId=${encodeURIComponent(item.conversa.id)}" class="service-item" style="text-decoration:none; color:inherit;">
-                    <div class="service-info">
-                        <h3>${escapeHtml(item.contato || 'Contato')}</h3>
-                        <span>${escapeHtml(item.conversa.ultimaMensagem || 'Sem mensagens ainda.')}</span>
-                    </div>
-                    ${item.naoLidas > 0 ? `<span class="status-badge" style="background: var(--danger); color: #fff;">${item.naoLidas}</span>` : ''}
-                </a>
-            `;
-        }).join('');
-    } catch (error) {
-        console.error('Erro ao carregar preview de conversas:', error);
+        container.innerHTML = '';
+        ordenadas.forEach(function (item) {
+            const link = document.createElement('a');
+            link.href = `/pages/11-chat.html?conversaId=${encodeURIComponent(item.conversa.id)}`;
+            link.className = 'service-item';
+            link.style.textDecoration = 'none';
+            link.style.color = 'inherit';
+
+            const info = document.createElement('div');
+            info.className = 'service-info';
+
+            const nome = document.createElement('h3');
+            nome.textContent = item.contato || 'Contato';
+
+            const mensagem = document.createElement('span');
+            mensagem.textContent = item.conversa.ultimaMensagem || 'Sem mensagens ainda.';
+
+            info.appendChild(nome);
+            info.appendChild(mensagem);
+            link.appendChild(info);
+
+            if (item.naoLidas > 0) {
+                const badge = document.createElement('span');
+                badge.className = 'status-badge';
+                badge.style.background = 'var(--danger)';
+                badge.style.color = '#fff';
+                badge.textContent = item.naoLidas;
+                link.appendChild(badge);
+            }
+
+            container.appendChild(link);
+        });
+    } catch (erro) {
+        console.error('Erro ao carregar preview de conversas:', erro);
         container.innerHTML = '<p class="text-muted" style="font-size: 0.85rem;">Não foi possível carregar as conversas.</p>';
     }
 }

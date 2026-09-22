@@ -18,108 +18,100 @@
   <body>
     <div class="app">
       <button class="sidebar-toggle-btn" type="button" aria-label="Abrir menu" aria-expanded="false">
-  <span class="hamburger-line"></span>
-</button>
-<div class="sidebar-overlay"></div>
-<aside class="sidebar" role="navigation" aria-label="Menu principal">
-        <a href="/pages/01-homepage.html" class="brand">
-          <img
-            src="/assets/logo-icone-branco-2048.png"
-            alt="Logo Freela"
-            class="brand-logo"
-          /><span class="brand-text">FREELA<span class="brand-sub">DA MODA</span></span>
-        </a>
-        <button
-          class="theme-toggle"
-          type="button"
-          aria-label="Alternar tema claro e escuro"
-        ><i class="bi bi-moon-stars" aria-hidden="true"></i></button>
-        <a href="/pages/03-dashboard-freelancer.html">Dashboard</a
-        ><a href="/pages/07-vagas.html">Vagas</a
-        ><a class="active" href="/pages/20-minhas-candidaturas.html" aria-current="page">Candidaturas/OS</a
-        ><a href="/pages/08-perfil-freelancer.html">Perfil</a
-        ><a href="/pages/11-chat.html">Chat</a
-        ><a href="/pages/10-impulsionamento.html">Impulsionamento</a
-        ><a href="/pages/24-suporte.html">Suporte</a>
-      </aside>
+        <span class="hamburger-line"></span>
+      </button>
+      <div class="sidebar-overlay"></div>
+      <aside class="sidebar" role="navigation" aria-label="Menu principal"></aside>
       <main class="main" role="main" aria-label="Conteúdo principal">
-        
-        
-        <!-- Estado de carregamento -->
+
         <div id="perfil-loading" class="text-center">
-          <p>Carregando Candidaturas...</p>
+          <p>Carregando candidaturas...</p>
         </div>
 
-        <!-- Estado de erro -->
         <div id="perfil-erro" class="alert" role="alert" aria-live="polite" hidden>
           Não foi possível carregar as candidaturas. Tente novamente mais tarde.
         </div>
 
-        <!-- Conteúdo do perfil -->
         <div id="perfil-conteudo" hidden>
-        
-        <div class="header"><h2>Minhas Candidaturas / OS</h2></div>
 
-        <section class="card mb-md" id="cardConvites" hidden>
-          <div class="section-title">Convites Recebidos</div>
-          <p class="text-muted" style="font-size: 13px; margin-top: -6px;">Empresas que querem contratar você diretamente para uma vaga aberta.</p>
-          <div id="listaConvites" class="stack-sm mt-sm"></div>
-        </section>
-
-        <section class="card mb-md">
-          <div class="filters">
-            <input id="filterTituloVaga" class="input input-grow" value="" placeholder="Buscar vaga ou OS"/>
-            <select id="filterStatusVaga" class="input">
-              <option value="" selected disabled>Status</option>
-              <option>Em análise</option>
-              <option>Em andamento</option>
-              <option>Concluída</option>
-              <option>Cancelada</option></select>
-             <select id="filterTipoVaga" class="input">
-              <option value="" selected disabled>Tipo</option>
-              <option>Vaga</option>
-              <option>OS</option></select>
-            <button class="btn btn-primary" id="btnFiltrar">Filtrar</button>
-            <button class="btn" type="button" id="btnLimparFiltros">Limpar</button>
+          <div class="header">
+            <h2>Minhas Candidaturas</h2>
+            <div class="header-actions" id="header-acoes"></div>
           </div>
-        </section>
-        <div class="alert alert-error mb-md" id="msg-empty" aria-live="polite" hidden>
-          Não há Candidaturas ou Ordens de Serviço para exibir.
-        </div>
-        <div class="alert alert-error mb-md" role="alert" id="msg-error" aria-live="polite" hidden>
-          Erro ao carregar registros.
-        </div>
-        <section class="card">
-          <div class="table-responsive">
-            <table class="table table-card" aria-label="Tabela de registros" id="tableCandidaturas">
+
+          <div id="mensagemStatus" class="alert mb-md" role="alert" aria-live="polite" hidden></div>
+
+          <section class="card mb-md" id="cardConvites" hidden>
+            <div class="section-title">Convites Recebidos</div>
+            <p class="text-muted" style="font-size: 13px; margin-top: -6px;">Empresas que querem contratar você diretamente para uma vaga aberta.</p>
+            <div id="listaConvites" class="stack-sm mt-sm"></div>
+          </section>
+
+          <div class="alert alert-error mb-md" id="msg-empty" aria-live="polite" hidden>
+            Você ainda não tem candidaturas.
+          </div>
+          <div class="alert alert-error mb-md" role="alert" id="msg-error" aria-live="polite" hidden>
+            Erro ao carregar registros.
+          </div>
+
+          <div id="cardFiltros">
+            <section class="mural-header">
+              <span class="badge"><i class="bi bi-clipboard-check"></i> MINHAS CANDIDATURAS</span>
+              <h1>Minhas Candidaturas</h1>
+              <p>Acompanhe as vagas às quais você se candidatou e os convites recebidos.</p>
+
+              <div class="filter-bar filter-bar--6">
+                <input type="text" id="filterTituloVaga" placeholder="Buscar por título..." />
+                <select id="filterStatusVaga">
+                  <option value="" selected>Todos os status</option>
+                  <option>Em análise</option>
+                  <option>Selecionado</option>
+                  <option>Rejeitado</option>
+                  <option>Cancelada</option>
+                </select>
+                <select id="filtroOrdenar">
+                  <option value="recentes" selected>Mais recentes</option>
+                  <option value="valor">Maior valor</option>
+                  <option value="prazo">Prazo mais próximo</option>
+                </select>
+                <select id="filterEstado">
+                  <option value="">Todos os estados</option>
+                </select>
+                <div class="autocomplete-wrapper">
+                  <input type="text" id="filterCidade" placeholder="Cidade..." autocomplete="off" />
+                </div>
+                <button type="button" class="btn btn-purple-bright" id="btnLimparFiltros">
+                  <i class="bi bi-x-circle"></i> Limpar
+                </button>
+              </div>
+            </section>
+          </div>
+
+          <div class="card table-responsive" id="cardTabela">
+            <table class="table table-card" aria-label="Tabela de candidaturas" id="tableCandidaturas">
               <thead>
-              <tr>
-                <th>Tipo</th>
-                <th>Título</th>
-                <th>Empresa</th>
-                <th>Status</th>
-                <th>Ações</th>
-              </tr>
+                <tr>
+                  <th>Título</th>
+                  <th>Status</th>
+                  <th>Empresa</th>
+                  <th>Local</th>
+                  <th>Valor</th>
+                  <th>Prazo</th>
+                  <th>Data Candidatura</th>
+                  <th>Ações</th>
+                </tr>
               </thead>
               <tbody>
               </tbody>
             </table>
-          </div>
-          <div class="pagination">
-            <span id="resumoPaginas">Mostrando 1-10 de 14</span>
-            <div id="pages" class="pages">
+            <div class="pagination">
+              <button class="btn" type="button" id="btnPaginaAnterior" disabled>Anterior</button>
+              <span id="resumoPaginas">Mostrando 0 de 0</span>
+              <button class="btn" type="button" id="btnPaginaProxima" disabled>Próxima</button>
             </div>
           </div>
-          <div class="modal-static" role="alert" aria-live="polite" hidden>
-            <div class="modal-static-title">Confirmação de Cancelamento</div>
-            <p> Você tem certeza que deseja cancelar a sua candidatura? Essa ação não poderá ser desfeita.
-            </p>
-            <div class="cluster mt-sm">
-              <button class="btn btn-danger" type="button" id="btnConfirmarCancelamento">Confirmar exclusão</button>
-              <button class="btn" type="button" id="btnFecharCancelamento">Cancelar</button>
-            </div>
-          </div>
-        </section>
+
+        </div>
       </main>
     </div>
 
@@ -134,8 +126,10 @@
         </div>
       </div>
     </div>
-    </div>
+
     <script src="/js/config.js"></script>
+    <script src="/js/ui.js"></script>
+    <script src="/js/nav.js"></script>
     <script src="/js/20-minhas-candidaturas.js"></script>
   </body>
 </html>
