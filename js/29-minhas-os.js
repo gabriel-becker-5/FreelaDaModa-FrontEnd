@@ -4,14 +4,12 @@
 //   GET  /OrdemServico/listar            -> OS do usuário logado (o back já filtra)
 //   POST /OrdemServico/{id}/cancelar     -> empresa dona ou freelancer da OS
 //
-// ATENÇÃO: "apiFetch" é o NOME PROVISÓRIO do helper da Fase 0 (api.js).
-// Quando o api.js entrar na main, troque apenas esse nome (e o formato da URL,
-// se o helper receber só o caminho em vez da URL completa). O helper deve:
-//   - injetar o Bearer token;
-//   - devolver os dados da resposta;
-//   - lançar um Error com a mensagem do back (e, se possível, erro.status).
+// Usa o helper api(caminho, opcoes) do api.js (Fase 0): o caminho é relativo ao API_BASE,
+// o Bearer token é injetado, a resposta já vem sem o envelope (conteúdo de "dados") e,
+// em erro, lança um Error com a mensagem do back (erro.status traz o código HTTP;
+// em 401 o helper já redireciona para o login).
 
-const API_URL_OS = `${API_BASE}/OrdemServico`;
+const API_URL_OS = '/OrdemServico';
 
 const sessao = exigirTipo('freelancers');
 if (!sessao) {
@@ -109,7 +107,7 @@ async function carregarDadosFreelancer() {
 
     try {
         // O back já devolve só as OS do usuário logado (dono ou freelancer).
-        const dados = await apiFetch(`${API_URL_OS}/listar`);
+        const dados = await api(`${API_URL_OS}/listar`);
 
         if (Array.isArray(dados)) {
             todasOS = dados;
@@ -138,8 +136,10 @@ async function carregarDadosFreelancer() {
     } catch (erro) {
         console.error('Erro ao carregar ordens de serviço:', erro);
         loadingBar.setAttribute('hidden', '');
-        mensagemErro.textContent = (erro && erro.message) || 'Não foi possível carregar as ordens de serviço.';
-        mensagemErro.hidden = false;
+        // #msg-error fica dentro de #perfil-conteudo (escondido enquanto a lista não carrega),
+        // então o erro de carregamento aparece na barra de erro, que fica fora dele.
+        erroBar.textContent = (erro && erro.message) || 'Não foi possível carregar as ordens de serviço.';
+        erroBar.removeAttribute('hidden');
     }
 }
 
@@ -334,7 +334,7 @@ async function cancelarOS(os) {
 
     try {
         // POST sem corpo; o back valida quem pode e se a OS ainda está Em andamento.
-        await apiFetch(`${API_URL_OS}/${encodeURIComponent(os.id)}/cancelar`, { method: 'POST' });
+        await api(`${API_URL_OS}/${encodeURIComponent(os.id)}/cancelar`, { method: 'POST' });
         toastMsg('Ordem de serviço cancelada.', 'success');
     } catch (erro) {
         console.error('Erro ao cancelar ordem de serviço:', erro);
