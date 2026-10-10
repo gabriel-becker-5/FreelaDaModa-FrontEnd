@@ -1,4 +1,3 @@
-const API_URL = `${API_BASE}/empresas`;
 const form = document.querySelector('#form-cadastro-empresa');
 const alertBar = document.querySelector('#alert-cadastro-empresa');
 const inputNomeResponsavel = document.querySelector('#resp-nome');
@@ -24,6 +23,7 @@ const requisitosContainer = document.querySelector('#senha-requisitos');
 const exibeSenha = document.querySelector('#exibeSenha');
 const exibeConfirmaSenha = document.querySelector('#exibeConfirmaSenha');
 const msgSenhasDiferentes = document.querySelector('#msg-senhas-diferentes');
+const botao = document.querySelector('#btn-cadastrar');
 
 /* ------------------------- mensagens -------------------------------------- */
 
@@ -67,7 +67,7 @@ function mascaraCPF(campo) {
     else campo.value = `${numeros.slice(0, 3)}.${numeros.slice(3, 6)}.${numeros.slice(6, 9)}-${numeros.slice(9)}`;
 }
 
-// CNPJ alfanumérico (aceita letras e números, formato XX.XXX.XXX/XXXX-XX)
+// CNPJ alfanumérico (formato novo: 8 letras/números + 4 + 4 letras/números, 2 dígitos finais)
 function mascaraCNPJ(campo) {
     const caracteres = campo.value
         .replace(/[^a-zA-Z0-9]/g, '')
@@ -111,10 +111,20 @@ function validarCPF(cpf) {
            calcularDigito(digitos.slice(0, 10)) === Number(digitos[10]);
 }
 
-/* ------------------------- senha (padrão 05) ------------------------------- */
+/* ------------------------- validação de CNPJ -------------------------------
+   O back valida o CNPJ alfanumérico com a regex ^[A-Z0-9]{8}[0-9]{6}$
+   (8 primeiros alfanuméricos maiúsculos + 6 dígitos finais). O front não
+   tinha validação de dígitos verificadores de CNPJ, então aqui só
+   confirmamos o formato; os dígitos verificadores ficam a cargo do back. */
+function validarFormatoCNPJ(cnpj) {
+    const caracteres = String(cnpj || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+    return /^[A-Z0-9]{8}[0-9]{6}$/.test(caracteres);
+}
+
+/* ------------------------- senha (10 a 50 caracteres, padrão do back) ------ */
 
 const REQUISITOS_SENHA = [
-    { chave: 'tamanho', testar: (s) => s.length >= 10 },
+    { chave: 'tamanho', testar: (s) => s.length >= 10 && s.length <= 50 },
     { chave: 'maiuscula', testar: (s) => /[A-Z]/.test(s) },
     { chave: 'minuscula', testar: (s) => /[a-z]/.test(s) },
     { chave: 'numero', testar: (s) => /[0-9]/.test(s) },
@@ -233,11 +243,15 @@ function validarFormulario() {
     if (!inputRazaoSocial.value.trim()) erros.push('Informe a razão social.');
     if (!inputNomeFantasia.value.trim()) erros.push('Informe o nome fantasia.');
     if (!inputCNPJ.value.trim()) erros.push('Informe o CNPJ.');
-    else if (inputCNPJ.value.replace(/[^A-Za-z0-9]/g, '').length !== 14) erros.push('O CNPJ deve ter 14 caracteres.');
+    else if (!validarFormatoCNPJ(inputCNPJ.value)) erros.push('O CNPJ informado não é válido.');
     if (!inputRamoAtuacao.value.trim()) erros.push('Informe o ramo de atuação.');
     if (!inputEmail.value.trim()) erros.push('Informe o e-mail.');
     else if (!emailValido.test(inputEmail.value.trim())) erros.push('Informe um e-mail válido.');
     if (!inputTelefone.value.trim()) erros.push('Informe o telefone/WhatsApp.');
+    else {
+        const digitosTelefone = inputTelefone.value.replace(/\D/g, '');
+        if (digitosTelefone.length !== 10 && digitosTelefone.length !== 11) erros.push('O telefone deve ter 10 ou 11 dígitos.');
+    }
     if (!inputDescricao.value.trim()) erros.push('A descrição do perfil é obrigatória.');
 
     if (!inputCepComercial.value.trim()) erros.push('Informe o CEP.');
@@ -281,6 +295,34 @@ function limparFormulario() {
     travarEndereco(true);
 }
 
+/* ------------------------- corpo da requisição (CreateCompanyDto) ---------- */
+
+function montarCorpoCadastro() {
+    const corpo = {
+        legalResponsibleFullName: inputNomeResponsavel.value.trim(),
+        legalResponsibleDocument: inputCPFResponsavel.value.replace(/\D/g, ''),
+        email: inputEmail.value.trim(),
+        password: inputSenha.value,
+        contactNumber: inputTelefone.value.replace(/\D/g, ''),
+        postalCode: inputCepComercial.value.trim(),
+        address: inputEnderecoComercial.value.trim(),
+        addressNumber: Number(inputNumeroComercial.value),
+        neighborhood: inputBairroComercial.value.trim(),
+        city: inputCidadeComercial.value.trim(),
+        state: inputEstadoComercial.value.trim(),
+        publicProfileDescription: inputDescricao.value.trim(),
+        legalName: inputRazaoSocial.value.trim(),
+        companyName: inputNomeFantasia.value.trim(),
+        companyRegistrationDocument: inputCNPJ.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase(),
+        coreBusiness: inputRamoAtuacao.value.trim()
+    };
+
+    const complemento = inputComplementoComercial.value.trim();
+    if (complemento) corpo.additionalAddressInfo = complemento;
+
+    return corpo;
+}
+
 /* ------------------------- cadastro ---------------------------------------- */
 
 form.addEventListener('submit', async function (evento) {
@@ -289,49 +331,22 @@ form.addEventListener('submit', async function (evento) {
 
     if (!validarFormulario()) return;
 
-    const novaEmpresa = {
-        id: '',
-        nomeResponsavel: inputNomeResponsavel.value.trim(),
-        cpfResponsavel: inputCPFResponsavel.value,
-        dataNascimento: inputDataNascimento.value,
-        razaoSocial: inputRazaoSocial.value.trim(),
-        nomeFantasia: inputNomeFantasia.value.trim(),
-        cnpjEmpresa: inputCNPJ.value,
-        ramoAtuacao: inputRamoAtuacao.value.trim(),
-        email: inputEmail.value.trim(),
-        telefone: inputTelefone.value,
-        descricaoPerfil: inputDescricao.value.trim(),
-        cep: inputCepComercial.value,
-        enderecoComercial: inputEnderecoComercial.value,
-        numeroComercial: inputNumeroComercial.value,
-        bairroComercial: inputBairroComercial.value,
-        complementoComercial: inputComplementoComercial.value,
-        cidadeComercial: inputCidadeComercial.value,
-        estadoComercial: inputEstadoComercial.value,
-        senha: inputSenha.value,
-        foto: '',
-        referencias: [],
-        validado: false,
-        mediaAvaliacoes: 0,
-        totalAvaliacoes: 0
-    };
-
-    const botao = document.querySelector('#btn-cadastrar');
     botao.disabled = true;
+    let sucesso = false;
 
     try {
-        const resposta = await fetch(API_URL, {
+        await api('/User/cadastrar/empresa', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(novaEmpresa)
+            body: montarCorpoCadastro(),
+            semRedirect: true
         });
 
-        if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
+        sucesso = true;
 
-        mostrarMensagem('Cadastro realizado com sucesso! Você será redirecionado em instantes...', 'success');
+        mostrarMensagem('Cadastro realizado com sucesso! Você será redirecionado para o login em instantes...', 'success');
 
         setTimeout(function () {
-            window.location.assign('/pages/01-homepage.html');
+            window.location.assign('/pages/02-login.html');
         }, 3000);
 
         try {
@@ -341,9 +356,15 @@ form.addEventListener('submit', async function (evento) {
         }
     } catch (erro) {
         console.error('Erro ao cadastrar empresa:', erro);
-        mostrarMensagem('Não foi possível concluir o cadastro. Tente novamente em instantes.', 'error');
+        if (erro.status === 400 || erro.status === 409) {
+            mostrarMensagem(erro.message || 'Não foi possível concluir o cadastro. Verifique os dados informados.', 'error');
+        } else {
+            mostrarMensagem('Não foi possível concluir o cadastro. Tente novamente.', 'error');
+        }
     } finally {
-        botao.disabled = false;
+        // Mantém o botão desabilitado após sucesso para evitar um segundo envio
+        // enquanto a tela aguarda o redirecionamento para o login.
+        if (!sucesso) botao.disabled = false;
     }
 });
 
