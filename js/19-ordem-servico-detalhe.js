@@ -5,17 +5,15 @@
 //   POST /OrdemServico/{id}/concluir     -> só a empresa dona da OS
 //   POST /OrdemServico/{id}/cancelar     -> empresa dona ou freelancer da OS
 //
-// ATENÇÃO: "apiFetch" é o NOME PROVISÓRIO do helper da Fase 0 (api.js).
-// Quando o api.js entrar na main, troque apenas esse nome (e o formato da URL,
-// se o helper receber só o caminho em vez da URL completa). O helper deve:
-//   - injetar o Bearer token;
-//   - devolver os dados da resposta;
-//   - lançar um Error com a mensagem do back (e, se possível, erro.status).
+// Usa o helper api(caminho, opcoes) do api.js (Fase 0): o caminho é relativo ao API_BASE,
+// o Bearer token é injetado, a resposta já vem sem o envelope (conteúdo de "dados") e,
+// em erro, lança um Error com a mensagem do back (erro.status traz o código HTTP;
+// em 401 o helper já redireciona para o login).
 
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
-    const API_URL_OS = `${API_BASE}/OrdemServico`;
+    const API_URL_OS = '/OrdemServico';
 
     // Textos exatos de status aceitos pelo back.
     const STATUS_EM_ANDAMENTO = 'Em andamento';
@@ -219,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Carrega (ou recarrega) a OS. Devolve a mensagem de erro, ou '' se deu certo.
     async function carregarOS() {
         try {
-            const dados = await apiFetch(`${API_URL_OS}/detalhe/${encodeURIComponent(idOS)}`);
+            const dados = await api(`${API_URL_OS}/detalhe/${encodeURIComponent(idOS)}`);
             const os = (dados && dados.id === undefined && dados.dados) ? dados.dados : dados;
 
             if (!os || os.id === undefined) {
@@ -254,7 +252,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         try {
             // POST sem corpo; o back valida quem pode e se a OS ainda está Em andamento.
-            await apiFetch(`${API_URL_OS}/${encodeURIComponent(osAtual.id)}/${acao}`, { method: 'POST' });
+            await api(`${API_URL_OS}/${encodeURIComponent(osAtual.id)}/${acao}`, { method: 'POST' });
         } catch (erro) {
             console.error(`Erro ao ${acao} Ordem de Serviço:`, erro);
             mensagemErro = (erro && erro.message) || 'Não foi possível atualizar a OS. Tente novamente.';
