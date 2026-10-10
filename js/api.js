@@ -14,7 +14,8 @@ function getToken() {
 function sairParaLogin() {
     sessionStorage.removeItem('usuarioLogado');
     if (!window.location.pathname.includes('02-login')) {
-        window.location.href = '/pages/02-login.html';
+        const paginaAtual = window.location.pathname + window.location.search;
+        window.location.href = `/pages/02-login.html?next=${encodeURIComponent(paginaAtual)}`;
     }
 }
 
