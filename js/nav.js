@@ -54,7 +54,7 @@ function sairSessao() {
 
 function exigirLogin() {
     const sessao = obterSessao();
-    if (!sessao) {
+    if (!sessao || !sessao.token) {
         const paginaAtual = window.location.pathname + window.location.search;
         window.location.href = `/pages/02-login.html?next=${encodeURIComponent(paginaAtual)}`;
         return null;
@@ -267,7 +267,7 @@ function renderizarHeaderPublico(el) {
 }
 
 function renderizarBannerValidacao(el, sessao) {
-    if (!sessao || sessao.validado === true) return;
+    return; // verificação fora do MVP: não mostra o banner
     const primeiroNome = (sessao.nome || '').split(' ')[0];
 
     const banner = document.createElement('div');

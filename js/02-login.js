@@ -70,26 +70,43 @@ function initLoginForm() {
         btnEntrar.innerHTML = '<span class="spinner"></span> Verificando...';
 
         try {
-            // Busca o usuário correspondente no json-server pelo e-mail
-            const response = await fetch(`${API_BASE}/${roleAtual}?email=${encodeURIComponent(email)}`);
-            
-            if (!response.ok) {
-                throw new Error('Falha ao conectar com o servidor.');
-            }
+            // Login real na API (POST /Authentication/login)
+            const resultado = await api('/Authentication/login', {
+                method: 'POST',
+                body: { email, password: senha },
+                semRedirect: true
+            });
 
-            const usuarios = await response.json();
+            // o token pode vir direto (texto) ou dentro de um objeto
+            const token = typeof resultado === 'string'
+                ? resultado
+                : resultado.token;
 
-            // Valida se o usuário existe e se a senha confere
-            const usuarioValido = usuarios.find(u => u.email === email && u.senha === senha);
+            if (token) {
+                const dadosJwt = decodificarJwt(token);
 
-            if (usuarioValido) {
-                // Guarda os dados da sessão
+                const tipoConta = tipoDaConta(dadosJwt);
+
+                if (!tipoConta) {
+                    throw new Error('Este tipo de conta não tem acesso ao sistema ainda.');
+                }
+
+                if (tipoConta !== roleAtual) {
+                    const nomeConta = tipoConta === 'empresas' ? 'Empresa' : 'Freelancer';
+                    throw new Error(`Esta conta é de ${nomeConta}. Selecione a aba "Sou ${nomeConta}" e tente de novo.`);
+                }
+
+                // guarda o token primeiro, para o api() conseguir buscar o nome
+                sessionStorage.setItem('usuarioLogado', JSON.stringify({ token }));
+
+                const nome = await buscarNomeUsuario(tipoConta);
+
                 const sessao = {
-                    id: usuarioValido.id,
-                    nome: usuarioValido.nome || usuarioValido.razaoSocial,
-                    email: usuarioValido.email,
+                    id: Number(dadosJwt.nameid || dadosJwt['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']),
+                    nome: nome,
+                    email: dadosJwt.email || email,
                     tipo: roleAtual,
-                    validado: usuarioValido.validado === true
+                    token: token
                 };
 
                 sessionStorage.setItem('usuarioLogado', JSON.stringify(sessao));
@@ -120,12 +137,24 @@ function initLoginForm() {
                 }, 1200);
 
             } else {
-                mostrarMensagem('E-mail ou senha incorretos.', 'error');
+                mostrarMensagem('Não foi possível entrar. Tente novamente.', 'error');
             }
 
         } catch (error) {
             console.error('Erro no login:', error);
-            mostrarMensagem('Erro de conexão. Tente novamente em instantes.', 'error');
+            sessionStorage.removeItem('usuarioLogado');
+
+            if (error.status === 401) {
+                mostrarMensagem('E-mail ou senha incorretos.', 'error');
+            } else if (error.status === 429) {
+                mostrarMensagem('Muitas tentativas. Aguarde 1 minuto e tente de novo.', 'error');
+            } else if (error.status === 400) {
+                mostrarMensagem(error.message || 'Dados inválidos. Confira e tente de novo.', 'error');
+            } else if (error.status === 0) {
+                mostrarMensagem('Não foi possível conectar ao servidor. Verifique se a API está rodando.', 'error');
+            } else {
+                mostrarMensagem(error.message || 'Erro ao entrar. Tente novamente.', 'error');
+            }
         } finally {
             btnEntrar.disabled = false;
             btnEntrar.innerHTML = 'Entrar na plataforma <i class="bi bi-arrow-right"></i>';
@@ -175,4 +204,35 @@ function proximaPagina() {
     const proxima = parametros.get('next');
     if (proxima && proxima.startsWith('/pages/')) return proxima;
     return null;
+}
+function decodificarJwt(token) {
+    const parte = token.split('.')[1];
+    const base64 = parte.replace(/-/g, '+').replace(/_/g, '/');
+    const json = decodeURIComponent(
+        atob(base64)
+            .split('')
+            .map(c => '%' + c.charCodeAt(0).toString(16).padStart(2, '0'))
+            .join('')
+    );
+    return JSON.parse(json);
+}
+
+// o token não traz o nome, então busca no perfil
+async function buscarNomeUsuario(tipo) {
+    const caminho = tipo === 'empresas' ? '/User/perfil/empresa' : '/User/perfil/freelancer';
+    const perfil = await api(caminho, { semRedirect: true });
+    if (tipo === 'empresas') {
+        return perfil.companyName || perfil.legalResponsibleFullName || '';
+    }
+    return perfil.legalResponsibleFullName || perfil.nome || '';
+}
+// converte o claim "roles" do token no tipo usado pelas telas
+function tipoDaConta(dadosJwt) {
+    const bruto = dadosJwt.roles || dadosJwt.role ||
+        dadosJwt['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+    const lista = Array.isArray(bruto) ? bruto : [bruto];
+
+    if (lista.includes('Company')) return 'empresas';
+    if (lista.includes('Freelancer')) return 'freelancers';
+    return null; // Admin ou desconhecido: fora do MVP
 }
