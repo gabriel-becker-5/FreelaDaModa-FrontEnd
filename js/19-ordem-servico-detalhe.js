@@ -1,7 +1,27 @@
+// Detalhe da Ordem de Serviço (empresa ou freelancer)
+//
+// Integração com o back (Fase 2.3):
+//   GET  /OrdemServico/detalhe/{id}      -> detalhe da OS (só quem participa dela)
+//   POST /OrdemServico/{id}/concluir     -> só a empresa dona da OS
+//   POST /OrdemServico/{id}/cancelar     -> empresa dona ou freelancer da OS
+//
+// ATENÇÃO: "apiFetch" é o NOME PROVISÓRIO do helper da Fase 0 (api.js).
+// Quando o api.js entrar na main, troque apenas esse nome (e o formato da URL,
+// se o helper receber só o caminho em vez da URL completa). O helper deve:
+//   - injetar o Bearer token;
+//   - devolver os dados da resposta;
+//   - lançar um Error com a mensagem do back (e, se possível, erro.status).
+
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
-    // ── Sessão: empresa OU freelancer logado pode ver a OS (cada um só a sua) ──
+    const API_URL_OS = `${API_BASE}/OrdemServico`;
+
+    // Textos exatos de status aceitos pelo back.
+    const STATUS_EM_ANDAMENTO = 'Em andamento';
+    const STATUS_CONCLUIDA = 'Concluída';
+
+    // ── Sessão: empresa OU freelancer logado pode ver a OS (o back garante que cada um só vê a sua) ──
     const sessao = exigirLogin();
     if (!sessao) return;
 
@@ -28,13 +48,28 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ── Carregar a Ordem de Serviço ──
+    // ── Parâmetro da URL ──
     const params = new URLSearchParams(window.location.search);
     const idOS = params.get('id');
 
     if (!idOS) {
         window.location.href = sessao.tipo === 'empresas' ? '/pages/16-ordens-servico.html' : '/pages/29-minhas-os.html';
         return;
+    }
+
+    // ── Botões de ação ──
+    const btnFinalizar = document.getElementById('btn-finalizar-os');
+
+    // O botão Cancelar pode não existir no HTML ainda: se não existir, é criado ao lado do Finalizar.
+    let btnCancelar = document.getElementById('btn-cancelar-os');
+    if (!btnCancelar && btnFinalizar) {
+        btnCancelar = document.createElement('button');
+        btnCancelar.type = 'button';
+        btnCancelar.id = 'btn-cancelar-os';
+        btnCancelar.className = 'btn btn-danger';
+        btnCancelar.innerHTML = '<i class="bi bi-x-circle"></i> Cancelar OS';
+        btnCancelar.hidden = true;
+        btnFinalizar.insertAdjacentElement('afterend', btnCancelar);
     }
 
     function mostrarMensagem(texto, tipo) {
@@ -47,9 +82,18 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function classeBadgeStatus(status) {
-        if (status === 'Concluída') return 'badge-success';
+        if (status === STATUS_CONCLUIDA) return 'badge-success';
         if (status === 'Cancelada') return 'badge-danger';
         return 'badge-warning';
+    }
+
+    // O valor pode chegar como número (back) ou como texto "R$ 2.500,00" (mock).
+    function formatarValor(valor) {
+        if (valor === null || valor === undefined || valor === '') return '—';
+        if (typeof valor === 'number') {
+            return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+        return valor;
     }
 
     // Renderiza o anexo de uma OS. Anexos são gravados por CAMINHO (/uploads/...);
@@ -85,6 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     let osAtual = null;
+    let acaoEmAndamento = false;
 
     function renderizarOS(os) {
         osAtual = os;
@@ -104,11 +149,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         document.getElementById('os-local-display').textContent = [os.cidade, os.estado].filter(Boolean).join(' - ') || '—';
         document.getElementById('os-data-display').textContent = formatarDataHora(os.dataPublicacao);
-        document.getElementById('os-valor-display').textContent = os.valor || '—';
+        document.getElementById('os-valor-display').textContent = formatarValor(os.valor);
         document.getElementById('os-descricao-display').textContent = os.descricao || '—';
 
         const habilidadesEl = document.getElementById('os-habilidades-display');
-        habilidadesEl.innerHTML = (os.habilidades && os.habilidades.length)
+        habilidadesEl.innerHTML = (Array.isArray(os.habilidades) && os.habilidades.length)
             ? os.habilidades.map(function (h) { return `<span class="badge">${escapeHtml(h)}</span>`; }).join('')
             : '<span class="text-muted">Nenhuma habilidade cadastrada.</span>';
 
@@ -134,185 +179,133 @@ document.addEventListener('DOMContentLoaded', function () {
         renderizarAnexo('os-entrega-display', os.referenciaEntrega);
 
         const timeline = document.getElementById('os-timeline');
-        timeline.innerHTML = (os.historico && os.historico.length)
+        timeline.innerHTML = (Array.isArray(os.historico) && os.historico.length)
             ? os.historico.map(function (item) {
                 return `<div class="timeline-item">${formatarData(item.data)} - ${escapeHtml(item.evento)}</div>`;
             }).join('')
             : '<div class="timeline-item">Nenhum evento registrado.</div>';
 
-        // Ações conforme o papel de quem está logado
-        const ehEmpresaDona = sessao.tipo === 'empresas' && String(os.empresaId) === String(sessao.id);
-        const ehFreelancerDono = sessao.tipo === 'freelancers' && String(os.freelancerId) === String(sessao.id);
+        // Ações conforme o papel de quem está logado.
+        // A autorização de verdade é do back (detalhe, concluir e cancelar só valem para
+        // quem participa da OS); aqui o papel só decide quais botões aparecem.
+        const ehEmpresa = sessao.tipo === 'empresas';
+        const ehFreelancer = sessao.tipo === 'freelancers';
+        const emAndamento = os.status === STATUS_EM_ANDAMENTO;
 
         const linkEditar = document.getElementById('os-link-editar');
-        const btnFinalizar = document.getElementById('btn-finalizar-os');
         const linkAvaliar = document.getElementById('os-link-avaliar');
 
-        if (linkEditar) linkEditar.hidden = !ehEmpresaDona;
-        if (linkEditar) linkEditar.href = `/pages/14-editar-os.html?id=${os.id}`;
+        if (linkEditar) {
+            linkEditar.hidden = !ehEmpresa;
+            linkEditar.href = `/pages/14-editar-os.html?id=${os.id}`;
+        }
 
-        if (btnFinalizar) btnFinalizar.hidden = !(ehEmpresaDona && os.status === 'Em andamento');
+        // Concluir: só empresa. Cancelar: empresa ou freelancer.
+        // Os dois somem quando a OS não está Em andamento (Concluída e Cancelada são finais).
+        if (btnFinalizar) btnFinalizar.hidden = !(ehEmpresa && emAndamento);
+        if (btnCancelar) btnCancelar.hidden = !((ehEmpresa || ehFreelancer) && emAndamento);
 
         if (linkAvaliar) {
-            const podeAvaliar = ehFreelancerDono && os.status === 'Concluída' && os.avaliacaoFreelancer !== 'Avaliado';
+            const podeAvaliar = ehFreelancer && os.status === STATUS_CONCLUIDA && os.avaliacaoFreelancer !== 'Avaliado';
             linkAvaliar.hidden = !podeAvaliar;
             linkAvaliar.href = `/pages/23-avaliacao-os.html?id=${os.id}`;
         }
 
+        // O registro visual da entrega ainda não tem endpoint no back (fica para a fase seguinte).
         const uploadEntrega = document.getElementById('os-entrega-upload');
-        if (uploadEntrega) uploadEntrega.hidden = !(ehFreelancerDono && os.status === 'Em andamento');
+        if (uploadEntrega) uploadEntrega.hidden = true;
     }
 
+    // Carrega (ou recarrega) a OS. Devolve a mensagem de erro, ou '' se deu certo.
     async function carregarOS() {
         try {
-            const res = await fetch(`${API_BASE}/ordensServico/${idOS}`);
-            if (!res.ok) throw new Error(`OS não encontrada (HTTP ${res.status}).`);
-            const os = await res.json();
+            const dados = await apiFetch(`${API_URL_OS}/detalhe/${encodeURIComponent(idOS)}`);
+            const os = (dados && dados.id === undefined && dados.dados) ? dados.dados : dados;
 
-            const ehEmpresaDona = sessao.tipo === 'empresas' && String(os.empresaId) === String(sessao.id);
-            const ehFreelancerDono = sessao.tipo === 'freelancers' && String(os.freelancerId) === String(sessao.id);
-
-            if (!ehEmpresaDona && !ehFreelancerDono) {
-                mostrarMensagem('Esta Ordem de Serviço não está vinculada à sua conta.', 'error');
-                return;
+            if (!os || os.id === undefined) {
+                throw new Error('Ordem de Serviço não encontrada.');
             }
 
             renderizarOS(os);
+            return '';
         } catch (erro) {
             console.error('Erro ao carregar Ordem de Serviço:', erro);
-            mostrarMensagem('Não foi possível carregar a Ordem de Serviço. Tente novamente.', 'error');
+            const mensagem = (erro && erro.message) || 'Não foi possível carregar a Ordem de Serviço. Tente novamente.';
+            mostrarMensagem(mensagem, 'error');
+            return mensagem;
         }
     }
 
     carregarOS();
 
-    // ── Registro visual da entrega (freelancer dono, OS em andamento) ──
-    const LIMITE_FOTO_MB = 5;
+    // ── Concluir ou cancelar a OS ──
+    // Depois de qualquer resposta (sucesso ou erro, inclusive 409) a OS é recarregada
+    // para mostrar o estado real.
+    async function executarAcaoOS(acao, botao, textoCarregando, mensagemSucesso) {
+        if (!osAtual || acaoEmAndamento) return;
 
-    function configurarUploadEntrega() {
-        const input = document.getElementById('entregaInput');
-        if (!input) return;
-        input.addEventListener('change', async function () {
-            if (!osAtual) return;
+        acaoEmAndamento = true;
+        const textoOriginal = botao.innerHTML;
+        if (btnFinalizar) btnFinalizar.disabled = true;
+        if (btnCancelar) btnCancelar.disabled = true;
+        botao.innerHTML = `<span class="spinner"></span> ${textoCarregando}`;
 
-            if (osAtual.status !== 'Em andamento') {
-                mostrarMensagem('Só é possível enviar o registro da entrega com a ordem de serviço em andamento.', 'error');
-                input.value = '';
-                return;
-            }
+        let mensagemErro = '';
 
-            const arquivo = input.files && input.files[0];
-            if (!arquivo) return;
-            if (!arquivo.type.startsWith('image/')) {
-                mostrarMensagem('O registro deve ser uma imagem (PNG ou JPG).', 'error');
-                input.value = '';
-                return;
-            }
-            if (arquivo.size > LIMITE_FOTO_MB * 1024 * 1024) {
-                mostrarMensagem(`O registro deve ter no máximo ${LIMITE_FOTO_MB}MB.`, 'error');
-                input.value = '';
-                return;
-            }
+        try {
+            // POST sem corpo; o back valida quem pode e se a OS ainda está Em andamento.
+            await apiFetch(`${API_URL_OS}/${encodeURIComponent(osAtual.id)}/${acao}`, { method: 'POST' });
+        } catch (erro) {
+            console.error(`Erro ao ${acao} Ordem de Serviço:`, erro);
+            mensagemErro = (erro && erro.message) || 'Não foi possível atualizar a OS. Tente novamente.';
+        }
 
-            if (osAtual.referenciaEntrega) {
-                const confirmou = await modalConfirmar({
-                    titulo: 'Substituir registro da entrega',
-                    mensagem: 'Já existe uma imagem de entrega registrada. A nova imagem substituirá a anterior. Deseja continuar?',
-                    textoConfirmar: 'Substituir',
-                    textoCancelar: 'Cancelar'
-                });
-                if (!confirmou) {
-                    input.value = '';
-                    return;
-                }
-            }
+        await carregarOS();
 
-            const caminho = `/uploads/os/${osAtual.id}/entrega-${Date.now()}.jpg`;
-            const previewUrl = URL.createObjectURL(arquivo);
-            renderizarAnexo('os-entrega-display', previewUrl);
+        botao.innerHTML = textoOriginal;
+        if (btnFinalizar) btnFinalizar.disabled = false;
+        if (btnCancelar) btnCancelar.disabled = false;
+        acaoEmAndamento = false;
 
-            const novoHistorico = (osAtual.historico || []).concat([
-                { data: hojeLocalISO(), evento: 'Registro visual da entrega enviado pelo freelancer.' }
-            ]);
-
-            fetch(`${API_BASE}/ordensServico/${osAtual.id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ referenciaEntrega: caminho, historico: novoHistorico })
-            }).then(function (res) {
-                if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
-                osAtual.referenciaEntrega = caminho;
-                osAtual.historico = novoHistorico;
-                mostrarMensagem('Registro da entrega enviado com sucesso!', 'success');
-            }).catch(function (erro) {
-                URL.revokeObjectURL(previewUrl);
-                renderizarAnexo('os-entrega-display', osAtual.referenciaEntrega);
-                mostrarMensagem('Não foi possível enviar o registro da entrega. Tente novamente.', 'error');
-            });
-
-            input.value = '';
-        });
+        if (mensagemErro) {
+            mostrarMensagem(mensagemErro, 'error');
+        } else {
+            mostrarMensagem(mensagemSucesso, 'success');
+        }
     }
 
-    configurarUploadEntrega();
-
     // ── Finalizar Ordem de Serviço (empresa) ──
-    const btnFinalizar = document.getElementById('btn-finalizar-os');
-
     if (btnFinalizar) {
         btnFinalizar.addEventListener('click', async function () {
             if (!osAtual) return;
 
             const confirmou = await modalConfirmar({
                 titulo: 'Encerrar Ordem de Serviço',
-                mensagem: 'Ao executar esta ação, será realizada a finalização da  Ordem de Serviço, você confirma?',
+                mensagem: 'Ao executar esta ação, será realizada a finalização da Ordem de Serviço, você confirma?',
                 textoConfirmar: 'Encerrar',
                 textoCancelar: 'Cancelar'
             });
             if (!confirmou) return;
 
-            const textoOriginal = btnFinalizar.innerHTML;
-            btnFinalizar.disabled = true;
-            btnFinalizar.innerHTML = '<span class="spinner"></span> Finalizando...';
+            executarAcaoOS('concluir', btnFinalizar, 'Finalizando...', 'Ordem de serviço finalizada com sucesso.');
+        });
+    }
 
-            try {
-                const novoHistorico = (osAtual.historico || []).concat([
-                    { data: hojeLocalISO(), evento: 'OS finalizada pela empresa.' }
-                ]);
+    // ── Cancelar Ordem de Serviço (empresa ou freelancer) ──
+    if (btnCancelar) {
+        btnCancelar.addEventListener('click', async function () {
+            if (!osAtual) return;
 
-                const res = await fetch(`${API_BASE}/ordensServico/${osAtual.id}`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ status: 'Concluída', historico: novoHistorico })
-                });
-                if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
+            const confirmou = await modalConfirmar({
+                titulo: 'Cancelar Ordem de Serviço',
+                mensagem: 'Deseja cancelar esta Ordem de Serviço? Essa ação não poderá ser desfeita.',
+                textoConfirmar: 'Cancelar OS',
+                textoCancelar: 'Voltar',
+                perigoso: true
+            });
+            if (!confirmou) return;
 
-                // Avisa o freelancer sobre a finalização da OS.
-                if (osAtual.freelancerId) {
-                    criarNotificacao({
-                        usuarioId: osAtual.freelancerId,
-                        usuarioTipo: 'freelancers',
-                        tipo: 'os',
-                        titulo: 'Ordem de serviço atualizada',
-                        mensagem: `A OS "${osAtual.titulo}" foi finalizada pela empresa.`,
-                        link: `/pages/19-ordem-servico-detalhe.html?id=${encodeURIComponent(osAtual.id)}`
-                    });
-                }
-
-                const badgeStatus = document.getElementById('os-status-badge');
-                badgeStatus.className = 'badge badge-success';
-                badgeStatus.textContent = 'Concluída';
-                btnFinalizar.hidden = true;
-
-                setTimeout(function () {
-                    window.location.href = `/pages/23-avaliacao-os.html?id=${osAtual.id}`;
-                }, 800);
-            } catch (erro) {
-                console.error('Erro ao finalizar Ordem de Serviço:', erro);
-                btnFinalizar.disabled = false;
-                btnFinalizar.innerHTML = textoOriginal;
-                mostrarMensagem('Não foi possível finalizar a OS. Tente novamente.', 'error');
-            }
+            executarAcaoOS('cancelar', btnCancelar, 'Cancelando...', 'Ordem de serviço cancelada.');
         });
     }
 });
