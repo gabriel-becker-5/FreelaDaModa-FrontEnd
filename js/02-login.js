@@ -70,8 +70,8 @@ function initLoginForm() {
         btnEntrar.innerHTML = '<span class="spinner"></span> Verificando...';
 
         try {
-            // Busca o usuário correspondente no json-server pelo e-mail
-           const resultado = await api('/Authentication/login', {
+            // Login real na API (POST /Authentication/login)
+            const resultado = await api('/Authentication/login', {
                 method: 'POST',
                 body: { email, password: senha },
                 semRedirect: true
@@ -80,7 +80,7 @@ function initLoginForm() {
             // o token pode vir direto (texto) ou dentro de um objeto
             const token = typeof resultado === 'string'
                 ? resultado
-                : (resultado.token || resultado.accessToken || resultado.jwt);
+                : resultado.token;
 
             if (token) {
                 const dadosJwt = decodificarJwt(token);
@@ -102,7 +102,7 @@ function initLoginForm() {
                 const nome = await buscarNomeUsuario(tipoConta);
 
                 const sessao = {
-                   id: Number(dadosJwt.nameid || dadosJwt['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']),
+                    id: Number(dadosJwt.nameid || dadosJwt['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']),
                     nome: nome,
                     email: dadosJwt.email || email,
                     tipo: roleAtual,
@@ -136,7 +136,7 @@ function initLoginForm() {
                     }
                 }, 1200);
 
-             } else {
+            } else {
                 mostrarMensagem('Não foi possível entrar. Tente novamente.', 'error');
             }
 
