@@ -267,7 +267,7 @@ function renderizarHeaderPublico(el) {
 }
 
 function renderizarBannerValidacao(el, sessao) {
-    if (!sessao || sessao.validado === true) return;
+    return; // verificação fora do MVP: não mostra o banner
     const primeiroNome = (sessao.nome || '').split(' ')[0];
 
     const banner = document.createElement('div');
