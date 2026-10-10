@@ -85,10 +85,21 @@ function initLoginForm() {
             if (token) {
                 const dadosJwt = decodificarJwt(token);
 
+                const tipoConta = tipoDaConta(dadosJwt);
+
+                if (!tipoConta) {
+                    throw new Error('Este tipo de conta não tem acesso ao sistema ainda.');
+                }
+
+                if (tipoConta !== roleAtual) {
+                    const nomeConta = tipoConta === 'empresas' ? 'Empresa' : 'Freelancer';
+                    throw new Error(`Esta conta é de ${nomeConta}. Selecione a aba "Sou ${nomeConta}" e tente de novo.`);
+                }
+
                 // guarda o token primeiro, para o api() conseguir buscar o nome
                 sessionStorage.setItem('usuarioLogado', JSON.stringify({ token }));
 
-                const nome = await buscarNomeUsuario(roleAtual);
+                const nome = await buscarNomeUsuario(tipoConta);
 
                 const sessao = {
                    id: Number(dadosJwt.nameid || dadosJwt['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']),
@@ -214,4 +225,14 @@ async function buscarNomeUsuario(tipo) {
         return perfil.companyName || perfil.legalResponsibleFullName || '';
     }
     return perfil.legalResponsibleFullName || perfil.nome || '';
+}
+// converte o claim "roles" do token no tipo usado pelas telas
+function tipoDaConta(dadosJwt) {
+    const bruto = dadosJwt.roles || dadosJwt.role ||
+        dadosJwt['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+    const lista = Array.isArray(bruto) ? bruto : [bruto];
+
+    if (lista.includes('Company')) return 'empresas';
+    if (lista.includes('Freelancer')) return 'freelancers';
+    return null; // Admin ou desconhecido: fora do MVP
 }
