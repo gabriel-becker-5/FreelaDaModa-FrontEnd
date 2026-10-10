@@ -6,8 +6,7 @@ document.addEventListener('DOMContentLoaded', function () {
     renderizarTopbar(document.getElementById('header-acoes'), sessao);
     renderizarBannerValidacao(document.querySelector('.main'), sessao);
 
-    const badgeVerificada = document.getElementById('badge-verificada');
-    if (badgeVerificada && sessao.validado === true) badgeVerificada.removeAttribute('hidden');
+    // selo "Verificada" fora do MVP (verificação não entra agora): fica escondido
 
     initMenuMobile();
     carregarDadosEmpresa(sessao);
