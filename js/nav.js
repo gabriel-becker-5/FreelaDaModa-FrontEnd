@@ -54,7 +54,7 @@ function sairSessao() {
 
 function exigirLogin() {
     const sessao = obterSessao();
-    if (!sessao) {
+    if (!sessao || !sessao.token) {
         const paginaAtual = window.location.pathname + window.location.search;
         window.location.href = `/pages/02-login.html?next=${encodeURIComponent(paginaAtual)}`;
         return null;
