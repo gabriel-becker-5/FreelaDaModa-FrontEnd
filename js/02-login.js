@@ -91,7 +91,7 @@ function initLoginForm() {
                 const nome = await buscarNomeUsuario(roleAtual);
 
                 const sessao = {
-                    id: dadosJwt.nameid || dadosJwt['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'],
+                   id: Number(dadosJwt.nameid || dadosJwt['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']),
                     nome: nome,
                     email: dadosJwt.email || email,
                     tipo: roleAtual,
