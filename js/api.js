@@ -75,3 +75,35 @@ async function api(caminho, opcoes = {}) {
     if (json && json.dados !== undefined && json.dados !== null) return json.dados;
     return json;
 }
+function mapStatusCandidatura(statusBack) {
+    const mapa = {
+        'Pendente': 'Em análise',
+        'Aceita': 'Selecionado',
+        'Rejeitada': 'Rejeitado'
+    };
+    return mapa[statusBack] || statusBack;
+}
+
+// tela -> back
+function mapStatusCandidaturaParaBack(statusTela) {
+    const mapa = {
+        'Em análise': 'Pendente',
+        'Selecionado': 'Aceita',
+        'Rejeitado': 'Rejeitada'
+    };
+    return mapa[statusTela] || statusTela;
+}
+
+// vaga: back -> tela (valor <- orcamento, empresaId <- usuarioId)
+function mapVaga(vagaBack) {
+    if (!vagaBack) return vagaBack;
+    return {
+        ...vagaBack,
+        valor: vagaBack.orcamento,
+        empresaId: vagaBack.usuarioId
+    };
+}
+
+function mapVagas(lista) {
+    return Array.isArray(lista) ? lista.map(mapVaga) : [];
+}
