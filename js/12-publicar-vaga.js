@@ -19,18 +19,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const inputValor = document.getElementById('valor');
     const inputPrazo = document.getElementById('prazo');
     const inputDescricao = document.getElementById('descricao');
-    const inputReferencias = document.getElementById('refs-vaga');
-    const referenciasPreview = document.getElementById('refs-vaga-preview');
     const btnSubmit = document.getElementById('btnSubmit');
 
-    const LIMITE_FOTO_MB = 5;
-    const MAX_REFERENCIAS = 10;
     const TETO_VALOR = 99999.99;
     const PRAZO_MAX_DIAS = 730;
-
-    // Referências ficam em preview na sessão; os caminhos são montados após a
-    // vaga ser criada (o id vem do POST) e gravados via PATCH.
-    let referenciasPreviewUrls = [];
 
     /* ------------------------- menu mobile -------------------------------- */
     function initMenuMobile() {
@@ -66,36 +58,25 @@ document.addEventListener('DOMContentLoaded', function () {
         if (alertBar) alertBar.setAttribute('hidden', '');
     }
 
-    /* ------------------------- assinatura ---------------------------------- */
-    // Publicar vaga é um recurso pago: exige assinatura com status "ativo".
-    async function empresaTemAssinaturaAtiva(empresaId) {
-        try {
-            const res = await fetch(`${API_BASE}/assinaturas?empresaId=${encodeURIComponent(empresaId)}`);
-            if (!res.ok) return false;
-            const assinaturas = await res.json();
-            return assinaturas.some(function (a) { return a.status === 'ativo'; });
-        } catch (erro) {
-            console.error('Erro ao verificar assinatura:', erro);
-            return false;
-        }
-    }
-
-    /* ------------------------- cidade/estado (IBGE) ------------------------ */
-    // Pré-seleciona a localidade cadastrada da empresa logada.
+    /* ------------------------- cidade/estado (perfil da empresa + IBGE) ---- */
+    // Pré-seleciona a localidade comercial cadastrada no perfil da empresa
+    // logada (GET /User/perfil/empresa -> city/state, mesmos nomes que
+    // js/09-perfil-empresa.js já integrado usa). Publicar vaga não depende
+    // mais de assinatura ativa.
     async function prepararLocalidade() {
+        let cidade = '';
+        let estado = '';
         try {
-            const res = await fetch(`${API_BASE}/empresas/${sessao.id}`);
-            if (!res.ok) throw new Error('Erro ao carregar empresa.');
-            const empresa = await res.json();
-
-            await carregarUFs(selectEstado, empresa.estadoComercial || '');
-            if (empresa.cidadeComercial) inputCidade.value = empresa.cidadeComercial;
-            montarAutocompleteCidade(inputCidade, selectEstado);
+            const perfil = await api('/User/perfil/empresa', { semRedirect: true });
+            cidade = (perfil && perfil.city) || '';
+            estado = (perfil && perfil.state) || '';
         } catch (erro) {
-            console.error('Erro ao preparar localidade:', erro);
-            await carregarUFs(selectEstado, '');
-            montarAutocompleteCidade(inputCidade, selectEstado);
+            console.error('Erro ao carregar localidade da empresa:', erro);
         }
+
+        await carregarUFs(selectEstado, estado);
+        if (cidade) inputCidade.value = cidade;
+        montarAutocompleteCidade(inputCidade, selectEstado);
     }
 
     prepararLocalidade();
@@ -108,82 +89,12 @@ document.addEventListener('DOMContentLoaded', function () {
     inputPrazo.min = limitesPrazo.min;
     inputPrazo.max = limitesPrazo.max;
 
-    /* ------------------------- uploads de referências ---------------------- */
-    function criarImagemComFallback(container, src, alt) {
-        const img = document.createElement('img');
-        img.src = src;
-        img.alt = alt;
-        img.onerror = function () {
-            const placeholder = document.createElement('div');
-            placeholder.className = 'imagem-placeholder';
-            placeholder.innerHTML = '<i class="bi bi-image"></i>';
-            container.replaceChild(placeholder, img);
-        };
-        container.appendChild(img);
-    }
-
-    function renderizarReferencias() {
-        referenciasPreview.innerHTML = '';
-        if (!referenciasPreviewUrls.length) {
-            referenciasPreview.innerHTML = '<span class="field-message">Nenhuma foto de referência adicionada.</span>';
-            return;
-        }
-        referenciasPreviewUrls.forEach(function (url, indice) {
-            const item = document.createElement('div');
-            item.className = 'referencia-item';
-
-            criarImagemComFallback(item, url, `Referência ${indice + 1}`);
-
-            const botao = document.createElement('button');
-            botao.type = 'button';
-            botao.setAttribute('aria-label', 'Remover referência');
-            botao.innerHTML = '<i class="bi bi-x"></i>';
-            botao.addEventListener('click', function () {
-                const urlRemovida = referenciasPreviewUrls.splice(indice, 1)[0];
-                if (urlRemovida && urlRemovida.startsWith('blob:')) URL.revokeObjectURL(urlRemovida);
-                renderizarReferencias();
-            });
-
-            item.appendChild(botao);
-            referenciasPreview.appendChild(item);
-        });
-    }
-
-    renderizarReferencias();
-
-    inputReferencias.addEventListener('change', function () {
-        const arquivos = Array.from(inputReferencias.files);
-        let ignorados = 0;
-
-        arquivos.forEach(function (arquivo) {
-            if (referenciasPreviewUrls.length >= MAX_REFERENCIAS) {
-                ignorados++;
-                return;
-            }
-            if (!arquivo.type.startsWith('image/')) {
-                ignorados++;
-                return;
-            }
-            if (arquivo.size > LIMITE_FOTO_MB * 1024 * 1024) {
-                ignorados++;
-                return;
-            }
-            referenciasPreviewUrls.push(URL.createObjectURL(arquivo));
-        });
-
-        renderizarReferencias();
-
-        if (ignorados > 0) {
-            mostrarMensagem(`Algumas fotos não foram adicionadas (são permitidas até ${MAX_REFERENCIAS} imagens de até ${LIMITE_FOTO_MB}MB cada).`, 'error');
-        }
-        inputReferencias.value = '';
-    });
-
     /* ------------------------- validação ----------------------------------- */
     function validarFormulario() {
         const erros = [];
 
         if (!inputTitulo.value.trim()) erros.push('Informe o título da vaga.');
+        else if (inputTitulo.value.trim().length > 100) erros.push('O título deve ter no máximo 100 caracteres.');
         if (!selectEspecialidade.value) erros.push('Selecione a especialidade.');
         if (!selectModalidade.value) erros.push('Selecione a modalidade.');
         if (!inputCidade.value.trim()) erros.push('Informe a cidade.');
@@ -198,6 +109,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (!inputDescricao.value.trim() || inputDescricao.value.trim().length < 15) {
             erros.push('A descrição deve ter no mínimo 15 caracteres.');
+        } else if (inputDescricao.value.trim().length > 500) {
+            erros.push('A descrição deve ter no máximo 500 caracteres.');
         }
 
         if (erros.length) {
@@ -220,78 +133,32 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        btnSubmit.disabled = true;
-        const textoOriginalBtn = btnSubmit.innerHTML;
-        btnSubmit.innerHTML = '<span class="spinner"></span> Verificando assinatura...';
-
-        const assinaturaAtiva = await empresaTemAssinaturaAtiva(sessaoAtual.id);
-        if (!assinaturaAtiva) {
-            btnSubmit.disabled = false;
-            btnSubmit.innerHTML = textoOriginalBtn;
-            mostrarMensagem('Sua empresa não tem uma assinatura ativa. Contrate um plano na página de Assinatura para publicar vagas.', 'error');
-            return;
-        }
-
-        const cidade = inputCidade.value.trim();
         const novaVaga = {
-            empresaId: sessaoAtual.id,
-            empresaNome: sessaoAtual.nome,
             titulo: inputTitulo.value.trim(),
-            especialidade: selectEspecialidade.value,
-            valor: formatarMoeda(moedaParaNumero(inputValor.value)),
-            prazo: inputPrazo.value,
-            modalidade: selectModalidade.value,
-            cidade: cidade,
-            estado: selectEstado.value,
-            local: cidade,
             descricao: inputDescricao.value.trim(),
-            dataPublicacao: new Date().toISOString(),
-            status: 'Aberta'
+            especialidade: selectEspecialidade.value,
+            modalidade: selectModalidade.value,
+            cidade: inputCidade.value.trim(),
+            estado: selectEstado.value,
+            orcamento: moedaParaNumero(inputValor.value),
+            prazoConclusao: inputPrazo.value
         };
 
+        btnSubmit.disabled = true;
+        const textoOriginalBtn = btnSubmit.innerHTML;
         btnSubmit.innerHTML = '<span class="spinner"></span> Publicando...';
 
         try {
-            const res = await fetch(`${API_BASE}/vagas`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(novaVaga)
-            });
-            if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
+            await api('/vagas', { method: 'POST', body: novaVaga });
 
-            const vagaCriada = await res.json();
-
-            let referenciasSalvas = true;
-            if (referenciasPreviewUrls.length) {
-                try {
-                    const caminhos = referenciasPreviewUrls.map(function (_, indice) {
-                        return `/uploads/vagas/${vagaCriada.id}/referencia-${indice + 1}.jpg`;
-                    });
-                    const resRef = await fetch(`${API_BASE}/vagas/${vagaCriada.id}`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ referencias: caminhos })
-                    });
-                    if (!resRef.ok) throw new Error(`Erro HTTP: ${resRef.status}`);
-                } catch (erroRef) {
-                    console.error('Erro ao salvar referências da vaga:', erroRef);
-                    referenciasSalvas = false;
-                }
-            }
-
-            mostrarMensagem(
-                referenciasSalvas
-                    ? 'Vaga publicada com sucesso! Redirecionando...'
-                    : 'Vaga publicada, mas as imagens de referência não puderam ser salvas. Redirecionando...',
-                referenciasSalvas ? 'success' : 'warning'
-            );
+            mostrarMensagem('Vaga publicada com sucesso! Redirecionando...', 'success');
 
             setTimeout(function () {
                 window.location.href = '/pages/15-minhas-vagas.html';
-            }, 1500);
+            }, 1200);
         } catch (erro) {
             console.error('Erro ao publicar vaga:', erro);
-            mostrarMensagem('Não foi possível publicar a vaga. Tente novamente em instantes.', 'error');
+            mostrarMensagem(erro.message || 'Não foi possível publicar a vaga. Tente novamente em instantes.', 'error');
             btnSubmit.disabled = false;
             btnSubmit.innerHTML = textoOriginalBtn;
         }

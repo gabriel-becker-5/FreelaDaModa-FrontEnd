@@ -25,17 +25,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const inputValor = document.getElementById('valor');
     const inputPrazo = document.getElementById('prazo');
     const inputDescricao = document.getElementById('descricao');
-    const inputReferencias = document.getElementById('refs-vaga');
-    const referenciasPreview = document.getElementById('refs-vaga-preview');
     const badgeVagaId = document.getElementById('badgeVagaId');
 
-    const LIMITE_FOTO_MB = 5;
-    const MAX_REFERENCIAS = 10;
     const TETO_VALOR = 99999.99;
     const PRAZO_MAX_DIAS = 730;
 
-    let referenciasCaminhos = [];
-    let referenciasPreviewUrls = [];
+    // Cópia dos valores carregados no GET, usada para enviar no PATCH só os
+    // campos que o usuário realmente alterou.
+    let valoresCarregados = {};
 
     /* ------------------------- menu mobile -------------------------------- */
     function initMenuMobile() {
@@ -86,85 +83,13 @@ document.addEventListener('DOMContentLoaded', function () {
     inputPrazo.min = limitesPrazo.min;
     inputPrazo.max = limitesPrazo.max;
 
-    /* ------------------------- uploads de referências ---------------------- */
-    function criarImagemComFallback(container, src, alt) {
-        const img = document.createElement('img');
-        img.src = src;
-        img.alt = alt;
-        img.onerror = function () {
-            const placeholder = document.createElement('div');
-            placeholder.className = 'imagem-placeholder';
-            placeholder.innerHTML = '<i class="bi bi-image"></i>';
-            container.replaceChild(placeholder, img);
-        };
-        container.appendChild(img);
-    }
-
-    function renderizarReferencias() {
-        referenciasPreview.innerHTML = '';
-        if (!referenciasPreviewUrls.length) {
-            referenciasPreview.innerHTML = '<span class="field-message">Nenhuma foto de referência adicionada.</span>';
-            return;
-        }
-        referenciasPreviewUrls.forEach(function (url, indice) {
-            const item = document.createElement('div');
-            item.className = 'referencia-item';
-
-            criarImagemComFallback(item, url, `Referência ${indice + 1}`);
-
-            const botao = document.createElement('button');
-            botao.type = 'button';
-            botao.setAttribute('aria-label', 'Remover referência');
-            botao.innerHTML = '<i class="bi bi-x"></i>';
-            botao.addEventListener('click', function () {
-                const urlRemovida = referenciasPreviewUrls.splice(indice, 1)[0];
-                referenciasCaminhos.splice(indice, 1);
-                if (urlRemovida && urlRemovida.startsWith('blob:')) URL.revokeObjectURL(urlRemovida);
-                renderizarReferencias();
-            });
-
-            item.appendChild(botao);
-            referenciasPreview.appendChild(item);
-        });
-    }
-
-    inputReferencias.addEventListener('change', function () {
-        const arquivos = Array.from(inputReferencias.files);
-        let ignorados = 0;
-
-        arquivos.forEach(function (arquivo) {
-            if (referenciasCaminhos.length >= MAX_REFERENCIAS) {
-                ignorados++;
-                return;
-            }
-            if (!arquivo.type.startsWith('image/')) {
-                ignorados++;
-                return;
-            }
-            if (arquivo.size > LIMITE_FOTO_MB * 1024 * 1024) {
-                ignorados++;
-                return;
-            }
-            const indice = referenciasCaminhos.length + 1;
-            referenciasCaminhos.push(`/uploads/vagas/${vagaId}/referencia-${Date.now()}-${indice}.jpg`);
-            referenciasPreviewUrls.push(URL.createObjectURL(arquivo));
-        });
-
-        renderizarReferencias();
-
-        if (ignorados > 0) {
-            mostrarMensagem(`Algumas fotos não foram adicionadas (são permitidas até ${MAX_REFERENCIAS} imagens de até ${LIMITE_FOTO_MB}MB cada).`, 'error');
-        }
-        inputReferencias.value = '';
-    });
-
     /* ------------------------- carregar vaga ------------------------------- */
     async function carregarVaga() {
         try {
-            const res = await fetch(`${API_BASE}/vagas/${vagaId}`);
-            if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
-
-            const vaga = await res.json();
+            // GET /vagas/{id} é anônimo; semRedirect evita redirecionar por 401.
+            const vagaBack = await api(`/vagas/${encodeURIComponent(vagaId)}`, { semRedirect: true });
+            // mapVaga já existe em js/api.js (valor <- orcamento, empresaId <- usuarioId).
+            const vaga = mapVaga(vagaBack);
 
             if (String(vaga.empresaId) !== String(sessao.id)) {
                 loadingBar.setAttribute('hidden', '');
@@ -177,23 +102,38 @@ document.addEventListener('DOMContentLoaded', function () {
             inputTitulo.value = vaga.titulo || '';
             inputEspecialidade.value = vaga.especialidade || '';
             inputModalidade.value = vaga.modalidade || '';
-            inputValor.value = vaga.valor || '';
-            inputPrazo.value = vaga.prazo || '';
+            inputValor.value = vaga.valor != null ? formatarMoeda(vaga.valor) : '';
+            // prazoConclusao vem como datetime ISO completo (ex.: "2026-12-31T00:00:00");
+            // um <input type="date"> só aceita "yyyy-MM-dd".
+            const prazo = vaga.prazoConclusao ? String(vaga.prazoConclusao).slice(0, 10) : '';
+            inputPrazo.value = prazo;
             inputDescricao.value = vaga.descricao || '';
 
             await carregarUFs(selectEstado, vaga.estado || '');
-            if (vaga.cidade) inputCidade.value = vaga.cidade;
+            inputCidade.value = vaga.cidade || '';
             montarAutocompleteCidade(inputCidade, selectEstado);
 
-            referenciasCaminhos = Array.isArray(vaga.referencias) ? vaga.referencias : [];
-            referenciasPreviewUrls = referenciasCaminhos.slice();
-            renderizarReferencias();
+            valoresCarregados = {
+                titulo: inputTitulo.value,
+                especialidade: vaga.especialidade || '',
+                modalidade: vaga.modalidade || '',
+                cidade: inputCidade.value,
+                estado: vaga.estado || '',
+                valor: vaga.valor != null ? Number(vaga.valor) : null,
+                prazo: prazo,
+                descricao: inputDescricao.value
+            };
 
             loadingBar.setAttribute('hidden', '');
             form.removeAttribute('hidden');
         } catch (erro) {
             console.error('Erro ao carregar vaga:', erro);
             loadingBar.setAttribute('hidden', '');
+            if (erro.status === 404) {
+                erroBar.textContent = 'Vaga não encontrada.';
+            } else {
+                erroBar.textContent = erro.message || 'Não foi possível carregar esta vaga. Tente novamente mais tarde.';
+            }
             erroBar.removeAttribute('hidden');
         }
     }
@@ -205,6 +145,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const erros = [];
 
         if (!inputTitulo.value.trim()) erros.push('Informe o título da vaga.');
+        else if (inputTitulo.value.trim().length > 100) erros.push('O título deve ter no máximo 100 caracteres.');
         if (!inputEspecialidade.value) erros.push('Selecione a especialidade.');
         if (!inputModalidade.value) erros.push('Selecione a modalidade.');
         if (!inputCidade.value.trim()) erros.push('Informe a cidade.');
@@ -219,6 +160,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (!inputDescricao.value.trim() || inputDescricao.value.trim().length < 15) {
             erros.push('A descrição deve ter no mínimo 15 caracteres.');
+        } else if (inputDescricao.value.trim().length > 500) {
+            erros.push('A descrição deve ter no máximo 500 caracteres.');
         }
 
         if (erros.length) {
@@ -228,6 +171,32 @@ document.addEventListener('DOMContentLoaded', function () {
         return true;
     }
 
+    /* ------------------------- montar PATCH (somente o que mudou) ---------- */
+    function montarCorpoAtualizacao() {
+        const corpo = {};
+
+        const titulo = inputTitulo.value.trim();
+        if (titulo !== valoresCarregados.titulo) corpo.titulo = titulo;
+
+        if (inputEspecialidade.value !== valoresCarregados.especialidade) corpo.especialidade = inputEspecialidade.value;
+        if (inputModalidade.value !== valoresCarregados.modalidade) corpo.modalidade = inputModalidade.value;
+
+        const cidade = inputCidade.value.trim();
+        if (cidade !== valoresCarregados.cidade) corpo.cidade = cidade;
+
+        if (selectEstado.value !== valoresCarregados.estado) corpo.estado = selectEstado.value;
+
+        const valor = moedaParaNumero(inputValor.value);
+        if (valor !== valoresCarregados.valor) corpo.orcamento = valor;
+
+        if (inputPrazo.value !== valoresCarregados.prazo) corpo.prazoConclusao = inputPrazo.value;
+
+        const descricao = inputDescricao.value.trim();
+        if (descricao !== valoresCarregados.descricao) corpo.descricao = descricao;
+
+        return corpo;
+    }
+
     /* ------------------------- salvar (PATCH) ------------------------------ */
     form.addEventListener('submit', async function (e) {
         e.preventDefault();
@@ -235,33 +204,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!validarFormulario()) return;
 
-        const cidade = inputCidade.value.trim();
-        // O status NÃO vai no PATCH: alterações de status ocorrem apenas
-        // pelas ações da tela 15 (ex.: Encerrar).
-        const vagaAtualizada = {
-            titulo: inputTitulo.value.trim(),
-            especialidade: inputEspecialidade.value,
-            modalidade: inputModalidade.value,
-            valor: formatarMoeda(moedaParaNumero(inputValor.value)),
-            prazo: inputPrazo.value,
-            cidade: cidade,
-            estado: selectEstado.value,
-            local: cidade,
-            descricao: inputDescricao.value.trim(),
-            referencias: referenciasCaminhos
-        };
+        const corpo = montarCorpoAtualizacao();
+
+        if (Object.keys(corpo).length === 0) {
+            mostrarMensagem('Nenhuma alteração para salvar.', 'error');
+            return;
+        }
 
         btnSubmit.disabled = true;
+        const textoOriginalBtn = btnSubmit.innerHTML;
         btnSubmit.innerHTML = '<span class="spinner"></span> Salvando...';
 
         try {
-            const res = await fetch(`${API_BASE}/vagas/${vagaId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(vagaAtualizada)
-            });
-
-            if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
+            await api(`/vagas/${encodeURIComponent(vagaId)}`, { method: 'PATCH', body: corpo });
 
             mostrarMensagem('Alterações salvas com sucesso! Redirecionando...', 'success');
 
@@ -270,9 +225,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }, 1200);
         } catch (erro) {
             console.error('Erro ao salvar vaga:', erro);
-            mostrarMensagem('Não foi possível salvar as alterações. Tente novamente em instantes.', 'error');
+            mostrarMensagem(erro.message || 'Não foi possível salvar as alterações. Tente novamente em instantes.', 'error');
             btnSubmit.disabled = false;
-            btnSubmit.innerHTML = '<i class="bi bi-save-fill"></i> Salvar Alterações';
+            btnSubmit.innerHTML = textoOriginalBtn;
         }
     });
 });

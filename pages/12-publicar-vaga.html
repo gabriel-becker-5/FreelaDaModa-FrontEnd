@@ -38,7 +38,7 @@
                     <!-- Título da Vaga -->
                     <div class="form-group">
                         <label for="titulo" class="checkbox-label"><strong>Título do Serviço / Vaga *</strong></label>
-                        <input type="text" id="titulo" class="input" placeholder="Ex: Costureira Pilotista para Moda Feminina" required>
+                        <input type="text" id="titulo" class="input" placeholder="Ex: Costureira Pilotista para Moda Feminina" maxlength="100" required>
                     </div>
 
                     <!-- Especialidade e Modalidade -->
@@ -47,10 +47,11 @@
                             <label for="especialidade"><strong>Especialidade *</strong></label>
                             <select id="especialidade" class="input" required>
                                 <option value="">Selecione uma especialidade</option>
-                                <option value="Costura reta">Costura reta</option>
+                                <option value="Costura_Reta">Costura reta</option>
                                 <option value="Overloque">Overloque</option>
                                 <option value="Modelagem">Modelagem</option>
-                                <option value="Peça piloto">Peça piloto</option>
+                                <option value="Peca_Piloto">Peça piloto</option>
+                                <option value="Amostras">Amostras</option>
                                 <option value="Acabamento">Acabamento</option>
                                 <option value="Bordado">Bordado</option>
                                 <option value="Estamparia">Estamparia</option>
@@ -62,9 +63,9 @@
                             <select id="modalidade" class="input" required>
                                 <option value="">Selecione</option>
                                 <option value="Presencial">Presencial</option>
-                                <option value="Híbrida">Híbrida</option>
+                                <option value="Hibrida">Híbrida</option>
                                 <option value="Remota">Remota</option>
-                                <option value="Sob demanda">Sob demanda</option>
+                                <option value="Sob_Demanda">Sob demanda</option>
                             </select>
                         </div>
                     </div>
@@ -98,20 +99,13 @@
                     <!-- Descrição -->
                     <div class="form-group">
                         <label for="descricao"><strong>Descrição Detalhada *</strong></label>
-                        <textarea id="descricao" class="input" placeholder="Descreva o escopo do serviço, quantidade de peças, tipo de tecido e detalhes do trabalho..." required></textarea>
+                        <textarea id="descricao" class="input" placeholder="Descreva o escopo do serviço, quantidade de peças, tipo de tecido e detalhes do trabalho..." maxlength="500" required></textarea>
                     </div>
 
                     <!-- Referências Visuais / Upload -->
                     <div class="form-group">
-                        <label for="refs-vaga"><strong>Referências Visuais / Briefing (máximo 10)</strong></label>
-                        <div class="upload-row">
-                            <label class="btn btn-outline" for="refs-vaga">
-                                <i class="bi bi-images"></i> Adicionar fotos
-                            </label>
-                            <input type="file" id="refs-vaga" accept="image/*" multiple hidden />
-                        </div>
-                        <div class="referencias-grid" id="refs-vaga-preview"></div>
-                        <span class="field-message">Cada imagem deve ter até 5MB.</span>
+                        <label><strong>Referências Visuais / Briefing</strong></label>
+                        <span class="field-message">Em breve.</span>
                     </div>
 
                     <!-- Ações do Formulário -->
@@ -128,6 +122,7 @@
     </div>
 
     <script src="/js/config.js"></script>
+    <script src="/js/api.js"></script>
     <script src="/js/ui.js"></script>
     <script src="/js/nav.js"></script>
     <script src="/js/12-publicar-vaga.js"></script>
