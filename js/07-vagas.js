@@ -1,5 +1,12 @@
-const API_URL = `${API_BASE}/vagas`;
 let todasVagas = [];
+
+// vagaIds (string) em que o freelancer logado já se candidatou (vazio para
+// visitantes/empresas). Preenchido em carregarVagas() via GET /User/candidaturas/minhas.
+let vagaIdsCandidatadas = new Set();
+
+// Nome das empresas donas das vagas, obtido via GET /Company/exibirPerfilPublicoEmpresa.
+// Cache em memória por empresaId (string) -> nome, ou 'Empresa' se não foi possível obter.
+const cacheNomesEmpresa = {};
 
 document.addEventListener('DOMContentLoaded', () => {
     const sessao = obterSessao();
@@ -50,7 +57,98 @@ function configurarMenuMobile() {
 }
 
 /* -------------------------------------------------------------------------- */
-/* 2. CARREGAR VAGAS DA API (GET)                                             */
+/* 2. MAPEAMENTO back -> tela                                                 */
+/* -------------------------------------------------------------------------- */
+// O back devolve orcamento/usuarioId (entre outros campos); a tela usa
+// valor/empresaId e o campo status (nunca "ativa"). O nome da empresa não
+// vem na vaga (só via perfil público — ver buscarNomeEmpresa).
+function mapearVaga(v) {
+    if (!v) return v;
+    return {
+        ...v,
+        valor: v.orcamento,
+        empresaId: v.usuarioId
+    };
+}
+
+// especialidade/modalidade vêm do back como enum em texto, sem acento e com
+// "_" no lugar do espaço (ex.: "Peca_Piloto", "Sob_Demanda"). Os mapas abaixo
+// dão o rótulo legível certo (inclusive os acentos que o enum não tem); se um
+// valor novo não mapeado aparecer, cai no fallback de só troca "_" por espaço.
+const LABELS_ESPECIALIDADE = {
+    Costura_Reta: 'Costura reta',
+    Overloque: 'Overloque',
+    Modelagem: 'Modelagem',
+    Peca_Piloto: 'Peça piloto',
+    Amostras: 'Amostras',
+    Acabamento: 'Acabamento',
+    Bordado: 'Bordado',
+    Estamparia: 'Estamparia'
+};
+
+const LABELS_MODALIDADE = {
+    Presencial: 'Presencial',
+    Hibrida: 'Híbrida',
+    Remota: 'Remota',
+    Sob_Demanda: 'Sob demanda'
+};
+
+function rotularEnum(valor, mapa) {
+    if (!valor) return '';
+    return mapa[valor] || String(valor).replace(/_/g, ' ');
+}
+
+/* -------------------------------------------------------------------------- */
+/* 3. NOME DA EMPRESA (perfil público, com cache em memória)                  */
+/* -------------------------------------------------------------------------- */
+async function buscarNomeEmpresa(empresaId) {
+    if (cacheNomesEmpresa[empresaId] !== undefined) return cacheNomesEmpresa[empresaId];
+    try {
+        const perfil = await api(`/Company/exibirPerfilPublicoEmpresa?userId=${encodeURIComponent(empresaId)}`, { semRedirect: true });
+        cacheNomesEmpresa[empresaId] = (perfil && perfil.companyName) || 'Empresa';
+    } catch (erro) {
+        console.error(`Erro ao buscar nome da empresa ${empresaId}:`, erro);
+        cacheNomesEmpresa[empresaId] = 'Empresa';
+    }
+    return cacheNomesEmpresa[empresaId];
+}
+
+// Busca os nomes em paralelo, só das empresas ainda não resolvidas, e depois
+// atualiza o texto já renderizado nos cards (não bloqueia a renderização).
+async function carregarNomesEmpresas(vagas) {
+    const idsUnicos = Array.from(new Set(vagas.map(v => v.empresaId).filter(Boolean).map(String)));
+    const idsFaltando = idsUnicos.filter(id => cacheNomesEmpresa[id] === undefined);
+    if (!idsFaltando.length) return;
+
+    await Promise.allSettled(idsFaltando.map(buscarNomeEmpresa));
+
+    document.querySelectorAll('.job-card[data-empresa-id]').forEach(function (card) {
+        const id = card.dataset.empresaId;
+        const nome = cacheNomesEmpresa[id];
+        if (!nome) return;
+        const elNome = card.querySelector('.company-name-texto');
+        if (elNome) elNome.textContent = nome;
+    });
+}
+
+/* -------------------------------------------------------------------------- */
+/* 4. MINHAS CANDIDATURAS (marca "Candidatura enviada" ao carregar)          */
+/* -------------------------------------------------------------------------- */
+async function carregarVagaIdsCandidatadas() {
+    const sessao = obterSessao();
+    if (!sessao || sessao.tipo !== 'freelancers') return new Set();
+
+    try {
+        const lista = await api('/User/candidaturas/minhas');
+        return new Set((Array.isArray(lista) ? lista : []).map(c => String(c.vagaId)));
+    } catch (erro) {
+        console.error('Erro ao carregar minhas candidaturas:', erro);
+        return new Set();
+    }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 5. CARREGAR VAGAS DA API (GET)                                            */
 /* -------------------------------------------------------------------------- */
 async function carregarVagas() {
     const container = document.getElementById('lista-vagas');
@@ -58,11 +156,15 @@ async function carregarVagas() {
 
     try {
         // Só mostra vagas realmente abertas — pausadas/encerradas não devem
-        // aparecer no mural nem poder receber novas candidaturas.
-        const response = await fetch(`${API_URL}?status=Aberta`);
-        if (!response.ok) throw new Error('Erro ao buscar vagas.');
+        // aparecer no mural nem poder receber novas candidaturas. GET /vagas
+        // é anônimo, mas usamos semRedirect para nunca redirecionar visitantes.
+        const [vagasBack, idsCandidatados] = await Promise.all([
+            api('/vagas?status=Aberta', { semRedirect: true }),
+            carregarVagaIdsCandidatadas()
+        ]);
 
-        todasVagas = await response.json();
+        todasVagas = (Array.isArray(vagasBack) ? vagasBack : []).map(mapearVaga);
+        vagaIdsCandidatadas = idsCandidatados;
 
         // vindo da lupa da Home via ?busca=
         const termoDaUrl = new URLSearchParams(window.location.search).get('busca');
@@ -73,19 +175,22 @@ async function carregarVagas() {
         } else {
             renderizarVagas(ordenarVagas(todasVagas));
         }
+
+        // Não bloqueia a renderização: atualiza os nomes das empresas depois.
+        carregarNomesEmpresas(todasVagas);
     } catch (error) {
         console.error('Erro ao carregar vagas:', error);
         container.innerHTML = `
             <div class="empty-state">
                 <i class="bi bi-exclamation-triangle"></i>
-                <p>Não foi possível carregar as vagas. Tente novamente em instantes.</p>
+                <p>${escapeHtml(error.message || 'Não foi possível carregar as vagas. Tente novamente em instantes.')}</p>
             </div>
         `;
     }
 }
 
 /* -------------------------------------------------------------------------- */
-/* 3. RENDERIZAR CARDS NO HTML                                                */
+/* 6. RENDERIZAR CARDS NO HTML                                                */
 /* -------------------------------------------------------------------------- */
 function renderizarVagas(vagas) {
     const container = document.getElementById('lista-vagas');
@@ -106,13 +211,19 @@ function renderizarVagas(vagas) {
         const card = document.createElement('article');
         card.className = 'job-card';
         card.style.cursor = 'pointer';
+        card.dataset.empresaId = vaga.empresaId || '';
         card.addEventListener('click', (e) => {
             // Não navega se o clique foi no botão de candidatura ou no link da empresa
             if (e.target.closest('.btn-candidatar') || e.target.closest('.company-name')) return;
             window.location.href = `/pages/18-vaga-detalhe.html?id=${encodeURIComponent(vaga.id)}`;
         });
 
-        const empresaNomeSeguro = escapeHtml(vaga.empresaNome || 'Confecção Parceira');
+        const nomeEmpresaAtual = vaga.empresaId ? (cacheNomesEmpresa[String(vaga.empresaId)] || 'Empresa') : 'Empresa';
+        const jaCandidatado = vagaIdsCandidatadas.has(String(vaga.id));
+
+        const especialidadeLabel = rotularEnum(vaga.especialidade, LABELS_ESPECIALIDADE);
+        const modalidadeLabel = rotularEnum(vaga.modalidade, LABELS_MODALIDADE);
+        const local = [vaga.cidade, vaga.estado].filter(Boolean).join(' - ') || '—';
 
         card.innerHTML = `
             <div>
@@ -120,10 +231,10 @@ function renderizarVagas(vagas) {
                     <div>
                         <h2 class="job-title">${escapeHtml(vaga.titulo)}</h2>
                         ${vaga.empresaId
-                            ? `<a class="company-name" href="/pages/26-perfil-empresa-publico.html?id=${encodeURIComponent(vaga.empresaId)}"><i class="bi bi-building"></i> ${empresaNomeSeguro}</a>`
-                            : `<span class="company-name"><i class="bi bi-building"></i> ${empresaNomeSeguro}</span>`}
+                            ? `<a class="company-name" href="/pages/26-perfil-empresa-publico.html?id=${encodeURIComponent(vaga.empresaId)}"><i class="bi bi-building"></i> <span class="company-name-texto">${escapeHtml(nomeEmpresaAtual)}</span></a>`
+                            : `<span class="company-name"><i class="bi bi-building"></i> <span class="company-name-texto">${escapeHtml(nomeEmpresaAtual)}</span></span>`}
                     </div>
-                    <span class="job-badge">${escapeHtml(vaga.especialidade)}</span>
+                    <span class="job-badge">${escapeHtml(especialidadeLabel)}</span>
                 </div>
 
                 <p class="job-desc">${escapeHtml(vaga.descricao)}</p>
@@ -132,18 +243,21 @@ function renderizarVagas(vagas) {
             <div class="job-meta">
                 <div class="meta-tags">
                     <div class="meta-item">
-                        <i class="bi bi-cash-stack"></i> <strong>${escapeHtml(vaga.valor)}</strong>
+                        <i class="bi bi-cash-stack"></i> <strong>${escapeHtml(formatarMoeda(vaga.valor))}</strong>
                     </div>
                     <div class="meta-item">
-                        <i class="bi bi-clock"></i> Prazo: <strong>${escapeHtml(vaga.prazo)}</strong>
+                        <i class="bi bi-clock"></i> Prazo: <strong>${escapeHtml(formatarData(vaga.prazoConclusao))}</strong>
                     </div>
                     <div class="meta-item">
-                        <i class="bi bi-geo-alt"></i> <span>${escapeHtml(vaga.local)}</span>
+                        <i class="bi bi-geo-alt"></i> <span>${escapeHtml(local)}</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="bi bi-laptop"></i> <span>${escapeHtml(modalidadeLabel)}</span>
                     </div>
                 </div>
 
-                <button class="btn btn-purple btn-candidatar" data-id="${escapeHtml(vaga.id)}">
-                    Candidatar-se <i class="bi bi-send"></i>
+                <button class="btn ${jaCandidatado ? 'btn-light-purple' : 'btn-purple'} btn-candidatar" data-id="${escapeHtml(vaga.id)}" ${jaCandidatado ? 'disabled' : ''}>
+                    ${jaCandidatado ? 'Candidatura enviada <i class="bi bi-check2"></i>' : 'Candidatar-se <i class="bi bi-send"></i>'}
                 </button>
             </div>
         `;
@@ -155,7 +269,7 @@ function renderizarVagas(vagas) {
 }
 
 /* -------------------------------------------------------------------------- */
-/* 4. FILTROS DE BUSCA, ESPECIALIDADE E LOCALIDADE                            */
+/* 7. FILTROS DE BUSCA, ESPECIALIDADE E LOCALIDADE                            */
 /* -------------------------------------------------------------------------- */
 let selectEstado = null;
 let inputCidade = null;
@@ -166,14 +280,15 @@ function ordenarVagas(vagas) {
     const copia = vagas.slice();
 
     if (ordenacao === 'valor') {
-        copia.sort(function (a, b) { return moedaParaNumero(b.valor) - moedaParaNumero(a.valor); });
+        // valor já é número (orcamento do back) — compara direto, sem moedaParaNumero.
+        copia.sort(function (a, b) { return (b.valor || 0) - (a.valor || 0); });
         return copia;
     }
 
     if (ordenacao === 'prazo') {
         copia.sort(function (a, b) {
-            const da = a.prazo ? new Date(a.prazo).getTime() : NaN;
-            const db_ = b.prazo ? new Date(b.prazo).getTime() : NaN;
+            const da = a.prazoConclusao ? new Date(a.prazoConclusao).getTime() : NaN;
+            const db_ = b.prazoConclusao ? new Date(b.prazoConclusao).getTime() : NaN;
             const va = isNaN(da) ? Infinity : da;
             const vb = isNaN(db_) ? Infinity : db_;
             return va - vb;
@@ -231,9 +346,10 @@ function aplicarFiltros() {
             !termo ||
             (vaga.titulo || '').toLowerCase().includes(termo) ||
             (vaga.descricao || '').toLowerCase().includes(termo) ||
-            (vaga.especialidade || '').toLowerCase().includes(termo) ||
-            ((vaga.empresaNome || '') && vaga.empresaNome.toLowerCase().includes(termo));
+            rotularEnum(vaga.especialidade, LABELS_ESPECIALIDADE).toLowerCase().includes(termo);
 
+        // Filtro de especialidade compara o valor bruto do enum (igual ao
+        // "value" das <option>), não o rótulo traduzido.
         const bateEsp = esp === '' || vaga.especialidade === esp;
 
         const bateUf = !uf || String(vaga.estado || '').toUpperCase() === uf.toUpperCase();
@@ -246,13 +362,15 @@ function aplicarFiltros() {
 }
 
 /* -------------------------------------------------------------------------- */
-/* 5. AÇÃO DE CANDIDATURA                                                     */
+/* 8. AÇÃO DE CANDIDATURA                                                     */
 /* -------------------------------------------------------------------------- */
 function initBotoesCandidatura() {
     const botoes = document.querySelectorAll('.btn-candidatar');
 
     botoes.forEach(btn => {
         btn.addEventListener('click', async () => {
+            if (btn.disabled) return;
+
             const sessao = obterSessao();
 
             if (!sessao) {
@@ -280,65 +398,29 @@ function initBotoesCandidatura() {
             btn.innerHTML = '<span class="spinner"></span> Enviando...';
 
             try {
-                // Evita candidatura duplicada para a mesma vaga.
-                const resExistente = await fetch(`${API_BASE}/candidaturas?freelancerId=${sessao.id}`);
-                const candidaturasDoFreelancer = resExistente.ok ? await resExistente.json() : [];
-                const existentes = candidaturasDoFreelancer.filter(c => String(c.vagaId) === String(vaga.id) && c.status !== 'Cancelada');
+                await api('/User/candidaturas', {
+                    method: 'POST',
+                    body: { vagaId: Number(vaga.id), mensagem: 'Tenho interesse nesta vaga.' }
+                });
 
-                if (existentes.length > 0) {
-                    mostrarMensagem('Você já se candidatou a esta vaga.', 'error');
+                vagaIdsCandidatadas.add(String(vaga.id));
+                btn.classList.replace('btn-purple', 'btn-light-purple');
+                btn.innerHTML = 'Candidatura enviada <i class="bi bi-check2"></i>';
+
+                mostrarMensagem(`Parabéns, ${(sessao.nome || '').split(' ')[0]}! Sua proposta para "${vaga.titulo}" foi enviada para a confecção.`, 'success');
+            } catch (erro) {
+                console.error('Erro ao enviar candidatura:', erro);
+                if (erro.status === 409) {
+                    // Já candidatado, ou a vaga não está mais aberta: mensagem do back + botão travado.
+                    vagaIdsCandidatadas.add(String(vaga.id));
+                    btn.classList.replace('btn-purple', 'btn-light-purple');
+                    btn.innerHTML = 'Candidatura enviada <i class="bi bi-check2"></i>';
+                    mostrarMensagem(erro.message || 'Você já se candidatou a esta vaga.', 'error');
+                } else {
+                    mostrarMensagem('Não foi possível enviar sua candidatura. Tente novamente.', 'error');
                     btn.disabled = false;
                     btn.innerHTML = textoOriginal;
-                    return;
                 }
-
-                const novaCandidatura = {
-                    vagaId: vaga.id,
-                    empresaId: vaga.empresaId,
-                    empresaNome: vaga.empresaNome || 'Confecção',
-                    nomeEmpresa: vaga.empresaNome || 'Confecção',
-                    titulo: vaga.titulo,
-                    cidade: vaga.cidade || '',
-                    estado: vaga.estado || '',
-                    valor: vaga.valor || '',
-                    prazo: vaga.prazo || '',
-                    dataCandidatura: new Date().toISOString(),
-                    freelancerId: sessao.id,
-                    freelancerNome: sessao.nome,
-                    status: 'Em análise',
-                    tipo: 'Vaga',
-                    link: '18-vaga-detalhe.html'
-                };
-
-                const res = await fetch(`${API_BASE}/candidaturas`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(novaCandidatura)
-                });
-
-                if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
-
-                // Avisa a empresa dona da vaga sobre a nova candidatura.
-                criarNotificacao({
-                    usuarioId: vaga.empresaId,
-                    usuarioTipo: 'empresas',
-                    tipo: 'candidatura',
-                    titulo: 'Nova candidatura recebida',
-                    mensagem: `${sessao.nome} se candidatou à vaga "${vaga.titulo}".`,
-                    link: `/pages/17-candidatos-vaga.html?id=${encodeURIComponent(vaga.id)}`
-                });
-
-                btn.classList.replace('btn-purple', 'btn-light-purple');
-                btn.innerHTML = 'Candidatura Enviada! <i class="bi bi-check2"></i>';
-                btn.style.backgroundColor = '#e6f4ea';
-                btn.style.color = '#137333';
-
-                mostrarMensagem(`Parabéns, ${sessao.nome.split(' ')[0]}! Sua proposta para "${vaga.titulo}" foi enviada para a confecção.`, 'success');
-            } catch (error) {
-                console.error('Erro ao enviar candidatura:', error);
-                mostrarMensagem('Não foi possível enviar sua candidatura. Tente novamente.', 'error');
-                btn.disabled = false;
-                btn.innerHTML = textoOriginal;
             }
         });
     });

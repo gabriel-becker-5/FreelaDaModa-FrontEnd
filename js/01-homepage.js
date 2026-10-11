@@ -94,11 +94,42 @@ document.querySelectorAll('.faq-item').forEach((item) => {
         return cacheFreelancers;
     }
 
+    // O back devolve orcamento/usuarioId (entre outros campos); a busca usa
+    // titulo/descricao/especialidade, então mapeamos só o necessário.
+    function mapearVaga(v) {
+        if (!v) return v;
+        return {
+            ...v,
+            valor: v.orcamento,
+            empresaId: v.usuarioId
+        };
+    }
+
+    // especialidade vem do back como enum em texto, sem acento e com "_" no
+    // lugar do espaço (ex.: "Peca_Piloto"). Fallback: só troca "_" por espaço.
+    const LABELS_ESPECIALIDADE = {
+        Costura_Reta: 'Costura reta',
+        Overloque: 'Overloque',
+        Modelagem: 'Modelagem',
+        Peca_Piloto: 'Peça piloto',
+        Amostras: 'Amostras',
+        Acabamento: 'Acabamento',
+        Bordado: 'Bordado',
+        Estamparia: 'Estamparia'
+    };
+
+    function rotularEspecialidade(valor) {
+        if (!valor) return '';
+        return LABELS_ESPECIALIDADE[valor] || String(valor).replace(/_/g, ' ');
+    }
+
     async function buscarVagas() {
         if (cacheVagas) return cacheVagas;
         try {
-            const res = await fetch(`${API_BASE}/vagas`);
-            cacheVagas = res.ok ? await res.json() : [];
+            // GET /vagas é anônimo; semRedirect evita redirecionar um visitante
+            // não logado por causa desta busca.
+            const vagas = await api('/vagas?status=Aberta', { semRedirect: true });
+            cacheVagas = Array.isArray(vagas) ? vagas.map(mapearVaga) : [];
         } catch (erro) {
             console.error('Erro ao carregar vagas para busca:', erro);
             cacheVagas = [];
@@ -129,11 +160,11 @@ document.querySelectorAll('.faq-item').forEach((item) => {
         const vagas = await buscarVagas();
         return vagas
             .filter(function (v) {
-                return bateTermo(v.titulo, termo) || bateTermo(v.especialidade, termo) || bateTermo(v.descricao, termo);
+                return bateTermo(v.titulo, termo) || bateTermo(v.descricao, termo) || bateTermo(rotularEspecialidade(v.especialidade), termo);
             })
             .slice(0, 6)
             .map(function (v) {
-                return { titulo: v.titulo, subtitulo: v.especialidade || v.empresaNome || 'Vaga', valor: v.titulo };
+                return { titulo: v.titulo, subtitulo: rotularEspecialidade(v.especialidade) || 'Vaga', valor: v.titulo };
             });
     }
 
