@@ -6,6 +6,7 @@
 //   POST  /vagas/{vagaId}/contratar  { freelancerId }   -> seleciona o candidato (UMA chamada:
 //         aceita a candidatura, rejeita as outras, encerra a vaga e cria a OS Em andamento)
 //   PATCH /User/candidaturas/status?vagaId=&freelancerId=&statusCandidatura=Rejeitada  (sem corpo)
+//   Link "Conversar" abre o chat com contatoId do freelancer em todas as linhas.
 //
 // REGRA IMPORTANTE: NUNCA aceitar candidato pelo PATCH de status com "Aceita".
 // Selecionar é sempre pelo contratar; senão a candidatura fica aceita sem OS e o
@@ -245,6 +246,12 @@ function preencherLinha({ candidatura }) {
     linkPerfil.className = 'btn btn-outline';
     linkPerfil.innerHTML = '<i class="bi bi-person-lines-fill"></i> Ver Perfil';
     divAcoes.appendChild(linkPerfil);
+
+    const linkConversar = document.createElement('a');
+    linkConversar.href = `/pages/11-chat.html?contatoId=${encodeURIComponent(candidatura.freelancerId)}`;
+    linkConversar.className = 'btn btn-outline';
+    linkConversar.innerHTML = '<i class="bi bi-chat-dots"></i> Conversar';
+    divAcoes.appendChild(linkConversar);
 
     if (podeAgir) {
         const botaoSelecionar = document.createElement('button');
