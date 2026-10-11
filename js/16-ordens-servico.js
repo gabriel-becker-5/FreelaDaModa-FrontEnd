@@ -1,12 +1,21 @@
 // Ordens de Serviço (empresa)
+//
+// Integração com o back (Fase 2.2):
+//   GET  /OrdemServico/listar            -> OS do usuário logado (o back já filtra)
+//   POST /OrdemServico/{id}/concluir     -> só a empresa dona da OS
+//   POST /OrdemServico/{id}/cancelar     -> empresa dona ou freelancer da OS
+//
+// Usa o helper api(caminho, opcoes) do api.js (Fase 0): o caminho é relativo ao API_BASE,
+// o Bearer token é injetado, a resposta já vem sem o envelope (conteúdo de "dados") e,
+// em erro, lança um Error com a mensagem do back (erro.status traz o código HTTP;
+// em 401 o helper já redireciona para o login).
 
-const API_URL_OS = `${API_BASE}/ordensServico`;
+const API_URL_OS = '/OrdemServico';
 
 const sessao = exigirTipo('empresas');
 if (!sessao) {
     throw new Error('Sessão inválida');
 }
-let token;
 
 renderizarSidebar(document.querySelector('.sidebar'), 'empresas', '16-ordens-servico');
 renderizarTopbar(document.querySelector('#header-acoes'), sessao);
@@ -18,7 +27,6 @@ const conteudoPerfil = document.querySelector('#perfil-conteudo');
 const filtroTitulo = document.querySelector('#filtroTitulo');
 const filtroStatus = document.querySelector('#filtroStatus');
 const filtroOrdenar = document.querySelector('#filtroOrdenar');
-const filtroEstado = document.querySelector('#filtroEstado');
 const filtroCidade = document.querySelector('#filtroCidade');
 const btnLimparFiltros = document.querySelector('#btnLimparFiltros');
 const tbody = document.querySelector('#tbodyOS');
@@ -31,9 +39,15 @@ const resumoPaginas = document.querySelector('#resumoPaginas');
 
 const PAGE_SIZE = 10;
 
+// Textos exatos de status aceitos pelo back.
+const STATUS_EM_ANDAMENTO = 'Em andamento';
+const STATUS_CONCLUIDA = 'Concluída';
+const STATUS_CANCELADA = 'Cancelada';
+
 let todasOS = [];
 let osFiltradas = [];
 let paginaAtual = 1;
+let acaoEmAndamento = false;
 
 /* ------------------------- menu mobile ------------------------------------ */
 
@@ -60,17 +74,28 @@ sidebarToggleBtn.addEventListener('click', () => {
 });
 sidebarOverlay.addEventListener('click', fecharMenu);
 
-/* ------------------------- filtros de localidade -------------------------- */
-
-if (filtroEstado) carregarUFs(filtroEstado);
-if (filtroEstado && filtroCidade) montarAutocompleteCidade(filtroCidade, filtroEstado);
-
 /* ------------------------- badges ----------------------------------------- */
 
 function classeBadgeStatus(status) {
-    if (status === 'Concluída') return 'badge-success';
-    if (status === 'Cancelada') return 'badge-danger';
+    if (status === STATUS_CONCLUIDA) return 'badge-success';
+    if (status === STATUS_CANCELADA) return 'badge-danger';
     return 'badge-warning';
+}
+
+/* ------------------------- valor ------------------------------------------ */
+
+// O valor pode chegar como número (back) ou como texto "R$ 2.500,00" (mock).
+function valorNumerico(valor) {
+    if (typeof valor === 'number') return valor;
+    return moedaParaNumero(valor);
+}
+
+function formatarValor(valor) {
+    if (valor === null || valor === undefined || valor === '') return '—';
+    if (typeof valor === 'number') {
+        return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+    return valor;
 }
 
 /* ------------------------- carregar dados --------------------------------- */
@@ -82,10 +107,16 @@ async function carregarOrdens() {
     conteudoPerfil.setAttribute('hidden', '');
 
     try {
-        const resposta = await fetch(`${API_URL_OS}?empresaId=${encodeURIComponent(sessao.id)}`);
-        if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
+        // O back já devolve só as OS do usuário logado (dono ou freelancer).
+        const dados = await api(`${API_URL_OS}/listar`);
 
-        todasOS = await resposta.json();
+        if (Array.isArray(dados)) {
+            todasOS = dados;
+        } else if (dados && Array.isArray(dados.dados)) {
+            todasOS = dados.dados;
+        } else {
+            todasOS = [];
+        }
 
         loadingBar.setAttribute('hidden', '');
         conteudoPerfil.removeAttribute('hidden');
@@ -106,6 +137,7 @@ async function carregarOrdens() {
     } catch (erro) {
         console.error('Erro ao carregar ordens de serviço:', erro);
         loadingBar.setAttribute('hidden', '');
+        erroBar.textContent = (erro && erro.message) || 'Não foi possível carregar as ordens de serviço.';
         erroBar.removeAttribute('hidden');
     }
 }
@@ -117,7 +149,7 @@ function ordenarOS(lista) {
 
     if (ordenacao === 'valor') {
         lista.sort(function (a, b) {
-            return moedaParaNumero(b.valor) - moedaParaNumero(a.valor);
+            return valorNumerico(b.valor) - valorNumerico(a.valor);
         });
         return;
     }
@@ -133,11 +165,10 @@ function ordenarOS(lista) {
         return;
     }
 
-    // "Mais recentes": por data de publicação (fallback: ordem da API).
+    // "Mais recentes": o back não devolve data de criação da OS, então usa o id
+    // (maior id primeiro).
     lista.sort(function (a, b) {
-        const da = a.dataPublicacao ? new Date(a.dataPublicacao).getTime() : 0;
-        const db_ = b.dataPublicacao ? new Date(b.dataPublicacao).getTime() : 0;
-        return db_ - da;
+        return (Number(b.id) || 0) - (Number(a.id) || 0);
     });
 }
 
@@ -146,15 +177,13 @@ function ordenarOS(lista) {
 function aplicarFiltros() {
     const termo = removerAcentos(filtroTitulo.value.trim().toLowerCase());
     const status = filtroStatus.value;
-    const uf = filtroEstado ? filtroEstado.value : '';
     const cidade = filtroCidade ? removerAcentos(filtroCidade.value.trim().toLowerCase()) : '';
 
     osFiltradas = todasOS.filter(function (os) {
         const bateTermo = !termo || removerAcentos(String(os.titulo || '')).toLowerCase().includes(termo);
         const bateStatus = !status || os.status === status;
-        const bateUf = !uf || String(os.estado || '').toUpperCase() === uf.toUpperCase();
         const bateCidade = !cidade || removerAcentos(String(os.cidade || '')).toLowerCase().includes(cidade);
-        return bateTermo && bateStatus && bateUf && bateCidade;
+        return bateTermo && bateStatus && bateCidade;
     });
 
     ordenarOS(osFiltradas);
@@ -207,16 +236,13 @@ function preencherLinha(os) {
     }
 
     const tdLocal = document.createElement('td');
-    tdLocal.textContent = [os.cidade, os.estado].filter(Boolean).join(' - ') || '—';
+    tdLocal.textContent = os.cidade || '—';
 
     const tdValor = document.createElement('td');
-    tdValor.textContent = os.valor || '—';
+    tdValor.textContent = formatarValor(os.valor);
 
     const tdPrazo = document.createElement('td');
     tdPrazo.textContent = formatarData(os.prazo) || '—';
-
-    const tdDataInicio = document.createElement('td');
-    tdDataInicio.textContent = formatarData(os.dataPublicacao) || '—';
 
     const tdStatus = document.createElement('td');
     const badge = document.createElement('span');
@@ -240,16 +266,17 @@ function preencherLinha(os) {
     linkEditar.href = `/pages/14-editar-os.html?id=${encodeURIComponent(os.id)}`;
     divAcoes.appendChild(linkEditar);
 
-    if (os.status === 'Em andamento') {
+    // Concluir e Cancelar só existem enquanto a OS está Em andamento
+    // (Concluída e Cancelada são estados finais no back).
+    if (os.status === STATUS_EM_ANDAMENTO) {
         const botaoFinalizar = document.createElement('button');
         botaoFinalizar.type = 'button';
         botaoFinalizar.className = 'btn btn-outline';
         botaoFinalizar.style.color = '#d93025';
         botaoFinalizar.style.borderColor = '#ffc1bc';
         botaoFinalizar.innerHTML = '<i class="bi bi-check-circle"></i> Encerrar';
-        
         botaoFinalizar.addEventListener('click', function () {
-            alterarStatus(os, 'Concluída');
+            alterarStatus(os, STATUS_CONCLUIDA);
         });
         divAcoes.appendChild(botaoFinalizar);
 
@@ -258,7 +285,7 @@ function preencherLinha(os) {
         botaoCancelar.className = 'btn btn-danger';
         botaoCancelar.innerHTML = '<i class="bi bi-x-circle"></i> Cancelar';
         botaoCancelar.addEventListener('click', function () {
-            alterarStatus(os, 'Cancelada');
+            alterarStatus(os, STATUS_CANCELADA);
         });
         divAcoes.appendChild(botaoCancelar);
     }
@@ -270,7 +297,6 @@ function preencherLinha(os) {
     tr.appendChild(tdLocal);
     tr.appendChild(tdValor);
     tr.appendChild(tdPrazo);
-    tr.appendChild(tdDataInicio);
     tr.appendChild(tdFreelancer);
     tr.appendChild(tdAcoes);
 
@@ -279,63 +305,50 @@ function preencherLinha(os) {
     tdLocal.setAttribute('data-label', 'Local');
     tdValor.setAttribute('data-label', 'Valor');
     tdPrazo.setAttribute('data-label', 'Prazo');
-    tdDataInicio.setAttribute('data-label', 'Data Início');
     tdFreelancer.setAttribute('data-label', 'Freelancer');
     tdAcoes.setAttribute('data-label', 'Ações');
 
     tbody.appendChild(tr);
 }
 
-/* ------------------------- finalizar / cancelar --------------------------- */
+/* ------------------------- concluir / cancelar ---------------------------- */
 
 async function alterarStatus(os, novoStatus) {
-    const finalizando = novoStatus === 'Concluída';
+    if (acaoEmAndamento) return;
+
+    const finalizando = novoStatus === STATUS_CONCLUIDA;
     const confirmou = await modalConfirmar({
         titulo: finalizando ? 'Finalizar ordem de serviço' : 'Cancelar ordem de serviço',
         mensagem: finalizando
-            ? `Confirmar a finalização da OS "${os.titulo}"? Ela passará a aguardar avaliação.`
-            : `Deseja cancelar a OS "${os.titulo}"? O histórico será preservado e essa ação não poderá ser desfeita.`,
+            ? `Confirmar a finalização da OS "${os.titulo}"? Essa ação não poderá ser desfeita.`
+            : `Deseja cancelar a OS "${os.titulo}"? Essa ação não poderá ser desfeita.`,
         textoConfirmar: finalizando ? 'Finalizar' : 'Cancelar',
         textoCancelar: 'Voltar',
         perigoso: !finalizando
     });
     if (!confirmou) return;
 
+    acaoEmAndamento = true;
+    const acao = finalizando ? 'concluir' : 'cancelar';
+    let mensagemErro = '';
+
     try {
-        const novoHistorico = (os.historico || []).concat([
-            {
-                data: hojeLocalISO(),
-                evento: finalizando ? 'OS finalizada pela empresa.' : 'OS cancelada pela empresa.'
-            }
-        ]);
-
-        const resposta = await fetch(`${API_URL_OS}/${os.id}`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ status: novoStatus, historico: novoHistorico })
-        });
-        if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
-
-        // Avisa o freelancer sobre a mudança de status da OS.
-        if (os.freelancerId) {
-            criarNotificacao({
-                usuarioId: os.freelancerId,
-                usuarioTipo: 'freelancers',
-                tipo: 'os',
-                titulo: 'Ordem de serviço atualizada',
-                mensagem: `A OS "${os.titulo}" foi ${finalizando ? 'finalizada' : 'cancelada'} pela empresa.`,
-                link: `/pages/19-ordem-servico-detalhe.html?id=${encodeURIComponent(os.id)}`
-            });
-        }
-
+        // POST sem corpo; o back valida quem pode e se a OS ainda está Em andamento.
+        await api(`${API_URL_OS}/${encodeURIComponent(os.id)}/${acao}`, { method: 'POST' });
         toastMsg(finalizando ? 'Ordem de serviço finalizada com sucesso.' : 'Ordem de serviço cancelada.', 'success');
-        carregarOrdens();
     } catch (erro) {
         console.error('Erro ao atualizar status da ordem de serviço:', erro);
-        erroBar.textContent = 'Não foi possível atualizar a ordem de serviço. Tente novamente em instantes.';
+        mensagemErro = (erro && erro.message) || 'Não foi possível atualizar a ordem de serviço. Tente novamente em instantes.';
+    } finally {
+        acaoEmAndamento = false;
+    }
+
+    // Sucesso ou erro (inclusive 409, OS já concluída/cancelada): recarrega para
+    // mostrar o estado real da OS.
+    await carregarOrdens();
+
+    if (mensagemErro) {
+        erroBar.textContent = mensagemErro;
         erroBar.removeAttribute('hidden');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -346,14 +359,12 @@ async function alterarStatus(os, novoStatus) {
 filtroTitulo.addEventListener('input', aplicarFiltros);
 filtroStatus.addEventListener('change', aplicarFiltros);
 filtroOrdenar.addEventListener('change', aplicarFiltros);
-if (filtroEstado) filtroEstado.addEventListener('change', aplicarFiltros);
 if (filtroCidade) filtroCidade.addEventListener('input', aplicarFiltros);
 
 btnLimparFiltros.addEventListener('click', function () {
     filtroTitulo.value = '';
     filtroStatus.value = '';
     filtroOrdenar.value = 'recentes';
-    if (filtroEstado) filtroEstado.value = '';
     if (filtroCidade) filtroCidade.value = '';
     aplicarFiltros();
 });

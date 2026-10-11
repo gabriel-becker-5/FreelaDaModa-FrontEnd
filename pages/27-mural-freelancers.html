@@ -32,6 +32,7 @@
             <span class="badge"><i class="bi bi-people"></i> TALENTOS DA MODA</span>
             <h1>Encontre o profissional certo para sua confecção</h1>
             <p>Busque por nome, especialidade ou localidade entre os freelancers cadastrados na plataforma.</p>
+            <p>Os filtros pesquisam somente os até 10 freelancers da página atual. Use Anterior e Próxima para consultar outras páginas.</p>
 
             <div class="filter-bar">
                 <input type="text" id="filtro-busca" placeholder="Buscar por nome ou especialidade..." />
@@ -51,14 +52,26 @@
         </section>
 
         <!-- LISTAGEM DE CARDS DE FREELANCERS -->
+        <div id="mensagemStatus" class="alert mb-md" role="alert" hidden></div>
+        <button id="btn-tentar-novamente" class="btn btn-outline mb-md" type="button" hidden>
+            <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Tentar novamente
+        </button>
+
         <section class="freelancers-layout" id="lista-freelancers">
             <!-- Freelancers renderizados dinamicamente pelo 27-mural-freelancers.js -->
         </section>
+
+        <div class="pagination" id="paginacao-freelancers" hidden>
+            <button class="btn" type="button" id="btnPaginaAnterior" disabled>Anterior</button>
+            <span id="resumoPaginas" aria-live="polite"></span>
+            <button class="btn" type="button" id="btnPaginaProxima" disabled>Próxima</button>
+        </div>
 
     </main>
     </div>
 
     <script src="/js/config.js"></script>
+    <script src="/js/api.js"></script>
     <script src="/js/ui.js"></script>
     <script src="/js/nav.js"></script>
     <script src="/js/27-mural-freelancers.js"></script>

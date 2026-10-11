@@ -1,6 +1,25 @@
 // Candidatos da Vaga (empresa)
+//
+// Integração com o back (Fase 2.1):
+//   GET   /vagas/{id}                                   -> título da vaga
+//   GET   /User/candidaturas?vagaId=                    -> candidaturas da vaga
+//   POST  /vagas/{vagaId}/contratar  { freelancerId }   -> seleciona o candidato (UMA chamada:
+//         aceita a candidatura, rejeita as outras, encerra a vaga e cria a OS Em andamento)
+//   PATCH /User/candidaturas/status?vagaId=&freelancerId=&statusCandidatura=Rejeitada  (sem corpo)
+//   Link "Conversar" abre o chat com contatoId do freelancer em todas as linhas.
+//
+// REGRA IMPORTANTE: NUNCA aceitar candidato pelo PATCH de status com "Aceita".
+// Selecionar é sempre pelo contratar; senão a candidatura fica aceita sem OS e o
+// contratar passa a responder 409 para essa vaga. O PATCH serve só para recusar.
+//
+// Usa o helper api(caminho, opcoes) do api.js (Fase 0): o caminho é relativo ao API_BASE,
+// o Bearer token é injetado, a resposta já vem sem o envelope (conteúdo de "dados") e,
+// em erro, lança um Error com a mensagem do back (erro.status traz o código HTTP;
+// em 401 o helper já redireciona para o login).
+//
 
-const API_URL = `${API_BASE}/candidaturas`;
+const API_URL_VAGAS = '/vagas';
+const API_URL_CANDIDATURAS = '/User/candidaturas';
 
 const sessao = exigirTipo('empresas');
 if (!sessao) {
@@ -27,8 +46,15 @@ const cardFiltros = document.querySelector('#cardFiltros');
 const cardTabela = document.querySelector('#cardTabela');
 const mensagemStatus = document.querySelector('#mensagemStatus');
 
+// Textos de status usados na tela (o back usa Pendente, Aceita e Rejeitada;
+// a tradução é feita por mapStatusCandidatura e mapStatusCandidaturaParaBack, do api.js).
+const STATUS_EM_ANALISE = 'Em análise';
+const STATUS_SELECIONADO = 'Selecionado';
+const STATUS_REJEITADO = 'Rejeitado';
+
 let vagaAtual = null;
 let todosCandidatos = [];
+let acaoEmAndamento = false;
 
 /* ------------------------- menu mobile ------------------------------------ */
 
@@ -55,7 +81,15 @@ sidebarToggleBtn.addEventListener('click', () => {
 });
 sidebarOverlay.addEventListener('click', fecharMenu);
 
-/* ------------------------- mensagens -------------------------------------- */
+/* ------------------------- utilitários ------------------------------------ */
+
+function exibirMensagem(texto, tipo) {
+    if (!mensagemStatus) return;
+    mensagemStatus.className = `alert mb-md alert-${tipo}`;
+    mensagemStatus.innerHTML = `<i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${escapeHtml(texto)}`;
+    mensagemStatus.hidden = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
 function iniciais(nome) {
     const partes = String(nome || '').trim().split(' ').filter(Boolean);
@@ -66,9 +100,26 @@ function iniciais(nome) {
 }
 
 function classeBadgeStatus(status) {
-    if (status === 'Selecionado' || status === 'Aprovado') return 'badge-success';
-    if (status === 'Rejeitado' || status === 'Rejeitada' || status === 'Cancelada') return 'badge-danger';
+    if (status === STATUS_SELECIONADO || status === 'Aprovado') return 'badge-success';
+    if (status === STATUS_REJEITADO || status === 'Rejeitada' || status === 'Cancelada') return 'badge-danger';
     return 'badge-warning';
+}
+
+// O helper pode devolver o objeto direto ou dentro de "dados".
+function extrairObjeto(dados) {
+    return (dados && dados.id === undefined && dados.dados) ? dados.dados : dados;
+}
+
+function extrairLista(dados) {
+    if (Array.isArray(dados)) return dados;
+    if (dados && Array.isArray(dados.dados)) return dados.dados;
+    return [];
+}
+
+// O nome do freelancer ainda não vem do back: sem nome, mostra o número do freelancer
+// para as linhas não ficarem todas iguais.
+function nomeDoCandidato(candidatura) {
+    return candidatura.freelancerNome || `Freelancer #${candidatura.freelancerId}`;
 }
 
 if (!vagaId) {
@@ -87,35 +138,20 @@ async function carregarCandidatos() {
     conteudoPerfil.setAttribute('hidden', '');
 
     try {
-        const resVaga = await fetch(`${API_BASE}/vagas/${vagaId}`);
-        if (!resVaga.ok) throw new Error(`Erro HTTP: ${resVaga.status}`);
-        vagaAtual = await resVaga.json();
+        const dadosVaga = await api(`${API_URL_VAGAS}/${encodeURIComponent(vagaId)}`);
+        vagaAtual = extrairObjeto(dadosVaga);
 
-        if (String(vagaAtual.empresaId) !== String(sessao.id)) {
-            loadingBar.setAttribute('hidden', '');
-            erroBar.textContent = 'Esta vaga não pertence à sua empresa.';
-            erroBar.removeAttribute('hidden');
-            return;
-        }
+        // Quem pode ver as candidaturas desta vaga é decidido pelo back.
+        const dadosCandidaturas = await api(`${API_URL_CANDIDATURAS}?vagaId=${encodeURIComponent(vagaId)}`);
+        const candidaturas = extrairLista(dadosCandidaturas);
 
-        tituloVagaEl.textContent = vagaAtual.titulo;
+        tituloVagaEl.textContent = (vagaAtual && vagaAtual.titulo) || '—';
 
-        // O json-server beta não filtra de forma confiável por "?vagaId="
-        // (a coleção mistura ids e quebra a indexação), então filtramos no cliente.
-        const resCandidaturas = await fetch(`${API_URL}?empresaId=${encodeURIComponent(sessao.id)}`);
-        if (!resCandidaturas.ok) throw new Error(`Erro HTTP: ${resCandidaturas.status}`);
-        const todasCandidaturas = await resCandidaturas.json();
-        const candidaturas = todasCandidaturas.filter(c => String(c.vagaId) === String(vagaId));
-
-        todosCandidatos = await Promise.all(candidaturas.map(async (candidatura) => {
-            try {
-                const resFreela = await fetch(`${API_BASE}/freelancers/${candidatura.freelancerId}`);
-                const freela = resFreela.ok ? await resFreela.json() : null;
-                return { candidatura, freela };
-            } catch (erro) {
-                return { candidatura, freela: null };
-            }
-        }));
+        todosCandidatos = candidaturas.map(function (candidatura) {
+            return {
+                candidatura: Object.assign({}, candidatura, { status: mapStatusCandidatura(candidatura.status) })
+            };
+        });
 
         loadingBar.setAttribute('hidden', '');
         conteudoPerfil.removeAttribute('hidden');
@@ -134,6 +170,7 @@ async function carregarCandidatos() {
     } catch (erro) {
         console.error('Erro ao carregar candidatos da vaga:', erro);
         loadingBar.setAttribute('hidden', '');
+        erroBar.textContent = (erro && erro.message) || 'Não foi possível carregar os candidatos da vaga.';
         erroBar.removeAttribute('hidden');
     }
 }
@@ -144,9 +181,8 @@ function renderizarCandidatos() {
     const termo = removerAcentos(filtroNome.value.trim().toLowerCase());
     const status = filtroStatus.value;
 
-    const filtrados = todosCandidatos.filter(function ({ candidatura, freela }) {
-        const nome = (freela && freela.nome) || candidatura.freelancerNome || '';
-        const bateTermo = !termo || removerAcentos(String(nome)).toLowerCase().includes(termo);
+    const filtrados = todosCandidatos.filter(function ({ candidatura }) {
+        const bateTermo = !termo || removerAcentos(String(nomeDoCandidato(candidatura))).toLowerCase().includes(termo);
         const bateStatus = !status || candidatura.status === status;
         return bateTermo && bateStatus;
     });
@@ -165,16 +201,11 @@ function renderizarCandidatos() {
     filtrados.forEach(preencherLinha);
 }
 
-function preencherLinha({ candidatura, freela }) {
-    const nome = (freela && freela.nome) || candidatura.freelancerNome || 'Freelancer';
-    const especialidades = (freela && Array.isArray(freela.especialidades)) ? freela.especialidades : [];
-    const disponibilidade = (freela && freela.disponibilidadeHorario) || 'Não informado';
-    const media = (freela && freela.mediaAvaliacoes) ? Number(freela.mediaAvaliacoes).toFixed(1) : '—';
-    const totalAvaliacoes = (freela && freela.totalAvaliacoes) || 0;
-    const podeAgir = candidatura.status === 'Em análise';
+function preencherLinha({ candidatura }) {
+    const nome = nomeDoCandidato(candidatura);
+    const podeAgir = candidatura.status === STATUS_EM_ANALISE;
 
     const tr = document.createElement('tr');
-    tr.dataset.candidaturaId = candidatura.id;
 
     const tdProfissional = document.createElement('td');
     const divProfissional = document.createElement('div');
@@ -185,36 +216,20 @@ function preencherLinha({ candidatura, freela }) {
     const divInfo = document.createElement('div');
     const strongNome = document.createElement('strong');
     strongNome.textContent = nome;
-    const divAvaliacao = document.createElement('div');
-    divAvaliacao.style.cssText = 'font-size: 12px; color: var(--text-secondary);';
-    divAvaliacao.innerHTML = `<i class="bi bi-star-fill" style="color: #f2bb55;"></i> ${media} (${escapeHtml(totalAvaliacoes)} avaliações)`;
     divInfo.appendChild(strongNome);
-    divInfo.appendChild(divAvaliacao);
     divProfissional.appendChild(avatar);
     divProfissional.appendChild(divInfo);
     tdProfissional.appendChild(divProfissional);
 
+    // Especialidades e disponibilidade ainda não vêm nas candidaturas do back.
     const tdEspecialidades = document.createElement('td');
-    const divEspec = document.createElement('div');
-    divEspec.style.cssText = 'display: flex; gap: 4px; flex-wrap: wrap;';
-    if (especialidades.length) {
-        especialidades.forEach(function (esp) {
-            const badge = document.createElement('span');
-            badge.className = 'badge';
-            badge.style.fontSize = '10px';
-            badge.textContent = esp;
-            divEspec.appendChild(badge);
-        });
-    } else {
-        const muted = document.createElement('span');
-        muted.className = 'text-muted';
-        muted.textContent = '—';
-        divEspec.appendChild(muted);
-    }
-    tdEspecialidades.appendChild(divEspec);
+    const muted = document.createElement('span');
+    muted.className = 'text-muted';
+    muted.textContent = '—';
+    tdEspecialidades.appendChild(muted);
 
     const tdDisponibilidade = document.createElement('td');
-    tdDisponibilidade.textContent = disponibilidade;
+    tdDisponibilidade.textContent = '—';
 
     const tdStatus = document.createElement('td');
     const badgeStatus = document.createElement('span');
@@ -232,6 +247,12 @@ function preencherLinha({ candidatura, freela }) {
     linkPerfil.innerHTML = '<i class="bi bi-person-lines-fill"></i> Ver Perfil';
     divAcoes.appendChild(linkPerfil);
 
+    const linkConversar = document.createElement('a');
+    linkConversar.href = `/pages/11-chat.html?contatoId=${encodeURIComponent(candidatura.freelancerId)}`;
+    linkConversar.className = 'btn btn-outline';
+    linkConversar.innerHTML = '<i class="bi bi-chat-dots"></i> Conversar';
+    divAcoes.appendChild(linkConversar);
+
     if (podeAgir) {
         const botaoSelecionar = document.createElement('button');
         botaoSelecionar.type = 'button';
@@ -240,7 +261,7 @@ function preencherLinha({ candidatura, freela }) {
         botaoSelecionar.style.borderColor = 'var(--success)';
         botaoSelecionar.innerHTML = '<i class="bi bi-check-circle-fill"></i> Selecionar';
         botaoSelecionar.addEventListener('click', function () {
-            selecionarCandidato(candidatura, freela);
+            selecionarCandidato(candidatura);
         });
         divAcoes.appendChild(botaoSelecionar);
 
@@ -251,7 +272,7 @@ function preencherLinha({ candidatura, freela }) {
         botaoRejeitar.style.borderColor = '#ffc1bc';
         botaoRejeitar.innerHTML = '<i class="bi bi-x-circle-fill"></i> Rejeitar';
         botaoRejeitar.addEventListener('click', function () {
-            rejeitarCandidato(candidatura, freela);
+            rejeitarCandidato(candidatura);
         });
         divAcoes.appendChild(botaoRejeitar);
     }
@@ -268,24 +289,11 @@ function preencherLinha({ candidatura, freela }) {
 
 /* ------------------------- ações ------------------------------------------ */
 
-async function atualizarStatusCandidatura(candidaturaId, novoStatus) {
-    try {
-        const res = await fetch(`${API_URL}/${candidaturaId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: novoStatus })
-        });
-        if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
-        return true;
-    } catch (erro) {
-        console.error('Erro ao atualizar candidatura:', erro);
-        mostrarMensagem('Não foi possível atualizar a candidatura. Tente novamente em instantes.', 'error');
-        return false;
-    }
-}
+// Recusar: PATCH de status com Rejeitada, sem corpo.
+async function rejeitarCandidato(candidatura) {
+    if (acaoEmAndamento) return;
 
-async function rejeitarCandidato(candidatura, freela) {
-    const nomeCandidato = (freela && freela.nome) || candidatura.freelancerNome || 'este candidato';
+    const nomeCandidato = candidatura.freelancerNome || 'este candidato';
 
     const confirmou = await modalConfirmar({
         titulo: 'Rejeitar candidato',
@@ -296,153 +304,86 @@ async function rejeitarCandidato(candidatura, freela) {
     });
     if (!confirmou) return;
 
-    const sucesso = await atualizarStatusCandidatura(candidatura.id, 'Rejeitado');
-    if (sucesso) {
-        candidatura.status = 'Rejeitado';
-        renderizarCandidatos();
-    }
-}
-
-async function garantirConversaDoMatch(freelancerId, freelancerNome, empresaId, empresaNome) {
-    if (!freelancerId || !empresaId) return;
+    acaoEmAndamento = true;
+    let textoErro = '';
 
     try {
-        const res = await fetch(`${API_BASE}/conversas`);
-        if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
-        const todasConversas = await res.json();
-
-        const alvo = [String(freelancerId), String(empresaId)].sort();
-        const jaExiste = todasConversas.some(function (c) {
-            const par = [String(c.participanteAId), String(c.participanteBId)].sort();
-            return par[0] === alvo[0] && par[1] === alvo[1];
-        });
-
-        if (jaExiste) return;
-
-        await fetch(`${API_BASE}/conversas`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                participanteAId: freelancerId,
-                participanteANome: freelancerNome,
-                participanteATipo: 'freelancers',
-                participanteBId: empresaId,
-                participanteBNome: empresaNome,
-                participanteBTipo: 'empresas',
-                ultimaMensagem: '',
-                ultimaAtualizacao: new Date().toISOString()
-            })
-        });
+        const query = `vagaId=${encodeURIComponent(vagaId)}`
+            + `&freelancerId=${encodeURIComponent(candidatura.freelancerId)}`
+            + `&statusCandidatura=${encodeURIComponent(mapStatusCandidaturaParaBack(STATUS_REJEITADO))}`;
+        await api(`${API_URL_CANDIDATURAS}/status?${query}`, { method: 'PATCH' });
     } catch (erro) {
-        // Não bloqueia o fluxo de contratação por causa do chat.
-        console.error('Erro ao garantir conversa do match:', erro);
+        console.error('Erro ao rejeitar candidatura:', erro);
+        textoErro = (erro && erro.message) || 'Não foi possível atualizar a candidatura. Tente novamente em instantes.';
+    } finally {
+        acaoEmAndamento = false;
+    }
+
+    // Sucesso ou erro: recarrega para mostrar o estado real das candidaturas.
+    await carregarCandidatos();
+
+    if (textoErro) {
+        exibirMensagem(textoErro, 'error');
+    } else {
+        exibirMensagem('Candidato rejeitado.', 'success');
     }
 }
 
-async function selecionarCandidato(candidatura, freela) {
-    const nomeCandidato = (freela && freela.nome) || candidatura.freelancerNome || 'Freelancer';
+// Selecionar: UMA chamada ao contratar (nunca PATCH com "Aceita").
+async function selecionarCandidato(candidatura) {
+    if (acaoEmAndamento) return;
+
+    const nomeCandidato = candidatura.freelancerNome || 'este candidato';
 
     const confirmou = await modalConfirmar({
         titulo: 'Confirmar contratação',
-        mensagem: `Você está prestes a contratar ${nomeCandidato}. Ao confirmar, os outros candidatos serão dispensados e uma Ordem de Serviço será gerada.`,
+        mensagem: `Você está prestes a contratar ${nomeCandidato}. Ao confirmar, os outros candidatos serão dispensados, a vaga será encerrada e uma Ordem de Serviço será gerada.`,
         textoConfirmar: 'Sim, contratar',
         textoCancelar: 'Cancelar'
     });
     if (!confirmou) return;
 
-    const aprovou = await atualizarStatusCandidatura(candidatura.id, 'Selecionado');
-    if (!aprovou) return;
+    acaoEmAndamento = true;
+    let ordemServicoId = null;
+    let textoErro = '';
 
-    await garantirConversaDoMatch(candidatura.freelancerId, nomeCandidato, sessao.id, sessao.nome);
-
-    // Avisa o freelancer selecionado.
-    criarNotificacao({
-        usuarioId: candidatura.freelancerId,
-        usuarioTipo: 'freelancers',
-        tipo: 'candidatura',
-        titulo: 'Candidatura aceita',
-        mensagem: `Sua candidatura para a vaga "${vagaAtual.titulo}" foi aceita.`,
-        link: '/pages/29-minhas-os.html'
-    });
-
-    // Vaga preenchida: encerra para não receber novas candidaturas.
     try {
-        const resVaga = await fetch(`${API_BASE}/vagas/${vagaAtual.id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: 'Encerrada' })
+        const resposta = await api(`${API_URL_VAGAS}/${encodeURIComponent(vagaId)}/contratar`, {
+            method: 'POST',
+            body: { freelancerId: Number(candidatura.freelancerId) }
         });
-        if (!resVaga.ok) throw new Error(`Erro HTTP: ${resVaga.status}`);
-        vagaAtual.status = 'Encerrada';
+
+        // Sucesso: { sucesso, mensagem, dados: { ordemServicoId } } (o helper pode já devolver só "dados").
+        if (resposta) {
+            ordemServicoId = resposta.ordemServicoId !== undefined
+                ? resposta.ordemServicoId
+                : (resposta.dados && resposta.dados.ordemServicoId);
+        }
     } catch (erro) {
-        console.error('Erro ao encerrar a vaga após o match:', erro);
-        mostrarMensagem('O candidato foi selecionado, mas não foi possível encerrar a vaga. Encerre-a manualmente em "Minhas Vagas".', 'warning');
+        console.error('Erro ao contratar candidato:', erro);
+        // 400, 403, 404 e 409 trazem a mensagem do back em erro.message.
+        textoErro = (erro && erro.message) || 'Não foi possível contratar o candidato. Tente novamente em instantes.';
+    } finally {
+        acaoEmAndamento = false;
     }
 
-    // Rejeita os demais candidatos ainda "Em análise" (por dado, não por DOM).
-    const demais = todosCandidatos.filter(function (item) {
-        return item.candidatura.id !== candidatura.id && item.candidatura.status === 'Em análise';
-    });
-    await Promise.all(demais.map(function (item) {
-        return atualizarStatusCandidatura(item.candidatura.id, 'Rejeitado');
-    }));
+    if (textoErro) {
+        // Recarrega: o estado pode ter mudado (vaga já encerrada, candidatura já rejeitada...).
+        await carregarCandidatos();
+        exibirMensagem(textoErro, 'error');
+        return;
+    }
 
-    const novaOS = {
-        titulo: vagaAtual.titulo,
-        categoria: vagaAtual.especialidade || 'A definir',
-        modalidade: vagaAtual.modalidade || 'Presencial',
-        empresaId: sessao.id,
-        empresaNome: sessao.nome,
-        freelancerId: candidatura.freelancerId,
-        freelancerNome: nomeCandidato,
-        cidade: vagaAtual.cidade || '',
-        estado: vagaAtual.estado || '',
-        valor: vagaAtual.valor || '',
-        descricao: `Ordem de serviço gerada a partir da candidatura de ${nomeCandidato} para a vaga "${vagaAtual.titulo}".`,
-        habilidades: [],
-        status: 'Em andamento',
-        dataPublicacao: new Date().toISOString(),
-        prazo: vagaAtual.prazo || '',
-        previsaoConclusao: '',
-        avaliacaoFreelancer: 'Pendente',
-        avaliacaoConfeccao: 'Pendente',
-        observacoes: '',
-        referenciaBriefing: '',
-        referenciaEntrega: '',
-        historico: [
-            { data: hojeLocalISO(), evento: 'OS criada a partir da seleção do candidato.' }
-        ]
-    };
+    exibirMensagem('Candidato selecionado! Uma Ordem de Serviço foi gerada.', 'success');
 
-    try {
-        const res = await fetch(`${API_BASE}/ordensServico`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(novaOS)
-        });
-        if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
-
-        const criada = await res.json();
-
-        mostrarMensagem('Candidato selecionado! Uma Ordem de Serviço foi gerada.', 'success');
-
+    if (ordemServicoId) {
         setTimeout(function () {
-            window.location.href = `/pages/19-ordem-servico-detalhe.html?id=${criada.id}`;
+            window.location.href = `/pages/19-ordem-servico-detalhe.html?id=${encodeURIComponent(ordemServicoId)}`;
         }, 2000);
-    } catch (erro) {
-        console.error('Erro ao criar Ordem de Serviço:', erro);
-        // Devolve a candidatura para "Em análise" para permitir nova tentativa.
-        try {
-            await fetch(`${API_BASE}/candidaturas/${candidatura.id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: 'Em análise' })
-            });
-        } catch (erroRevert) {
-            console.error('Erro ao reverter status da candidatura:', erroRevert);
-        }
-        mostrarMensagem('A candidatura foi aprovada, mas não foi possível gerar a Ordem de Serviço. Tente novamente em instantes.', 'error');
-        carregarCandidatos();
+    } else {
+        // Contratou, mas o back não devolveu o id da OS: mostra a lista atualizada.
+        await carregarCandidatos();
+        exibirMensagem('Candidato selecionado! Uma Ordem de Serviço foi gerada.', 'success');
     }
 }
 
@@ -457,4 +398,4 @@ btnLimparFiltros.addEventListener('click', function () {
     renderizarCandidatos();
 });
 
-carregarCandidatos();
+if (vagaId) carregarCandidatos();

@@ -1,12 +1,14 @@
 // Editar Perfil Freelancer
-const API_URL = `${API_BASE}/freelancers`;
 
 const sessao = exigirTipo('freelancers');
 if (!sessao) {
     throw new Error('Sessão inválida');
 }
 const freelancerId = sessao.id;
-let token;
+
+// profileImageUrl vem como caminho relativo (ex.: "/api/v1/User/{id}/imagem-perfil"),
+// então para exibir a imagem é preciso prefixar a origem do back (API_BASE sem o /api/v1).
+const ORIGEM_BACK = API_BASE.replace(/\/api\/v1\/?$/, '');
 
 const btnVerPerfilPublico = document.querySelector('#btn-ver-perfil-publico');
 if (btnVerPerfilPublico) {
@@ -37,26 +39,23 @@ const selectDisponibilidade = document.querySelector('#pf-disponibilidade');
 const inputEspecialidades = document.querySelector('#multi-select-especialidades');
 const inputMaquinas = document.querySelector('#multi-select-maquinas');
 const inputFoto = document.querySelector('#pf-foto');
-const inputReferencias = document.querySelector('#pf-referencias');
 const fotoPreview = document.querySelector('#pf-foto-preview');
 const fotoRemover = document.querySelector('#pf-foto-remover');
-const referenciasPreview = document.querySelector('#pf-referencias-preview');
 const seloStatus = document.querySelector('#selo-status');
 const loadingBar = document.querySelector('#perfil-loading');
 const erroBar = document.querySelector('#perfil-erro');
 const conteudoPerfil = document.querySelector('#perfil-conteudo');
 
 const LIMITE_FOTO_MB = 5;
-const MAX_REFERENCIAS = 10;
-const MIN_REFERENCIAS_SELO = 5;
+const TIPOS_IMAGEM_PERMITIDOS = ['image/png', 'image/jpeg', 'image/jpg'];
 
-// No banco são gravados somente os CAMINHOS das imagens (como será no back real).
-// O preview em sessão usa URL.createObjectURL; ao carregar do banco, o caminho
-// é usado direto no <img> (com placeholder caso o arquivo não exista no mock).
-let fotoCaminho = '';
-let fotoPreviewUrl = '';
-let referenciasCaminhos = [];
-let referenciasPreviewUrls = [];
+// URL atual da foto de perfil (já com a origem do back e cache-busting) ou '' se não houver foto.
+let fotoUrl = '';
+
+// Listas de opções vindas do back (id/label) e cópia dos valores carregados no GET,
+// usada para calcular somente os campos alterados no PATCH.
+let listasCampos = { especialidades: [], maquinas: [], experiencias: [], disponibilidades: [] };
+let valoresCarregados = {};
 
 /* ------------------------- menu mobile ------------------------------------ */
 
@@ -147,31 +146,88 @@ function validarCPF(cpf) {
            calcularDigito(digitos.slice(0, 10)) === Number(digitos[10]);
 }
 
-/* ------------------------- badges ----------------------------------------- */
+/* ------------------------- selects / multi-select (ids do back) ----------- */
 
-document.querySelectorAll('.badge.badge-selectable').forEach(function (item) {
-    item.addEventListener('click', function () {
-        item.classList.toggle('selected');
+function preencherSelect(select, lista) {
+    select.querySelectorAll('option[value]:not([value=""])').forEach(function (opcao) {
+        opcao.remove();
     });
-});
+    lista.forEach(function (item) {
+        const opcao = document.createElement('option');
+        opcao.value = item.id;
+        opcao.textContent = item.label;
+        select.appendChild(opcao);
+    });
+}
+
+function criarBadgeSelecionavel(item) {
+    const badge = document.createElement('span');
+    badge.className = 'badge badge-selectable';
+    badge.dataset.id = item.id;
+    badge.textContent = item.label;
+    badge.addEventListener('click', function () {
+        badge.classList.toggle('selected');
+    });
+    return badge;
+}
+
+function preencherMultiSelect(campoMultiSelect, lista) {
+    campoMultiSelect.innerHTML = '';
+    lista.forEach(function (item) {
+        campoMultiSelect.appendChild(criarBadgeSelecionavel(item));
+    });
+}
 
 function obterSelecionados(campoMultiSelect) {
     const listaSelecionados = [];
     for (let index = 0; index < campoMultiSelect.childElementCount; index++) {
         const item = campoMultiSelect.children[index];
-        if (item.classList.contains('selected')) listaSelecionados.push(item.textContent);
+        if (item.classList.contains('selected')) listaSelecionados.push(Number(item.dataset.id));
     }
     return listaSelecionados;
 }
 
-function marcarSelecionados(campoMultiSelect, valoresSelecionados) {
+function marcarSelecionadosPorId(campoMultiSelect, idsSelecionados) {
     for (let index = 0; index < campoMultiSelect.childElementCount; index++) {
         const item = campoMultiSelect.children[index];
-        item.classList.toggle('selected', valoresSelecionados.includes(item.textContent));
+        item.classList.toggle('selected', idsSelecionados.includes(Number(item.dataset.id)));
     }
 }
 
-/* ------------------------- uploads (foto e referências) ------------------- */
+// Cruza os NOMES devolvidos pelo perfil com os labels das listas (comparação exata,
+// sem diferenciar maiúsculas/minúsculas). Se não encontrar, não quebra: fica sem
+// seleção e registra um aviso no console.
+function encontrarIdPorLabel(lista, nome) {
+    if (!nome) return null;
+    const alvo = String(nome).trim().toLowerCase();
+    const encontrado = lista.find(function (item) {
+        return String(item.label).trim().toLowerCase() === alvo;
+    });
+    return encontrado ? encontrado.id : null;
+}
+
+function encontrarIdsPorLabels(lista, nomes) {
+    if (!Array.isArray(nomes)) return [];
+    const ids = [];
+    nomes.forEach(function (nome) {
+        const id = encontrarIdPorLabel(lista, nome);
+        if (id === null) {
+            console.warn(`Perfil do freelancer: opção "${nome}" não encontrada na lista do back.`);
+            return;
+        }
+        ids.push(id);
+    });
+    return ids;
+}
+
+function arraysDeIdsIguais(a, b) {
+    if (a.length !== b.length) return false;
+    const x = a.slice().sort((p, q) => p - q);
+    const y = b.slice().sort((p, q) => p - q);
+    return x.every((valor, indice) => valor === y[indice]);
+}
+
+/* ------------------------- foto de perfil (upload real) -------------------- */
 
 function criarImagemComFallback(container, src, alt) {
     const img = document.createElement('img');
@@ -188,8 +244,8 @@ function criarImagemComFallback(container, src, alt) {
 
 function renderizarFoto() {
     fotoPreview.innerHTML = '';
-    if (fotoPreviewUrl) {
-        criarImagemComFallback(fotoPreview, fotoPreviewUrl, 'Foto de perfil');
+    if (fotoUrl) {
+        criarImagemComFallback(fotoPreview, fotoUrl, 'Foto de perfil');
         fotoRemover.removeAttribute('hidden');
     } else {
         fotoPreview.innerHTML = '<span class="field-message">Nenhuma foto adicionada.</span>';
@@ -197,40 +253,14 @@ function renderizarFoto() {
     }
 }
 
-function renderizarReferencias() {
-    referenciasPreview.innerHTML = '';
-    if (!referenciasPreviewUrls.length) {
-        referenciasPreview.innerHTML = '<span class="field-message">Nenhuma foto de referência adicionada.</span>';
-        return;
-    }
-    referenciasPreviewUrls.forEach(function (url, indice) {
-        const item = document.createElement('div');
-        item.className = 'referencia-item';
-
-        criarImagemComFallback(item, url, `Referência ${indice + 1}`);
-
-        const botao = document.createElement('button');
-        botao.type = 'button';
-        botao.setAttribute('aria-label', 'Remover referência');
-        botao.innerHTML = '<i class="bi bi-x"></i>';
-        botao.addEventListener('click', function () {
-            const urlRemovida = referenciasPreviewUrls.splice(indice, 1)[0];
-            referenciasCaminhos.splice(indice, 1);
-            if (urlRemovida && urlRemovida.startsWith('blob:')) URL.revokeObjectURL(urlRemovida);
-            renderizarReferencias();
-            atualizarStatusSelo();
-        });
-
-        item.appendChild(botao);
-        referenciasPreview.appendChild(item);
-    });
-}
-
-inputFoto.addEventListener('change', function () {
+// api.js já trata FormData sem forçar Content-Type (deixa o navegador montar o
+// boundary), então o upload pode usar api() normalmente, sem fetch manual.
+inputFoto.addEventListener('change', async function () {
     const arquivo = inputFoto.files[0];
     if (!arquivo) return;
-    if (!arquivo.type.startsWith('image/')) {
-        mostrarMensagem('A foto de perfil deve ser uma imagem (PNG ou JPG).', 'error');
+
+    if (!TIPOS_IMAGEM_PERMITIDOS.includes(arquivo.type)) {
+        mostrarMensagem('A foto de perfil deve ser uma imagem PNG ou JPG.', 'error');
         inputFoto.value = '';
         return;
     }
@@ -240,68 +270,53 @@ inputFoto.addEventListener('change', function () {
         return;
     }
 
-    if (fotoPreviewUrl.startsWith('blob:')) URL.revokeObjectURL(fotoPreviewUrl);
-    fotoCaminho = `/uploads/freelancers/${freelancerId}/foto-perfil.jpg`;
-    fotoPreviewUrl = URL.createObjectURL(arquivo);
-    renderizarFoto();
-    atualizarStatusSelo();
-    inputFoto.value = '';
-});
+    const formData = new FormData();
+    formData.append('Image', arquivo);
 
-fotoRemover.addEventListener('click', function () {
-    if (fotoPreviewUrl.startsWith('blob:')) URL.revokeObjectURL(fotoPreviewUrl);
-    fotoCaminho = '';
-    fotoPreviewUrl = '';
-    renderizarFoto();
-    atualizarStatusSelo();
-});
-
-inputReferencias.addEventListener('change', function () {
-    const arquivos = Array.from(inputReferencias.files);
-    let ignorados = 0;
-
-    arquivos.forEach(function (arquivo) {
-        if (referenciasCaminhos.length >= MAX_REFERENCIAS) {
-            ignorados++;
-            return;
-        }
-        if (!arquivo.type.startsWith('image/')) {
-            ignorados++;
-            return;
-        }
-        if (arquivo.size > LIMITE_FOTO_MB * 1024 * 1024) {
-            ignorados++;
-            return;
-        }
-        const indice = referenciasCaminhos.length + 1;
-        referenciasCaminhos.push(`/uploads/freelancers/${freelancerId}/referencia-${Date.now()}-${indice}.jpg`);
-        referenciasPreviewUrls.push(URL.createObjectURL(arquivo));
-    });
-
-    renderizarReferencias();
-    atualizarStatusSelo();
-
-    if (ignorados > 0) {
-        mostrarMensagem(`Algumas fotos não foram adicionadas (são permitidas até ${MAX_REFERENCIAS} imagens de até ${LIMITE_FOTO_MB}MB cada).`, 'error');
+    inputFoto.disabled = true;
+    try {
+        const resultado = await api('/User/perfil/imagem', { method: 'PUT', body: formData });
+        fotoUrl = resultado && resultado.profileImageUrl
+            ? `${ORIGEM_BACK}${resultado.profileImageUrl}?t=${Date.now()}`
+            : '';
+        renderizarFoto();
+        atualizarStatusSelo();
+        mostrarMensagem('Foto de perfil atualizada com sucesso.', 'success');
+    } catch (erro) {
+        console.error('Erro ao enviar foto de perfil:', erro);
+        mostrarMensagem(erro.message || 'Não foi possível enviar a foto de perfil. Tente novamente.', 'error');
+    } finally {
+        inputFoto.disabled = false;
+        inputFoto.value = '';
     }
-    inputReferencias.value = '';
 });
 
+fotoRemover.addEventListener('click', async function () {
+    fotoRemover.disabled = true;
+    try {
+        await api('/User/perfil/imagem', { method: 'DELETE' });
+        fotoUrl = '';
+        renderizarFoto();
+        atualizarStatusSelo();
+        mostrarMensagem('Foto de perfil removida.', 'success');
+    } catch (erro) {
+        console.error('Erro ao remover foto de perfil:', erro);
+        mostrarMensagem(erro.message || 'Não foi possível remover a foto de perfil. Tente novamente.', 'error');
+    } finally {
+        fotoRemover.disabled = false;
+    }
+});
+
+// Fotos de referência: o back não tem endpoint para isso (seção escondida no HTML,
+// com texto "Em breve"). O selo abaixo passou a depender só da foto de perfil.
 function atualizarStatusSelo() {
     if (!seloStatus) return;
-    const temFoto = !!fotoCaminho;
-    const qtdRefs = referenciasCaminhos.length;
-    const faltantes = [];
-
-    if (!temFoto) faltantes.push('sua foto de perfil');
-    if (qtdRefs < MIN_REFERENCIAS_SELO) faltantes.push(`${MIN_REFERENCIAS_SELO - qtdRefs} foto(s) de referência`);
-
-    if (!faltantes.length) {
+    if (fotoUrl) {
         seloStatus.className = 'alert alert-success';
-        seloStatus.innerHTML = '<i class="bi bi-patch-check-fill"></i> Perfil completo! Ao salvar, seu perfil ficará elegível ao selo de verificado.';
+        seloStatus.innerHTML = '<i class="bi bi-patch-check-fill"></i> Perfil completo! Em breve, o selo de verificado poderá ser solicitado por aqui.';
     } else {
         seloStatus.className = 'alert alert-warning';
-        seloStatus.innerHTML = `<i class="bi bi-hourglass-split"></i> Para receber o selo de verificado, adicione ${faltantes.join(' e ')}.`;
+        seloStatus.innerHTML = '<i class="bi bi-hourglass-split"></i> Adicione sua foto de perfil para completar seu perfil.';
     }
 }
 
@@ -348,18 +363,27 @@ async function carregarDadosFreelancer() {
         erroBar.setAttribute('hidden', '');
         conteudoPerfil.setAttribute('hidden', '');
 
-        const resposta = await fetch(`${API_URL}/${freelancerId}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            }
-        });
+        const [especialidades, maquinas, experiencias, disponibilidades, perfil] = await Promise.all([
+            api('/FreelancerFields/listar/camposDoFreelancer?fieldName=Specialty'),
+            api('/FreelancerFields/listar/camposDoFreelancer?fieldName=OwnMachine'),
+            api('/FreelancerFields/listar/camposDoFreelancer?fieldName=ExperienceYears'),
+            api('/FreelancerFields/listar/camposDoFreelancer?fieldName=AvailableTime'),
+            api('/User/perfil/freelancer')
+        ]);
 
-        if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
+        listasCampos = {
+            especialidades: especialidades || [],
+            maquinas: maquinas || [],
+            experiencias: experiencias || [],
+            disponibilidades: disponibilidades || []
+        };
 
-        const dados = await resposta.json();
-        preencherPerfil(dados);
+        preencherSelect(selectExperiencia, listasCampos.experiencias);
+        preencherSelect(selectDisponibilidade, listasCampos.disponibilidades);
+        preencherMultiSelect(inputEspecialidades, listasCampos.especialidades);
+        preencherMultiSelect(inputMaquinas, listasCampos.maquinas);
+
+        preencherPerfil(perfil || {});
 
         loadingBar.setAttribute('hidden', '');
         conteudoPerfil.removeAttribute('hidden');
@@ -371,31 +395,65 @@ async function carregarDadosFreelancer() {
 }
 
 function preencherPerfil(dados) {
-    inputNome.value = dados.nome || '';
-    inputDataNascimento.value = dados.dataNascimento || '';
-    inputCpf.value = dados.cpf || '';
-    inputEmail.value = dados.email || '';
-    inputTelefone.value = dados.telefone || '';
-    inputDescricao.value = dados.descricao || '';
-    inputCepResidencial.value = dados.cepResidencial || '';
-    inputEnderecoResidencial.value = dados.enderecoResidencial || '';
-    inputNumeroResidencial.value = dados.numeroResidencial || '';
-    inputBairroResidencial.value = dados.bairroResidencial || '';
-    inputComplementoResidencial.value = dados.complementoResidencial || '';
-    inputCidadeResidencial.value = dados.cidadeResidencial || '';
-    inputEstadoResidencial.value = dados.estadoResidencial || '';
-    selectExperiencia.value = dados.tempoExperiencia || '';
-    selectDisponibilidade.value = dados.disponibilidadeHorario || '';
-    marcarSelecionados(inputEspecialidades, dados.especialidades || []);
-    marcarSelecionados(inputMaquinas, dados.maquinas || []);
+    const nome = dados.legalResponsibleFullName || '';
+    const email = dados.email || '';
+    const telefone = dados.contactNumber || '';
+    const descricao = dados.publicProfileDescription || '';
+    const cep = dados.postalCode || '';
+    const endereco = dados.address || '';
+    const numero = dados.addressNumber != null ? String(dados.addressNumber) : '';
+    const bairro = dados.neighborhood || '';
+    const complemento = dados.additionalAddressInfo || '';
+    const cidade = dados.city || '';
+    const estado = dados.state || '';
+    // O back devolve birthDate como datetime ISO completo (ex.: "1990-05-10T00:00:00"),
+    // não só "yyyy-MM-dd" como descrito no contrato. Um <input type="date"> só aceita
+    // "yyyy-MM-dd", então truncamos aqui.
+    const nascimento = dados.birthDate ? String(dados.birthDate).slice(0, 10) : '';
 
-    fotoCaminho = dados.foto || '';
-    fotoPreviewUrl = fotoCaminho;
-    referenciasCaminhos = Array.isArray(dados.referencias) ? dados.referencias : [];
-    referenciasPreviewUrls = referenciasCaminhos.slice();
+    inputNome.value = nome;
+    inputDataNascimento.value = nascimento;
+    // O back nunca devolve o CPF: o campo começa sempre vazio (ver cabeçalho do arquivo).
+    inputCpf.value = '';
+    inputEmail.value = email;
+    inputTelefone.value = telefone;
+    inputDescricao.value = descricao;
+    inputCepResidencial.value = cep;
+    inputEnderecoResidencial.value = endereco;
+    inputNumeroResidencial.value = numero;
+    inputBairroResidencial.value = bairro;
+    inputComplementoResidencial.value = complemento;
+    inputCidadeResidencial.value = cidade;
+    inputEstadoResidencial.value = estado;
+
+    const idExperiencia = encontrarIdPorLabel(listasCampos.experiencias, dados.experienceYearsName);
+    const idDisponibilidade = encontrarIdPorLabel(listasCampos.disponibilidades, dados.availableTimeName);
+    const idsEspecialidades = encontrarIdsPorLabels(listasCampos.especialidades, dados.specialtyNames);
+    const idsMaquinas = encontrarIdsPorLabels(listasCampos.maquinas, dados.ownMachineNames);
+
+    selectExperiencia.value = idExperiencia !== null ? String(idExperiencia) : '';
+    selectDisponibilidade.value = idDisponibilidade !== null ? String(idDisponibilidade) : '';
+    marcarSelecionadosPorId(inputEspecialidades, idsEspecialidades);
+    marcarSelecionadosPorId(inputMaquinas, idsMaquinas);
+
+    if (dados.experienceYearsName && idExperiencia === null) {
+        console.warn(`Perfil do freelancer: experiência "${dados.experienceYearsName}" não encontrada na lista.`);
+    }
+    if (dados.availableTimeName && idDisponibilidade === null) {
+        console.warn(`Perfil do freelancer: disponibilidade "${dados.availableTimeName}" não encontrada na lista.`);
+    }
+
+    fotoUrl = dados.profileImageUrl ? `${ORIGEM_BACK}${dados.profileImageUrl}?t=${Date.now()}` : '';
     renderizarFoto();
-    renderizarReferencias();
     atualizarStatusSelo();
+
+    valoresCarregados = {
+        nome, email, telefone, descricao, cep, endereco, numero, bairro, complemento, cidade, estado, nascimento,
+        experienceYearsId: idExperiencia,
+        availableTimeId: idDisponibilidade,
+        specialtyIds: idsEspecialidades.slice(),
+        ownMachineIds: idsMaquinas.slice()
+    };
 }
 
 carregarDadosFreelancer();
@@ -409,11 +467,16 @@ function validarFormulario() {
     if (!inputNome.value.trim()) erros.push('Informe o nome completo.');
     if (!inputDataNascimento.value) erros.push('Informe a data de nascimento.');
     else if (new Date(inputDataNascimento.value) > new Date()) erros.push('A data de nascimento não pode ser no futuro.');
-    if (!inputCpf.value.trim()) erros.push('Informe o CPF.');
-    else if (!validarCPF(inputCpf.value)) erros.push('O CPF informado não é válido.');
+    // CPF agora é opcional: o back não devolve o valor atual, então só validamos
+    // formato se o usuário digitar um novo CPF para alterá-lo.
+    if (inputCpf.value.trim() && !validarCPF(inputCpf.value)) erros.push('O CPF informado não é válido.');
     if (!inputEmail.value.trim()) erros.push('Informe o e-mail.');
     else if (!emailValido.test(inputEmail.value.trim())) erros.push('Informe um e-mail válido.');
     if (!inputTelefone.value.trim()) erros.push('Informe o telefone/WhatsApp.');
+    else {
+        const digitosTelefone = inputTelefone.value.replace(/\D/g, '');
+        if (digitosTelefone.length !== 10 && digitosTelefone.length !== 11) erros.push('O telefone deve ter 10 ou 11 dígitos.');
+    }
     if (!inputDescricao.value.trim()) erros.push('A descrição do perfil é obrigatória.');
 
     if (!inputCepResidencial.value.trim()) erros.push('Informe o CEP.');
@@ -438,6 +501,97 @@ function validarFormulario() {
     return true;
 }
 
+/* ------------------------- montar PATCH (somente o que mudou) -------------- */
+
+function montarCorpoAtualizacao() {
+    const corpo = {};
+
+    const nome = inputNome.value.trim();
+    if (nome !== valoresCarregados.nome) corpo.legalResponsibleFullName = nome;
+
+    const cpfDigitado = inputCpf.value.replace(/\D/g, '');
+    if (cpfDigitado) corpo.legalResponsibleDocument = cpfDigitado;
+
+    const email = inputEmail.value.trim();
+    if (email !== valoresCarregados.email) corpo.email = email;
+
+    const telefone = inputTelefone.value.replace(/\D/g, '');
+    if (telefone !== valoresCarregados.telefone) corpo.contactNumber = telefone;
+
+    const descricao = inputDescricao.value.trim();
+    if (descricao !== valoresCarregados.descricao) corpo.publicProfileDescription = descricao;
+
+    const cep = inputCepResidencial.value.trim();
+    if (cep !== valoresCarregados.cep) corpo.postalCode = cep;
+
+    const endereco = inputEnderecoResidencial.value.trim();
+    if (endereco !== valoresCarregados.endereco) corpo.address = endereco;
+
+    const numero = inputNumeroResidencial.value;
+    if (numero !== valoresCarregados.numero) corpo.addressNumber = Number(numero);
+
+    const bairro = inputBairroResidencial.value.trim();
+    if (bairro !== valoresCarregados.bairro) corpo.neighborhood = bairro;
+
+    const complemento = inputComplementoResidencial.value.trim();
+    if (complemento !== valoresCarregados.complemento) corpo.additionalAddressInfo = complemento;
+
+    const cidade = inputCidadeResidencial.value.trim();
+    if (cidade !== valoresCarregados.cidade) corpo.city = cidade;
+
+    const estado = inputEstadoResidencial.value.trim();
+    if (estado !== valoresCarregados.estado) corpo.state = estado;
+
+    const nascimento = inputDataNascimento.value;
+    if (nascimento !== valoresCarregados.nascimento) corpo.birthDate = nascimento;
+
+    const idExperiencia = selectExperiencia.value ? Number(selectExperiencia.value) : null;
+    if (idExperiencia !== valoresCarregados.experienceYearsId) corpo.experienceYearsId = idExperiencia;
+
+    const idDisponibilidade = selectDisponibilidade.value ? Number(selectDisponibilidade.value) : null;
+    if (idDisponibilidade !== valoresCarregados.availableTimeId) corpo.availableTimeId = idDisponibilidade;
+
+    const idsEspecialidades = obterSelecionados(inputEspecialidades);
+    if (!arraysDeIdsIguais(idsEspecialidades, valoresCarregados.specialtyIds)) corpo.specialtyIds = idsEspecialidades;
+
+    const idsMaquinas = obterSelecionados(inputMaquinas);
+    if (!arraysDeIdsIguais(idsMaquinas, valoresCarregados.ownMachineIds)) corpo.ownMachineIds = idsMaquinas;
+
+    return corpo;
+}
+
+// Reflete no snapshot local só os campos que foram realmente enviados e aceitos,
+// para a próxima comparação já partir do estado salvo (sem precisar recarregar).
+function atualizarValoresCarregadosPosSalvar(corpo) {
+    const mapa = {
+        legalResponsibleFullName: 'nome',
+        email: 'email',
+        contactNumber: 'telefone',
+        publicProfileDescription: 'descricao',
+        postalCode: 'cep',
+        address: 'endereco',
+        neighborhood: 'bairro',
+        additionalAddressInfo: 'complemento',
+        city: 'cidade',
+        state: 'estado',
+        birthDate: 'nascimento',
+        experienceYearsId: 'experienceYearsId',
+        availableTimeId: 'availableTimeId',
+        specialtyIds: 'specialtyIds',
+        ownMachineIds: 'ownMachineIds'
+    };
+
+    Object.keys(corpo).forEach(function (chaveBack) {
+        if (chaveBack === 'addressNumber') {
+            valoresCarregados.numero = String(corpo.addressNumber);
+            return;
+        }
+        if (chaveBack === 'legalResponsibleDocument') return; // nunca reexibido
+        const chaveLocal = mapa[chaveBack];
+        if (chaveLocal) valoresCarregados[chaveLocal] = corpo[chaveBack];
+    });
+}
+
 /* ------------------------- salvar alterações ------------------------------ */
 
 form.addEventListener('submit', async function (evento) {
@@ -446,61 +600,44 @@ form.addEventListener('submit', async function (evento) {
 
     if (!validarFormulario()) return;
 
-    const freelancerAtualizado = {
-        nome: inputNome.value.trim(),
-        cpf: inputCpf.value,
-        dataNascimento: inputDataNascimento.value,
-        email: inputEmail.value.trim(),
-        telefone: inputTelefone.value,
-        descricao: inputDescricao.value.trim(),
-        cepResidencial: inputCepResidencial.value,
-        enderecoResidencial: inputEnderecoResidencial.value,
-        numeroResidencial: inputNumeroResidencial.value,
-        bairroResidencial: inputBairroResidencial.value,
-        complementoResidencial: inputComplementoResidencial.value,
-        cidadeResidencial: inputCidadeResidencial.value,
-        estadoResidencial: inputEstadoResidencial.value,
-        tempoExperiencia: selectExperiencia.value,
-        disponibilidadeHorario: selectDisponibilidade.value,
-        especialidades: obterSelecionados(inputEspecialidades),
-        maquinas: obterSelecionados(inputMaquinas),
-        foto: fotoCaminho,
-        referencias: referenciasCaminhos
-    };
+    const corpo = montarCorpoAtualizacao();
+
+    if (Object.keys(corpo).length === 0) {
+        mostrarMensagem('Nenhuma alteração para salvar.', 'error');
+        return;
+    }
 
     const botaoSalvar = form.querySelector('button[type="submit"]');
     botaoSalvar.disabled = true;
 
     try {
-        const resposta = await fetch(`${API_URL}/${freelancerId}`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(freelancerAtualizado)
-        });
-
-        if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
+        await api('/User/atualizarcadastro/freelancer', { method: 'PATCH', body: corpo });
 
         mostrarMensagem('Alterações salvas com sucesso.', 'success');
+        atualizarValoresCarregadosPosSalvar(corpo);
+        inputCpf.value = '';
 
-        // Atualiza o nome na sessão para o topo ("Olá, {nome}") refletir o novo nome.
-        const sessaoAtual = obterSessao();
-        if (sessaoAtual) {
-            sessaoAtual.nome = inputNome.value.trim();
-            salvarSessao(sessaoAtual);
-            const topbar = document.getElementById('header-acoes');
-            if (topbar) renderizarTopbar(topbar, sessaoAtual);
+        if (corpo.legalResponsibleFullName !== undefined) {
+            const sessaoAtual = obterSessao();
+            if (sessaoAtual) {
+                sessaoAtual.nome = corpo.legalResponsibleFullName;
+                salvarSessao(sessaoAtual);
+                const topbar = document.getElementById('header-acoes');
+                if (topbar) renderizarTopbar(topbar, sessaoAtual);
+            }
         }
     } catch (erro) {
         console.error('Erro ao salvar perfil:', erro);
-        mostrarMensagem('Não foi possível salvar as alterações. Tente novamente.', 'error');
+        if (erro.status === 400 || erro.status === 409) {
+            mostrarMensagem(erro.message || 'Não foi possível salvar as alterações. Verifique os dados informados.', 'error');
+        } else {
+            mostrarMensagem('Não foi possível salvar as alterações. Tente novamente.', 'error');
+        }
     } finally {
         botaoSalvar.disabled = false;
     }
 });
 
-/* ------------------------- data máxima (hoje) ----------------------------- */
+/* ------------------------- data máxima (hoje) ------------------------------ */
 
 inputDataNascimento.max = hojeLocalISO();

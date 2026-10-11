@@ -53,20 +53,21 @@
                 ><input id="pe-resp" class="input" required />
               </div>
               <div class="form-group">
-                <label for="pe-nascimento">Data de nascimento *</label
-                ><input id="pe-nascimento" type="date" class="input" required />
+                <label for="pe-nascimento">Data de nascimento</label
+                ><input id="pe-nascimento" type="date" class="input" />
+                <span class="field-message">Esta tela não armazena a data de nascimento do responsável.</span>
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label for="pe-cpf">CPF do responsável *</label
+                <label for="pe-cpf">CPF do responsável</label
                 ><input
                   id="pe-cpf"
                   class="input"
-                  placeholder="000.000.000-00"
+                  placeholder="Deixe em branco para manter o atual"
                   inputmode="numeric"
-                  required
                 />
+                <span class="field-message">Por segurança, o CPF cadastrado não é exibido. Preencha apenas se quiser alterá-lo.</span>
               </div>
             </div>
 
@@ -83,13 +84,13 @@
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label for="pe-cnpj">CNPJ *</label
+                <label for="pe-cnpj">CNPJ</label
                 ><input
                   id="pe-cnpj"
                   class="input"
-                  placeholder="00.000.000/0000-00"
-                  required
+                  placeholder="Deixe em branco para manter o atual"
                 />
+                <span class="field-message">Por segurança, o CNPJ cadastrado não é exibido. Preencha apenas se quiser alterá-lo.</span>
               </div>
               <div class="form-group">
                 <label for="pe-ramo">Ramo de atuação *</label
@@ -165,15 +166,8 @@
               <span class="field-message">Imagem PNG ou JPG de até 5MB.</span>
             </div>
             <div class="form-group">
-              <label for="pe-referencias">Fotos de referência da empresa (máximo 10)</label>
-              <div class="upload-row">
-                <label class="btn btn-outline" for="pe-referencias">
-                  <i class="bi bi-images"></i> Adicionar fotos
-                </label>
-                <input type="file" id="pe-referencias" accept="image/*" multiple hidden />
-              </div>
-              <div class="referencias-grid" id="pe-referencias-preview"></div>
-              <span class="field-message">Cada imagem deve ter até 5MB.</span>
+              <label>Fotos de referência da empresa</label>
+              <span class="field-message">Em breve.</span>
             </div>
 </div>
             <div class="section-title">Selo de verificação</div>
@@ -191,6 +185,7 @@
     </div>
 
     <script src="/js/config.js"></script>
+    <script src="/js/api.js"></script>
     <script src="/js/ui.js"></script>
     <script src="/js/nav.js"></script>
     <script src="/js/09-perfil-empresa.js"></script>

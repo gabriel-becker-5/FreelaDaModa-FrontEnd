@@ -3504,3 +3504,69 @@ h2.section-title {
     border-radius: 8px;
     border: 1px solid var(--border);
 }
+
+/* Ajustes restritos ao painel do freelancer. */
+.dashboard-freelancer .main,
+.dashboard-freelancer .dash-layout > *,
+.dashboard-freelancer .metric-card,
+.dashboard-freelancer .metric-info {
+    min-width: 0;
+}
+.dashboard-freelancer .dash-metrics {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.dashboard-freelancer .dash-layout {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+}
+.dashboard-freelancer .metric-icon { flex-shrink: 0; }
+.dashboard-freelancer .metric-info { overflow-wrap: anywhere; }
+.dashboard-freelancer .service-item {
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.dashboard-freelancer .service-info {
+    flex: 1 1 180px;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.dashboard-freelancer .box-title,
+.dashboard-freelancer .service-title {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.dashboard-freelancer .service-company {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+.dashboard-freelancer .service-detail {
+    padding: 6px 14px;
+    font-size: 0.8rem;
+}
+.dashboard-freelancer .conversation-preview {
+    text-decoration: none;
+    color: inherit;
+}
+.dashboard-freelancer .service-info .badge-success { color: var(--success); }
+.dashboard-freelancer .service-info .badge-warning { color: var(--warning); }
+.dashboard-freelancer .service-info .badge-danger { color: var(--danger); }
+
+@media (max-width: 1200px) {
+    .dashboard-freelancer .dash-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media (max-width: 992px) {
+    .dashboard-freelancer .main { padding-top: 56px; }
+}
+@media (max-width: 900px) {
+    .dashboard-freelancer .dash-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+@media (max-width: 600px) {
+    .dashboard-freelancer .dash-metrics {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

@@ -96,6 +96,7 @@
                     </div>
                     <button type="submit" class="btn btn-purple-bright">Buscar</button>
                 </form>
+                <p id="searchAviso" class="field-message" role="status" aria-live="polite" hidden></p>
                 <a href="/pages/27-mural-freelancers.html" id="searchVerTodos" class="search-ver-todos">
                     Ver todos os freelancers <i class="bi bi-arrow-right"></i>
                 </a>
@@ -254,7 +255,53 @@
                 <p class="section-subtitle">De graça para começar, com opções que crescem com o seu negócio.</p>
             </div>
 
-            <div class="pricing-grid" id="pricing-grid"></div>
+            <p class="text-muted">Assinaturas ainda não disponíveis.</p>
+
+            <div class="pricing-grid" id="pricing-grid">
+                <div class="pricing-card">
+                    <div class="pricing-name">Básico</div>
+                    <div class="pricing-price">
+                        <span class="amount">Grátis</span><span class="period">/mês</span>
+                    </div>
+                    <p class="pricing-desc">Para começar a contratar ou trabalhar</p>
+                    <ul class="pricing-features">
+                        <li><i class="bi bi-check-circle-fill"></i> Perfil profissional completo</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Até 3 vagas publicadas</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Chat com candidatos</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Ordens de serviço</li>
+                    </ul>
+                    <a href="/pages/05-cadastro-freelancer.html" class="btn btn-outline-purple w-full">Começar grátis</a>
+                </div>
+                <div class="pricing-card featured">
+                    <div class="badge-featured">Mais Popular</div>
+                    <div class="pricing-name">Profissional</div>
+                    <div class="pricing-price">
+                        <span class="amount">R$&#160;14,90</span><span class="period">/mês</span>
+                    </div>
+                    <p class="pricing-desc">Para confecções que querem escalar</p>
+                    <ul class="pricing-features">
+                        <li><i class="bi bi-check-circle-fill"></i> Vagas ilimitadas</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Destaque nas buscas</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Portfólio com fotos e vídeos</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Relatórios de desempenho</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Suporte prioritário</li>
+                    </ul>
+                    <button type="button" class="btn btn-purple w-full" disabled>Assinatura indisponível</button>
+                </div>
+                <div class="pricing-card">
+                    <div class="pricing-name">Empresarial</div>
+                    <div class="pricing-price"><span class="amount">Sob consulta</span></div>
+                    <p class="pricing-desc">Para operações de grande volume</p>
+                    <ul class="pricing-features">
+                        <li><i class="bi bi-check-circle-fill"></i> Tudo do Profissional</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Múltiplos usuários</li>
+                        <li><i class="bi bi-check-circle-fill"></i> API de integração</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Gestão de equipe interna</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Gerente de conta dedicado</li>
+                    </ul>
+                    <button type="button" class="btn btn-outline-purple w-full" disabled>Assinatura indisponível</button>
+                </div>
+            </div>
         </section>
 
         <!-- ═══════════ FAQ ═══════════ -->
