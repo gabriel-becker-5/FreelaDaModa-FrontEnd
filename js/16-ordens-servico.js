@@ -27,7 +27,6 @@ const conteudoPerfil = document.querySelector('#perfil-conteudo');
 const filtroTitulo = document.querySelector('#filtroTitulo');
 const filtroStatus = document.querySelector('#filtroStatus');
 const filtroOrdenar = document.querySelector('#filtroOrdenar');
-const filtroEstado = document.querySelector('#filtroEstado');
 const filtroCidade = document.querySelector('#filtroCidade');
 const btnLimparFiltros = document.querySelector('#btnLimparFiltros');
 const tbody = document.querySelector('#tbodyOS');
@@ -74,11 +73,6 @@ sidebarToggleBtn.addEventListener('click', () => {
     sidebar.classList.contains('open') ? fecharMenu() : abrirMenu();
 });
 sidebarOverlay.addEventListener('click', fecharMenu);
-
-/* ------------------------- filtros de localidade -------------------------- */
-
-if (filtroEstado) carregarUFs(filtroEstado);
-if (filtroEstado && filtroCidade) montarAutocompleteCidade(filtroCidade, filtroEstado);
 
 /* ------------------------- badges ----------------------------------------- */
 
@@ -171,11 +165,10 @@ function ordenarOS(lista) {
         return;
     }
 
-    // "Mais recentes": por data de publicação (fallback: ordem da API).
+    // "Mais recentes": o back não devolve data de criação da OS, então usa o id
+    // (maior id primeiro).
     lista.sort(function (a, b) {
-        const da = a.dataPublicacao ? new Date(a.dataPublicacao).getTime() : 0;
-        const db_ = b.dataPublicacao ? new Date(b.dataPublicacao).getTime() : 0;
-        return db_ - da;
+        return (Number(b.id) || 0) - (Number(a.id) || 0);
     });
 }
 
@@ -184,15 +177,13 @@ function ordenarOS(lista) {
 function aplicarFiltros() {
     const termo = removerAcentos(filtroTitulo.value.trim().toLowerCase());
     const status = filtroStatus.value;
-    const uf = filtroEstado ? filtroEstado.value : '';
     const cidade = filtroCidade ? removerAcentos(filtroCidade.value.trim().toLowerCase()) : '';
 
     osFiltradas = todasOS.filter(function (os) {
         const bateTermo = !termo || removerAcentos(String(os.titulo || '')).toLowerCase().includes(termo);
         const bateStatus = !status || os.status === status;
-        const bateUf = !uf || String(os.estado || '').toUpperCase() === uf.toUpperCase();
         const bateCidade = !cidade || removerAcentos(String(os.cidade || '')).toLowerCase().includes(cidade);
-        return bateTermo && bateStatus && bateUf && bateCidade;
+        return bateTermo && bateStatus && bateCidade;
     });
 
     ordenarOS(osFiltradas);
@@ -245,16 +236,13 @@ function preencherLinha(os) {
     }
 
     const tdLocal = document.createElement('td');
-    tdLocal.textContent = [os.cidade, os.estado].filter(Boolean).join(' - ') || '—';
+    tdLocal.textContent = os.cidade || '—';
 
     const tdValor = document.createElement('td');
     tdValor.textContent = formatarValor(os.valor);
 
     const tdPrazo = document.createElement('td');
     tdPrazo.textContent = formatarData(os.prazo) || '—';
-
-    const tdDataInicio = document.createElement('td');
-    tdDataInicio.textContent = formatarData(os.dataPublicacao) || '—';
 
     const tdStatus = document.createElement('td');
     const badge = document.createElement('span');
@@ -309,7 +297,6 @@ function preencherLinha(os) {
     tr.appendChild(tdLocal);
     tr.appendChild(tdValor);
     tr.appendChild(tdPrazo);
-    tr.appendChild(tdDataInicio);
     tr.appendChild(tdFreelancer);
     tr.appendChild(tdAcoes);
 
@@ -318,7 +305,6 @@ function preencherLinha(os) {
     tdLocal.setAttribute('data-label', 'Local');
     tdValor.setAttribute('data-label', 'Valor');
     tdPrazo.setAttribute('data-label', 'Prazo');
-    tdDataInicio.setAttribute('data-label', 'Data Início');
     tdFreelancer.setAttribute('data-label', 'Freelancer');
     tdAcoes.setAttribute('data-label', 'Ações');
 
@@ -373,14 +359,12 @@ async function alterarStatus(os, novoStatus) {
 filtroTitulo.addEventListener('input', aplicarFiltros);
 filtroStatus.addEventListener('change', aplicarFiltros);
 filtroOrdenar.addEventListener('change', aplicarFiltros);
-if (filtroEstado) filtroEstado.addEventListener('change', aplicarFiltros);
 if (filtroCidade) filtroCidade.addEventListener('input', aplicarFiltros);
 
 btnLimparFiltros.addEventListener('click', function () {
     filtroTitulo.value = '';
     filtroStatus.value = '';
     filtroOrdenar.value = 'recentes';
-    if (filtroEstado) filtroEstado.value = '';
     if (filtroCidade) filtroCidade.value = '';
     aplicarFiltros();
 });
