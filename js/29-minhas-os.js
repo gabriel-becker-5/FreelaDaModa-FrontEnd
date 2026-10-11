@@ -1,12 +1,22 @@
-// Minhas Ordens de Serviço (Freelancer e Empresa)
-const API_URL_OS = `${API_BASE}/ordensServico`;
+// Minhas Ordens de Serviço (freelancer)
+//
+// Integração com o back (Fase 2.4):
+//   GET  /OrdemServico/listar            -> OS do usuário logado (o back já filtra)
+//   POST /OrdemServico/{id}/cancelar     -> empresa dona ou freelancer da OS
+//
+// ATENÇÃO: "apiFetch" é o NOME PROVISÓRIO do helper da Fase 0 (api.js).
+// Quando o api.js entrar na main, troque apenas esse nome (e o formato da URL,
+// se o helper receber só o caminho em vez da URL completa). O helper deve:
+//   - injetar o Bearer token;
+//   - devolver os dados da resposta;
+//   - lançar um Error com a mensagem do back (e, se possível, erro.status).
+
+const API_URL_OS = `${API_BASE}/OrdemServico`;
 
 const sessao = exigirTipo('freelancers');
 if (!sessao) {
     throw new Error('Sessão inválida');
 }
-const freelancerId = sessao.id;
-let token;
 
 renderizarSidebar(document.querySelector('.sidebar'), 'freelancers', '29-minhas-os');
 renderizarTopbar(document.querySelector('#header-acoes'), sessao);
@@ -32,9 +42,15 @@ const resumoPaginas = document.querySelector('#resumoPaginas');
 
 const PAGE_SIZE = 10;
 
+// Textos exatos de status aceitos pelo back.
+const STATUS_EM_ANDAMENTO = 'Em andamento';
+const STATUS_CONCLUIDA = 'Concluída';
+const STATUS_CANCELADA = 'Cancelada';
+
 let todasOS = [];
 let itensFiltrados = [];
 let paginaAtual = 1;
+let acaoEmAndamento = false;
 
 /* ------------------------- menu mobile ------------------------------------ */
 
@@ -66,6 +82,22 @@ sidebarOverlay.addEventListener('click', fecharMenu);
 if (filtroEstado) carregarUFs(filtroEstado);
 if (filtroEstado && filtroCidade) montarAutocompleteCidade(filtroCidade, filtroEstado);
 
+/* ------------------------- valor ------------------------------------------ */
+
+// O valor pode chegar como número (back) ou como texto "R$ 2.500,00" (mock).
+function valorNumerico(valor) {
+    if (typeof valor === 'number') return valor;
+    return moedaParaNumero(valor);
+}
+
+function formatarValor(valor) {
+    if (valor === null || valor === undefined || valor === '') return '—';
+    if (typeof valor === 'number') {
+        return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+    return valor;
+}
+
 /* ------------------------- carregar dados --------------------------------- */
 
 async function carregarDadosFreelancer() {
@@ -76,10 +108,16 @@ async function carregarDadosFreelancer() {
     conteudoPerfil.setAttribute('hidden', '');
 
     try {
-        const resposta = await fetch(`${API_URL_OS}?freelancerId=${encodeURIComponent(freelancerId)}`);
-        if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
+        // O back já devolve só as OS do usuário logado (dono ou freelancer).
+        const dados = await apiFetch(`${API_URL_OS}/listar`);
 
-        todasOS = await resposta.json();
+        if (Array.isArray(dados)) {
+            todasOS = dados;
+        } else if (dados && Array.isArray(dados.dados)) {
+            todasOS = dados.dados;
+        } else {
+            todasOS = [];
+        }
 
         loadingBar.setAttribute('hidden', '');
         conteudoPerfil.removeAttribute('hidden');
@@ -100,6 +138,7 @@ async function carregarDadosFreelancer() {
     } catch (erro) {
         console.error('Erro ao carregar ordens de serviço:', erro);
         loadingBar.setAttribute('hidden', '');
+        mensagemErro.textContent = (erro && erro.message) || 'Não foi possível carregar as ordens de serviço.';
         mensagemErro.hidden = false;
     }
 }
@@ -110,7 +149,7 @@ function ordenarOS(lista) {
     const ordenacao = filtroOrdenar ? filtroOrdenar.value : 'recentes';
 
     if (ordenacao === 'valor') {
-        lista.sort(function (a, b) { return moedaParaNumero(b.valor) - moedaParaNumero(a.valor); });
+        lista.sort(function (a, b) { return valorNumerico(b.valor) - valorNumerico(a.valor); });
         return;
     }
 
@@ -180,9 +219,9 @@ function renderizarPagina() {
 }
 
 function obterClasseBadgeStatus(status) {
-    if (status === 'Cancelada') return 'badge-danger';
-    if (status === 'Em andamento') return 'badge-warning';
-    if (status === 'Concluída') return 'badge-success';
+    if (status === STATUS_CANCELADA) return 'badge-danger';
+    if (status === STATUS_EM_ANDAMENTO) return 'badge-warning';
+    if (status === STATUS_CONCLUIDA) return 'badge-success';
     return 'badge';
 }
 
@@ -190,24 +229,24 @@ function preencherLinha(os) {
     const tableRow = document.createElement('tr');
 
     const tdTitulo = document.createElement('td');
-    tdTitulo.textContent = os.titulo;
+    tdTitulo.textContent = os.titulo || '—';
 
     const tdEmpresa = document.createElement('td');
     if (os.empresaId) {
         const linkEmpresa = document.createElement('a');
         linkEmpresa.href = `/pages/26-perfil-empresa-publico.html?id=${encodeURIComponent(os.empresaId)}`;
         linkEmpresa.className = 'text-primary';
-        linkEmpresa.textContent = os.empresaNome || '';
+        linkEmpresa.textContent = os.empresaNome || '—';
         tdEmpresa.appendChild(linkEmpresa);
     } else {
-        tdEmpresa.textContent = os.empresaNome || '';
+        tdEmpresa.textContent = os.empresaNome || '—';
     }
 
     const tdLocal = document.createElement('td');
     tdLocal.textContent = [os.cidade, os.estado].filter(Boolean).join(' - ') || '—';
 
     const tdValor = document.createElement('td');
-    tdValor.textContent = os.valor || '—';
+    tdValor.textContent = formatarValor(os.valor);
 
     const tdPrazo = document.createElement('td');
     tdPrazo.textContent = formatarData(os.prazo) || '—';
@@ -218,7 +257,7 @@ function preencherLinha(os) {
     const tdStatus = document.createElement('td');
     const badgeStatus = document.createElement('span');
     badgeStatus.className = `badge ${obterClasseBadgeStatus(os.status)}`;
-    badgeStatus.textContent = os.status;
+    badgeStatus.textContent = os.status || '';
     tdStatus.appendChild(badgeStatus);
 
     const tdAcoes = document.createElement('td');
@@ -231,49 +270,22 @@ function preencherLinha(os) {
     botaoDetalhar.href = `/pages/19-ordem-servico-detalhe.html?id=${encodeURIComponent(os.id)}`;
     divAcoes.appendChild(botaoDetalhar);
 
-    if (os.status === 'Em andamento') {
+    // Cancelar só existe enquanto a OS está Em andamento
+    // (Concluída e Cancelada são estados finais no back).
+    if (os.status === STATUS_EM_ANDAMENTO) {
         const botaoCancelar = document.createElement('button');
         botaoCancelar.className = 'btn btn-outline';
         botaoCancelar.style.color = '#d93025';
         botaoCancelar.style.borderColor = '#ffc1bc';
-        botaoCancelar.innerHTML = '<i class="bi bi-x-circle"></i> Encerrar';
+        botaoCancelar.innerHTML = '<i class="bi bi-x-circle"></i> Cancelar';
         botaoCancelar.type = 'button';
-        botaoCancelar.addEventListener('click', async function () {
-            const confirmou = await modalConfirmar({
-                titulo: 'Confirmar cancelamento',
-                mensagem: 'Você tem certeza que deseja cancelar esta ordem de serviço? Essa ação não poderá ser desfeita.',
-                textoConfirmar: 'Confirmar cancelamento',
-                textoCancelar: 'Cancelar',
-                perigoso: true
-            });
-            if (!confirmou) return;
-
-            try {
-                const novoHistorico = (os.historico || []).concat([
-                    { data: hojeLocalISO(), evento: 'OS cancelada pelo freelancer.' }
-                ]);
-                const resposta = await fetch(`${API_URL_OS}/${os.id}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ status: 'Cancelada', historico: novoHistorico })
-                });
-
-                if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
-
-                mostrarMensagem('Ordem de serviço cancelada.', 'success');
-                carregarDadosFreelancer();
-            } catch (erro) {
-                console.error('Erro ao cancelar ordem de serviço:', erro);
-                mensagemErro.hidden = false;
-            }
+        botaoCancelar.addEventListener('click', function () {
+            cancelarOS(os);
         });
         divAcoes.appendChild(botaoCancelar);
     }
 
-    if (os.status === 'Concluída' && os.avaliacaoFreelancer !== 'Avaliado') {
+    if (os.status === STATUS_CONCLUIDA && os.avaliacaoFreelancer !== 'Avaliado') {
         const botaoAvaliar = document.createElement('a');
         botaoAvaliar.className = 'btn';
         botaoAvaliar.textContent = 'Avaliar';
@@ -301,6 +313,45 @@ function preencherLinha(os) {
     tdAcoes.setAttribute('data-label', 'Ações');
 
     bodyLista.appendChild(tableRow);
+}
+
+/* ------------------------- cancelar --------------------------------------- */
+
+async function cancelarOS(os) {
+    if (acaoEmAndamento) return;
+
+    const confirmou = await modalConfirmar({
+        titulo: 'Confirmar cancelamento',
+        mensagem: 'Você tem certeza que deseja cancelar esta ordem de serviço? Essa ação não poderá ser desfeita.',
+        textoConfirmar: 'Confirmar cancelamento',
+        textoCancelar: 'Cancelar',
+        perigoso: true
+    });
+    if (!confirmou) return;
+
+    acaoEmAndamento = true;
+    let textoErro = '';
+
+    try {
+        // POST sem corpo; o back valida quem pode e se a OS ainda está Em andamento.
+        await apiFetch(`${API_URL_OS}/${encodeURIComponent(os.id)}/cancelar`, { method: 'POST' });
+        toastMsg('Ordem de serviço cancelada.', 'success');
+    } catch (erro) {
+        console.error('Erro ao cancelar ordem de serviço:', erro);
+        textoErro = (erro && erro.message) || 'Não foi possível cancelar a ordem de serviço. Tente novamente em instantes.';
+    } finally {
+        acaoEmAndamento = false;
+    }
+
+    // Sucesso ou erro (inclusive 409, OS já concluída/cancelada): recarrega para
+    // mostrar o estado real da OS.
+    await carregarDadosFreelancer();
+
+    if (textoErro) {
+        mensagemErro.textContent = textoErro;
+        mensagemErro.hidden = false;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 }
 
 /* ------------------------- eventos de filtro ------------------------------ */
