@@ -4,14 +4,17 @@
 //   GET  /OrdemServico/listar            -> OS do usuário logado (o back já filtra)
 //   POST /OrdemServico/{id}/cancelar     -> empresa dona ou freelancer da OS
 //
-// ATENÇÃO: "apiFetch" é o NOME PROVISÓRIO do helper da Fase 0 (api.js).
-// Quando o api.js entrar na main, troque apenas esse nome (e o formato da URL,
-// se o helper receber só o caminho em vez da URL completa). O helper deve:
-//   - injetar o Bearer token;
-//   - devolver os dados da resposta;
-//   - lançar um Error com a mensagem do back (e, se possível, erro.status).
+// Campos da OS que o back devolve hoje: id, userId, titulo, descricao, categoria,
+// modalidade, cidade, valor, prazo, status, observacoes e freelancerId.
+// Por isso a tela não filtra por estado (UF) e não mostra "Data Início":
+// o back ainda não manda esses dados. "Mais recentes" ordena por id decrescente.
+//
+// Usa o helper api(caminho, opcoes) do api.js (Fase 0): o caminho é relativo ao API_BASE,
+// o Bearer token é injetado, a resposta já vem sem o envelope (conteúdo de "dados") e,
+// em erro, lança um Error com a mensagem do back (erro.status traz o código HTTP;
+// em 401 o helper já redireciona para o login).
 
-const API_URL_OS = `${API_BASE}/OrdemServico`;
+const API_URL_OS = '/OrdemServico';
 
 const sessao = exigirTipo('freelancers');
 if (!sessao) {
@@ -28,7 +31,6 @@ const conteudoPerfil = document.querySelector('#perfil-conteudo');
 const filtroTituloVaga = document.querySelector('#filterTituloVaga');
 const filtroStatusVaga = document.querySelector('#filterStatusVaga');
 const filtroOrdenar = document.querySelector('#filtroOrdenar');
-const filtroEstado = document.querySelector('#filterEstado');
 const filtroCidade = document.querySelector('#filterCidade');
 const btnLimparFiltros = document.querySelector('#btnLimparFiltros');
 const bodyLista = document.querySelector('tbody');
@@ -77,11 +79,6 @@ sidebarToggleBtn.addEventListener('click', () => {
 });
 sidebarOverlay.addEventListener('click', fecharMenu);
 
-/* ------------------------- filtros de localidade -------------------------- */
-
-if (filtroEstado) carregarUFs(filtroEstado);
-if (filtroEstado && filtroCidade) montarAutocompleteCidade(filtroCidade, filtroEstado);
-
 /* ------------------------- valor ------------------------------------------ */
 
 // O valor pode chegar como número (back) ou como texto "R$ 2.500,00" (mock).
@@ -109,7 +106,7 @@ async function carregarDadosFreelancer() {
 
     try {
         // O back já devolve só as OS do usuário logado (dono ou freelancer).
-        const dados = await apiFetch(`${API_URL_OS}/listar`);
+        const dados = await api(`${API_URL_OS}/listar`);
 
         if (Array.isArray(dados)) {
             todasOS = dados;
@@ -138,8 +135,10 @@ async function carregarDadosFreelancer() {
     } catch (erro) {
         console.error('Erro ao carregar ordens de serviço:', erro);
         loadingBar.setAttribute('hidden', '');
-        mensagemErro.textContent = (erro && erro.message) || 'Não foi possível carregar as ordens de serviço.';
-        mensagemErro.hidden = false;
+        // #msg-error fica dentro de #perfil-conteudo (escondido enquanto a lista não carrega),
+        // então o erro de carregamento aparece na barra de erro, que fica fora dele.
+        erroBar.textContent = (erro && erro.message) || 'Não foi possível carregar as ordens de serviço.';
+        erroBar.removeAttribute('hidden');
     }
 }
 
@@ -164,26 +163,23 @@ function ordenarOS(lista) {
         return;
     }
 
-    // "Mais recentes": por data de início (dataPublicacao).
+    // "Mais recentes": o back não manda a data de início da OS,
+    // então usa o id (quanto maior o id, mais nova a OS).
     lista.sort(function (a, b) {
-        const da = a.dataPublicacao ? new Date(a.dataPublicacao).getTime() : 0;
-        const db_ = b.dataPublicacao ? new Date(b.dataPublicacao).getTime() : 0;
-        return db_ - da;
+        return (Number(b.id) || 0) - (Number(a.id) || 0);
     });
 }
 
 function aplicarFiltros() {
     const termo = removerAcentos(filtroTituloVaga.value.trim().toLowerCase());
     const status = filtroStatusVaga.value;
-    const uf = filtroEstado ? filtroEstado.value : '';
     const cidade = filtroCidade ? removerAcentos(filtroCidade.value.trim().toLowerCase()) : '';
 
     itensFiltrados = todasOS.filter(function (os) {
         const bateTermo = !termo || removerAcentos(String(os.titulo || '')).toLowerCase().includes(termo);
         const bateStatus = !status || os.status === status;
-        const bateUf = !uf || String(os.estado || '').toUpperCase() === uf.toUpperCase();
         const bateCidade = !cidade || removerAcentos(String(os.cidade || '')).toLowerCase().includes(cidade);
-        return bateTermo && bateStatus && bateUf && bateCidade;
+        return bateTermo && bateStatus && bateCidade;
     });
 
     ordenarOS(itensFiltrados);
@@ -243,16 +239,13 @@ function preencherLinha(os) {
     }
 
     const tdLocal = document.createElement('td');
-    tdLocal.textContent = [os.cidade, os.estado].filter(Boolean).join(' - ') || '—';
+    tdLocal.textContent = os.cidade || '—';
 
     const tdValor = document.createElement('td');
     tdValor.textContent = formatarValor(os.valor);
 
     const tdPrazo = document.createElement('td');
     tdPrazo.textContent = formatarData(os.prazo) || '—';
-
-    const tdDataInicio = document.createElement('td');
-    tdDataInicio.textContent = formatarData(os.dataPublicacao) || '—';
 
     const tdStatus = document.createElement('td');
     const badgeStatus = document.createElement('span');
@@ -300,7 +293,6 @@ function preencherLinha(os) {
     tableRow.appendChild(tdLocal);
     tableRow.appendChild(tdValor);
     tableRow.appendChild(tdPrazo);
-    tableRow.appendChild(tdDataInicio);
     tableRow.appendChild(tdAcoes);
 
     tdTitulo.setAttribute('data-label', 'Título');
@@ -309,7 +301,6 @@ function preencherLinha(os) {
     tdLocal.setAttribute('data-label', 'Local');
     tdValor.setAttribute('data-label', 'Valor');
     tdPrazo.setAttribute('data-label', 'Prazo');
-    tdDataInicio.setAttribute('data-label', 'Data Início');
     tdAcoes.setAttribute('data-label', 'Ações');
 
     bodyLista.appendChild(tableRow);
@@ -334,7 +325,7 @@ async function cancelarOS(os) {
 
     try {
         // POST sem corpo; o back valida quem pode e se a OS ainda está Em andamento.
-        await apiFetch(`${API_URL_OS}/${encodeURIComponent(os.id)}/cancelar`, { method: 'POST' });
+        await api(`${API_URL_OS}/${encodeURIComponent(os.id)}/cancelar`, { method: 'POST' });
         toastMsg('Ordem de serviço cancelada.', 'success');
     } catch (erro) {
         console.error('Erro ao cancelar ordem de serviço:', erro);
@@ -360,14 +351,12 @@ async function cancelarOS(os) {
 filtroTituloVaga.addEventListener('input', aplicarFiltros);
 filtroStatusVaga.addEventListener('change', aplicarFiltros);
 if (filtroOrdenar) filtroOrdenar.addEventListener('change', aplicarFiltros);
-if (filtroEstado) filtroEstado.addEventListener('change', aplicarFiltros);
 if (filtroCidade) filtroCidade.addEventListener('input', aplicarFiltros);
 
 btnLimparFiltros.addEventListener('click', function () {
     filtroTituloVaga.value = '';
     filtroStatusVaga.value = '';
     if (filtroOrdenar) filtroOrdenar.value = 'recentes';
-    if (filtroEstado) filtroEstado.value = '';
     if (filtroCidade) filtroCidade.value = '';
     aplicarFiltros();
 });
