@@ -1,5 +1,4 @@
 // Minhas Vagas publicadas (empresa)
-const API_URL = `${API_BASE}/vagas`;
 
 const sessao = exigirTipo('empresas');
 if (!sessao) {
@@ -32,6 +31,10 @@ const PAGE_SIZE = 10;
 let todasVagas = [];
 let vagasFiltradas = [];
 let paginaAtual = 1;
+
+// Contagem de candidatos por vaga (id em string -> número de candidaturas
+// ativas, ou null se a contagem daquela vaga falhou). Ausente = ainda
+// carregando. Preenchida depois da tabela já estar na tela (não bloqueia).
 let contagemCandidatosPorVaga = {};
 
 /* ------------------------- menu mobile ------------------------------------ */
@@ -64,8 +67,6 @@ sidebarOverlay.addEventListener('click', fecharMenu);
 if (filtroEstado) carregarUFs(filtroEstado);
 if (filtroEstado && filtroCidade) montarAutocompleteCidade(filtroCidade, filtroEstado);
 
-/* ------------------------- helpers de exibição ---------------------------- */
-
 /* ------------------------- badges ----------------------------------------- */
 
 function classeBadgeStatus(status) {
@@ -75,7 +76,77 @@ function classeBadgeStatus(status) {
     return 'badge-success';
 }
 
+/* ------------------------- contagem de candidatos -------------------------- */
+
+// Uma chamada por vaga, em paralelo (Promise.allSettled) — se alguma falhar,
+// só aquela vaga mostra "—" na coluna, sem quebrar as demais.
+async function carregarContagemCandidatos(vagas) {
+    const resultados = await Promise.allSettled(
+        vagas.map(function (vaga) {
+            return api(`/User/candidaturas?vagaId=${encodeURIComponent(vaga.id)}`).then(function (lista) {
+                const arr = Array.isArray(lista) ? lista : [];
+                // Só candidaturas ativas contam — descarta Rejeitada e Cancelada.
+                const ativas = arr.filter(function (c) {
+                    return c.status !== 'Rejeitada' && c.status !== 'Cancelada';
+                });
+                return ativas.length;
+            });
+        })
+    );
+
+    resultados.forEach(function (resultado, indice) {
+        const vagaId = String(vagas[indice].id);
+        if (resultado.status === 'fulfilled') {
+            contagemCandidatosPorVaga[vagaId] = resultado.value;
+        } else {
+            console.error(`Erro ao contar candidatos da vaga ${vagaId}:`, resultado.reason);
+            contagemCandidatosPorVaga[vagaId] = null;
+        }
+    });
+
+    // Atualiza só as células já renderizadas, sem recarregar a tabela.
+    tbody.querySelectorAll('[data-td-candidatos]').forEach(function (td) {
+        renderizarCelulaCandidatos(td, td.getAttribute('data-td-candidatos'));
+    });
+}
+
+function renderizarCelulaCandidatos(td, vagaId) {
+    const valor = contagemCandidatosPorVaga[String(vagaId)];
+    td.innerHTML = '';
+
+    if (valor === undefined) {
+        td.textContent = '…';
+        return;
+    }
+    if (valor === null) {
+        td.textContent = '—';
+        return;
+    }
+
+    const link = document.createElement('a');
+    link.href = `/pages/17-candidatos-vaga.html?id=${encodeURIComponent(vagaId)}`;
+    link.className = 'text-primary';
+    const strong = document.createElement('strong');
+    strong.textContent = `${valor} candidato${valor === 1 ? '' : 's'}`;
+    link.appendChild(strong);
+    td.appendChild(link);
+}
+
 /* ------------------------- carregar dados --------------------------------- */
+
+function renderizarListaOuVazio() {
+    if (todasVagas.length === 0) {
+        cardFiltros.hidden = true;
+        cardTabela.hidden = true;
+        msgEmpty.textContent = 'Você ainda não publicou nenhuma vaga.';
+        msgEmpty.hidden = false;
+        return;
+    }
+
+    cardFiltros.hidden = false;
+    cardTabela.hidden = false;
+    aplicarFiltros();
+}
 
 async function carregarVagas() {
     msgEmpty.hidden = true;
@@ -84,43 +155,22 @@ async function carregarVagas() {
     conteudoPerfil.setAttribute('hidden', '');
 
     try {
-        const [resVagas, resCandidaturas] = await Promise.all([
-            fetch(`${API_URL}?empresaId=${encodeURIComponent(sessao.id)}`),
-            fetch(`${API_BASE}/candidaturas?empresaId=${encodeURIComponent(sessao.id)}`)
-        ]);
-        if (!resVagas.ok) throw new Error('Erro ao carregar vagas.');
-
-        todasVagas = await resVagas.json();
-
+        // mapVagas já existe em js/api.js (valor <- orcamento, empresaId <- usuarioId).
+        const vagasBack = await api(`/vagas?empresaId=${encodeURIComponent(sessao.id)}`);
+        todasVagas = mapVagas(vagasBack);
         contagemCandidatosPorVaga = {};
-        if (resCandidaturas.ok) {
-            const candidaturas = await resCandidaturas.json();
-            candidaturas.forEach(function (candidatura) {
-                if (!candidatura.vagaId) return;
-                // Só candidaturas ativas (Em análise/Selecionado) contam;
-                // canceladas/rejeitadas não inflam o número.
-                if (candidatura.status !== 'Em análise' && candidatura.status !== 'Selecionado') return;
-                contagemCandidatosPorVaga[candidatura.vagaId] = (contagemCandidatosPorVaga[candidatura.vagaId] || 0) + 1;
-            });
-        }
 
         loadingBar.setAttribute('hidden', '');
         conteudoPerfil.removeAttribute('hidden');
 
-        if (todasVagas.length === 0) {
-            cardFiltros.hidden = true;
-            cardTabela.hidden = true;
-            msgEmpty.textContent = 'Você ainda não publicou nenhuma vaga.';
-            msgEmpty.hidden = false;
-            return;
-        }
+        renderizarListaOuVazio();
 
-        cardFiltros.hidden = false;
-        cardTabela.hidden = false;
-        aplicarFiltros();
+        // Não bloqueia a tabela: a contagem de candidatos é buscada depois.
+        if (todasVagas.length) carregarContagemCandidatos(todasVagas);
     } catch (erro) {
         console.error('Erro ao carregar minhas vagas:', erro);
         loadingBar.setAttribute('hidden', '');
+        erroBar.textContent = erro.message || 'Não foi possível carregar as vagas. Tente novamente mais tarde.';
         erroBar.removeAttribute('hidden');
     }
 }
@@ -131,16 +181,15 @@ function ordenarVagas(lista) {
     const ordenacao = filtroOrdenar ? filtroOrdenar.value : 'recentes';
 
     if (ordenacao === 'valor') {
-        lista.sort(function (a, b) {
-            return moedaParaNumero(b.valor) - moedaParaNumero(a.valor);
-        });
+        // valor já é número (orcamento do back) — compara direto.
+        lista.sort(function (a, b) { return (b.valor || 0) - (a.valor || 0); });
         return;
     }
 
     if (ordenacao === 'prazo') {
         lista.sort(function (a, b) {
-            const da = a.prazo ? new Date(a.prazo).getTime() : NaN;
-            const db_ = b.prazo ? new Date(b.prazo).getTime() : NaN;
+            const da = a.prazoConclusao ? new Date(a.prazoConclusao).getTime() : NaN;
+            const db_ = b.prazoConclusao ? new Date(b.prazoConclusao).getTime() : NaN;
             const va = isNaN(da) ? Infinity : da;
             const vb = isNaN(db_) ? Infinity : db_;
             return va - vb;
@@ -148,11 +197,12 @@ function ordenarVagas(lista) {
         return;
     }
 
-    // "Mais recentes": por data de publicação (fallback: ordem da API).
+    // "Mais recentes": por data de publicação desc, desempate por id desc.
     lista.sort(function (a, b) {
         const da = a.dataPublicacao ? new Date(a.dataPublicacao).getTime() : 0;
         const db_ = b.dataPublicacao ? new Date(b.dataPublicacao).getTime() : 0;
-        return db_ - da;
+        if (db_ !== da) return db_ - da;
+        return (Number(b.id) || 0) - (Number(a.id) || 0);
     });
 }
 
@@ -194,7 +244,7 @@ function renderizarPagina() {
     } else {
         msgEmpty.hidden = true;
         cardTabela.hidden = false;
-        pagina.forEach(preencherLinha);
+        pagina.forEach(function (vaga) { tbody.appendChild(construirLinha(vaga)); });
     }
 
     const total = vagasFiltradas.length;
@@ -204,15 +254,34 @@ function renderizarPagina() {
     btnPaginaProxima.disabled = paginaAtual >= totalPaginas;
 }
 
-function preencherLinha(vaga) {
+function criarBotaoAcao(texto, icone, aoClicar, perigoso) {
+    const botao = document.createElement('button');
+    botao.type = 'button';
+    botao.className = 'btn btn-outline';
+    if (perigoso) {
+        botao.style.color = '#d93025';
+        botao.style.borderColor = '#ffc1bc';
+    }
+    botao.innerHTML = `<i class="bi ${icone}"></i> ${escapeHtml(texto)}`;
+    botao.addEventListener('click', aoClicar);
+    return botao;
+}
+
+function construirLinha(vaga) {
     const tr = document.createElement('tr');
-    const qtdCandidatos = contagemCandidatosPorVaga[vaga.id] || 0;
+    tr.dataset.vagaId = String(vaga.id);
+    preencherConteudoLinha(tr, vaga);
+    return tr;
+}
+
+// Atualiza (ou monta) o conteúdo de uma <tr> para a vaga passada — usado
+// tanto na renderização inicial quanto para refletir uma troca de status
+// sem recarregar a tabela inteira.
+function preencherConteudoLinha(tr, vaga) {
+    tr.innerHTML = '';
 
     const tdTitulo = document.createElement('td');
     tdTitulo.textContent = vaga.titulo;
-
-    const tdValor = document.createElement('td');
-    tdValor.textContent = vaga.valor || '—';
 
     const tdStatus = document.createElement('td');
     const badge = document.createElement('span');
@@ -220,23 +289,21 @@ function preencherLinha(vaga) {
     badge.textContent = vaga.status || 'Aberta';
     tdStatus.appendChild(badge);
 
-    const tdCandidatos = document.createElement('td');
-    const linkCandidatos = document.createElement('a');
-    linkCandidatos.href = `/pages/17-candidatos-vaga.html?id=${encodeURIComponent(vaga.id)}`;
-    linkCandidatos.className = 'text-primary';
-    const strong = document.createElement('strong');
-    strong.textContent = `${qtdCandidatos} candidato${qtdCandidatos === 1 ? '' : 's'}`;
-    linkCandidatos.appendChild(strong);
-    tdCandidatos.appendChild(linkCandidatos);
-
     const tdLocal = document.createElement('td');
     tdLocal.textContent = [vaga.cidade, vaga.estado].filter(Boolean).join(' - ') || '—';
 
+    const tdValor = document.createElement('td');
+    tdValor.textContent = vaga.valor != null ? formatarMoeda(vaga.valor) : '—';
+
     const tdPrazo = document.createElement('td');
-    tdPrazo.textContent = formatarData(vaga.prazo) || '—';
+    tdPrazo.textContent = vaga.prazoConclusao ? formatarData(vaga.prazoConclusao) : '—';
 
     const tdPublicacao = document.createElement('td');
-    tdPublicacao.textContent = formatarData(vaga.dataPublicacao) || '—';
+    tdPublicacao.textContent = vaga.dataPublicacao ? formatarData(vaga.dataPublicacao) : '—';
+
+    const tdCandidatos = document.createElement('td');
+    tdCandidatos.setAttribute('data-td-candidatos', String(vaga.id));
+    renderizarCelulaCandidatos(tdCandidatos, vaga.id);
 
     const tdAcoes = document.createElement('td');
     const divAcoes = document.createElement('div');
@@ -254,18 +321,25 @@ function preencherLinha(vaga) {
     linkEditar.textContent = 'Editar';
     divAcoes.appendChild(linkEditar);
 
-    if (vaga.status !== 'Encerrada') {
-        const botaoEncerrar = document.createElement('button');
-        botaoEncerrar.type = 'button';
-        botaoEncerrar.className = 'btn btn-outline';
-        botaoEncerrar.style.color = '#d93025';
-        botaoEncerrar.style.borderColor = '#ffc1bc';
-        botaoEncerrar.innerHTML = '<i class="bi bi-x-circle"></i> Encerrar';
-        botaoEncerrar.addEventListener('click', function () {
-            encerrarVaga(vaga);
-        });
-        divAcoes.appendChild(botaoEncerrar);
+    if (vaga.status === 'Aberta') {
+        divAcoes.appendChild(criarBotaoAcao('Pausar', 'bi-pause-circle', function () {
+            atualizarStatusVaga(vaga, 'Pausada', 'Vaga pausada com sucesso.');
+        }));
+    } else if (vaga.status === 'Pausada') {
+        divAcoes.appendChild(criarBotaoAcao('Reabrir', 'bi-play-circle', function () {
+            atualizarStatusVaga(vaga, 'Aberta', 'Vaga reaberta com sucesso.');
+        }));
     }
+
+    if (vaga.status !== 'Encerrada') {
+        divAcoes.appendChild(criarBotaoAcao('Encerrar', 'bi-x-circle', function () {
+            encerrarVaga(vaga);
+        }, true));
+    }
+
+    divAcoes.appendChild(criarBotaoAcao('Excluir', 'bi-trash', function () {
+        excluirVaga(vaga);
+    }, true));
 
     tdAcoes.appendChild(divAcoes);
 
@@ -286,11 +360,28 @@ function preencherLinha(vaga) {
     tdPublicacao.setAttribute('data-label', 'Publicação');
     tdCandidatos.setAttribute('data-label', 'Candidatos');
     tdAcoes.setAttribute('data-label', 'Ações');
-
-    tbody.appendChild(tr);
 }
 
-/* ------------------------- encerrar vaga ---------------------------------- */
+// Atualiza só a linha dessa vaga no DOM (se estiver na página atual),
+// sem recarregar a tabela inteira nem refazer a busca no back.
+function atualizarLinhaNaTela(vaga) {
+    const tr = tbody.querySelector(`tr[data-vaga-id="${CSS.escape(String(vaga.id))}"]`);
+    if (tr) preencherConteudoLinha(tr, vaga);
+}
+
+/* ------------------------- status (pausar/reabrir/encerrar) --------------- */
+
+async function atualizarStatusVaga(vaga, novoStatus, mensagemSucesso) {
+    try {
+        await api(`/vagas/${encodeURIComponent(vaga.id)}/status`, { method: 'PATCH', body: { status: novoStatus } });
+        vaga.status = novoStatus;
+        toastMsg(mensagemSucesso, 'success');
+        atualizarLinhaNaTela(vaga);
+    } catch (erro) {
+        console.error('Erro ao atualizar status da vaga:', erro);
+        toastMsg(erro.message || 'Não foi possível atualizar o status da vaga. Tente novamente.', 'error');
+    }
+}
 
 async function encerrarVaga(vaga) {
     const confirmou = await modalConfirmar({
@@ -302,21 +393,34 @@ async function encerrarVaga(vaga) {
     });
     if (!confirmou) return;
 
-    try {
-        const res = await fetch(`${API_URL}/${vaga.id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: 'Encerrada' })
-        });
-        if (!res.ok) throw new Error('Falha ao encerrar vaga.');
+    await atualizarStatusVaga(vaga, 'Encerrada', 'Vaga encerrada com sucesso.');
+}
 
-        toastMsg('Vaga encerrada com sucesso.', 'success');
-        carregarVagas();
+/* ------------------------- excluir vaga ------------------------------------ */
+
+async function excluirVaga(vaga) {
+    const confirmou = await modalConfirmar({
+        titulo: 'Excluir vaga',
+        mensagem: `Deseja excluir definitivamente a vaga "${vaga.titulo}"? Essa ação não pode ser desfeita.`,
+        textoConfirmar: 'Excluir',
+        textoCancelar: 'Cancelar',
+        perigoso: true
+    });
+    if (!confirmou) return;
+
+    try {
+        // DELETE /vagas/{id} é exclusão lógica no back e devolve 204 sem corpo;
+        // api() já trata respostas sem corpo (json fica null) sem lançar erro.
+        await api(`/vagas/${encodeURIComponent(vaga.id)}`, { method: 'DELETE' });
+
+        todasVagas = todasVagas.filter(function (v) { return String(v.id) !== String(vaga.id); });
+        delete contagemCandidatosPorVaga[String(vaga.id)];
+
+        toastMsg('Vaga excluída com sucesso.', 'success');
+        renderizarListaOuVazio();
     } catch (erro) {
-        console.error('Erro ao encerrar vaga:', erro);
-        erroBar.textContent = 'Não foi possível encerrar a vaga. Tente novamente em instantes.';
-        erroBar.removeAttribute('hidden');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        console.error('Erro ao excluir vaga:', erro);
+        toastMsg(erro.message || 'Não foi possível excluir a vaga. Tente novamente.', 'error');
     }
 }
 
