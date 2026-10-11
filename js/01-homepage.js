@@ -144,9 +144,27 @@ document.querySelectorAll('.faq-item').forEach((item) => {
         return cacheFreelancers;
     }
 
+    // especialidade vem do back como enum em texto, sem acento e com "_" no
+    // lugar do espaço (ex.: "Peca_Piloto"). Fallback: só troca "_" por espaço.
+    const LABELS_ESPECIALIDADE = {
+        Costura_Reta: 'Costura reta',
+        Overloque: 'Overloque',
+        Modelagem: 'Modelagem',
+        Peca_Piloto: 'Peça piloto',
+        Amostras: 'Amostras',
+        Acabamento: 'Acabamento',
+        Bordado: 'Bordado',
+        Estamparia: 'Estamparia'
+    };
+
+    function rotularEspecialidade(valor) {
+        if (!valor) return '';
+        return LABELS_ESPECIALIDADE[valor] || String(valor).replace(/_/g, ' ');
+    }
+
     function buscarVagas() {
         if (!cacheVagas) {
-            cacheVagas = api('/vagas?status=Aberta')
+            cacheVagas = api('/vagas?status=Aberta', { semRedirect: true })
                 .then(function (dados) {
                     if (!Array.isArray(dados)) {
                         throw new Error('Não foi possível carregar as vagas. Tente novamente.');
@@ -188,11 +206,11 @@ document.querySelectorAll('.faq-item').forEach((item) => {
         const vagas = await buscarVagas();
         return vagas
             .filter(function (v) {
-                return bateTermo(v.titulo, termo) || bateTermo(v.especialidade, termo) || bateTermo(v.descricao, termo);
+                return bateTermo(v.titulo, termo) || bateTermo(v.descricao, termo) || bateTermo(rotularEspecialidade(v.especialidade), termo);
             })
             .slice(0, 6)
             .map(function (v) {
-                return { titulo: v.titulo || '—', subtitulo: String(v.especialidade || 'Vaga').replace(/_/g, ' '), valor: v.titulo || '' };
+                return { titulo: v.titulo || '—', subtitulo: rotularEspecialidade(v.especialidade) || 'Vaga', valor: v.titulo || '' };
             });
     }
 

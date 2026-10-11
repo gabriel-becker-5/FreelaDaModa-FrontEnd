@@ -47,28 +47,69 @@ document.addEventListener('DOMContentLoaded', function () {
         if (mensagemStatus) mensagemStatus.setAttribute('hidden', '');
     }
 
+    /* ------------------------- mapeamento back -> tela ---------------------- */
+    // O back devolve orcamento/usuarioId (entre outros campos); a tela usa
+    // valor/empresaId e o campo status (nunca "ativa"). O nome da empresa não
+    // vem na vaga (só via perfil público — ver buscarNomeEmpresa).
+    function mapearVaga(v) {
+        if (!v) return v;
+        return {
+            ...v,
+            valor: v.orcamento,
+            empresaId: v.usuarioId
+        };
+    }
+
+    // especialidade/modalidade vêm do back como enum em texto, sem acento e
+    // com "_" no lugar do espaço (ex.: "Peca_Piloto", "Sob_Demanda"). Os mapas
+    // abaixo dão o rótulo legível certo; um valor não mapeado cai no fallback
+    // de só troca "_" por espaço.
+    const LABELS_ESPECIALIDADE = {
+        Costura_Reta: 'Costura reta',
+        Overloque: 'Overloque',
+        Modelagem: 'Modelagem',
+        Peca_Piloto: 'Peça piloto',
+        Amostras: 'Amostras',
+        Acabamento: 'Acabamento',
+        Bordado: 'Bordado',
+        Estamparia: 'Estamparia'
+    };
+
+    const LABELS_MODALIDADE = {
+        Presencial: 'Presencial',
+        Hibrida: 'Híbrida',
+        Remota: 'Remota',
+        Sob_Demanda: 'Sob demanda'
+    };
+
+    function rotularEnum(valor, mapa) {
+        if (!valor) return '';
+        return mapa[valor] || String(valor).replace(/_/g, ' ');
+    }
+
+    /* ------------------------- nome da empresa (perfil público) ------------ */
+    const cacheNomesEmpresa = {};
+
+    async function buscarNomeEmpresa(empresaId) {
+        if (cacheNomesEmpresa[empresaId] !== undefined) return cacheNomesEmpresa[empresaId];
+        try {
+            const perfil = await api(`/Company/exibirPerfilPublicoEmpresa?userId=${encodeURIComponent(empresaId)}`, { semRedirect: true });
+            cacheNomesEmpresa[empresaId] = (perfil && perfil.companyName) || 'Empresa';
+        } catch (erro) {
+            console.error(`Erro ao buscar nome da empresa ${empresaId}:`, erro);
+            cacheNomesEmpresa[empresaId] = 'Empresa';
+        }
+        return cacheNomesEmpresa[empresaId];
+    }
+
     /* ------------------------- refs ---------------------------------------- */
     const vagaId = new URLSearchParams(window.location.search).get('id');
     const loadingBar = document.getElementById('vagaLoading');
     const erroBar = document.getElementById('vagaErro');
     const conteudo = document.getElementById('vagaConteudo');
     const acoesVaga = document.getElementById('acoes-vaga');
-    const listaReferencias = document.getElementById('lista-referencias-vaga');
 
     let vagaAtual = null;
-
-    function criarImagemComFallback(container, src, alt) {
-        const img = document.createElement('img');
-        img.src = src;
-        img.alt = alt;
-        img.onerror = function () {
-            const placeholder = document.createElement('div');
-            placeholder.className = 'imagem-placeholder';
-            placeholder.innerHTML = '<i class="bi bi-image"></i>';
-            container.replaceChild(placeholder, img);
-        };
-        container.appendChild(img);
-    }
 
     if (!vagaId) {
         loadingBar.setAttribute('hidden', '');
@@ -80,28 +121,38 @@ document.addEventListener('DOMContentLoaded', function () {
     /* ------------------------- carregar vaga ------------------------------- */
     async function carregarVaga() {
         try {
-            const res = await fetch(`${API_BASE}/vagas/${vagaId}`);
-            if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
-
-            vagaAtual = await res.json();
+            // GET /vagas/{id} é anônimo; semRedirect evita redirecionar visitantes.
+            const vagaBack = await api(`/vagas/${encodeURIComponent(vagaId)}`, { semRedirect: true });
+            vagaAtual = mapearVaga(vagaBack);
 
             document.getElementById('vaga-titulo').textContent = vagaAtual.titulo || 'Vaga';
+
             const empresaEl = document.getElementById('vaga-empresa');
-            empresaEl.textContent = '';
+            empresaEl.innerHTML = '';
             if (vagaAtual.empresaId) {
                 const linkEmpresa = document.createElement('a');
                 linkEmpresa.href = `/pages/26-perfil-empresa-publico.html?id=${encodeURIComponent(vagaAtual.empresaId)}`;
-                linkEmpresa.textContent = vagaAtual.empresaNome || 'Confecção Parceira';
+                linkEmpresa.textContent = 'Empresa';
                 empresaEl.appendChild(linkEmpresa);
+                // Não bloqueia a renderização: atualiza o nome depois de resolvido.
+                buscarNomeEmpresa(vagaAtual.empresaId).then(function (nome) {
+                    linkEmpresa.textContent = nome;
+                });
             } else {
-                empresaEl.textContent = vagaAtual.empresaNome || 'Confecção Parceira';
+                empresaEl.textContent = 'Empresa';
             }
-            document.getElementById('vaga-local').textContent =
-                [vagaAtual.cidade, vagaAtual.estado].filter(Boolean).join(' - ') || vagaAtual.local || 'Não informado';
-            document.getElementById('vaga-especialidade-modalidade').textContent =
-                [vagaAtual.especialidade, vagaAtual.modalidade].filter(Boolean).join(' | ') || '—';
-            document.getElementById('vaga-valor').textContent = vagaAtual.valor || '—';
-            document.getElementById('vaga-prazo').textContent = formatarData(vagaAtual.prazo);
+
+            const local = [vagaAtual.cidade, vagaAtual.estado].filter(Boolean).join(' - ');
+            document.getElementById('vaga-local').textContent = local || '—';
+
+            const especialidadeModalidade = [
+                rotularEnum(vagaAtual.especialidade, LABELS_ESPECIALIDADE),
+                rotularEnum(vagaAtual.modalidade, LABELS_MODALIDADE)
+            ].filter(Boolean).join(' | ');
+            document.getElementById('vaga-especialidade-modalidade').textContent = especialidadeModalidade || '—';
+
+            document.getElementById('vaga-valor').textContent = formatarMoeda(vagaAtual.valor);
+            document.getElementById('vaga-prazo').textContent = formatarData(vagaAtual.prazoConclusao);
             document.getElementById('vaga-descricao').textContent = vagaAtual.descricao || 'Sem descrição informada.';
             document.getElementById('vaga-data-publicacao').textContent = formatarData(vagaAtual.dataPublicacao);
 
@@ -110,7 +161,6 @@ document.addEventListener('DOMContentLoaded', function () {
             statusBadge.textContent = status;
             statusBadge.className = `badge ${status === 'Aberta' ? 'badge-success' : status === 'Pausada' ? 'badge-warning' : 'badge-danger'}`;
 
-            renderizarReferencias(vagaAtual.referencias);
             renderizarAcoes();
 
             loadingBar.setAttribute('hidden', '');
@@ -118,25 +168,13 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (erro) {
             console.error('Erro ao carregar vaga:', erro);
             loadingBar.setAttribute('hidden', '');
+            if (erro.status === 404) {
+                erroBar.innerHTML = 'Vaga não encontrada. <a href="/pages/07-vagas.html">Voltar ao mural de vagas</a>.';
+            } else {
+                erroBar.textContent = erro.message || 'Não foi possível carregar esta vaga. Tente novamente mais tarde.';
+            }
             erroBar.removeAttribute('hidden');
         }
-    }
-
-    function renderizarReferencias(referencias) {
-        listaReferencias.innerHTML = '';
-        const lista = Array.isArray(referencias) ? referencias : [];
-
-        if (!lista.length) {
-            listaReferencias.innerHTML = '<span class="field-message">Nenhuma referência enviada pela empresa.</span>';
-            return;
-        }
-
-        lista.forEach(function (caminho, indice) {
-            const item = document.createElement('div');
-            item.className = 'referencia-item';
-            criarImagemComFallback(item, caminho, `Referência ${indice + 1}`);
-            listaReferencias.appendChild(item);
-        });
     }
 
     /* ------------------------- ações dinâmicas ----------------------------- */
@@ -200,20 +238,20 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // "Já candidatado": GET /User/candidaturas/minhas, comparando vagaId.
+    // A dependência de /ordensServico foi removida (sem equivalente no contrato).
     async function verificarCandidaturaExistente() {
         const sessaoAtual = obterSessao();
-        if (!sessaoAtual) return false;
+        if (!sessaoAtual || sessaoAtual.tipo !== 'freelancers') return false;
         try {
-            const [resCand, resOS] = await Promise.all([
-                fetch(`${API_BASE}/candidaturas?freelancerId=${encodeURIComponent(sessaoAtual.id)}`),
-                fetch(`${API_BASE}/ordensServico?freelancerId=${encodeURIComponent(sessaoAtual.id)}`)
-            ]);
-            const candidaturas = resCand.ok ? await resCand.json() : [];
-            const oss = resOS.ok ? await resOS.json() : [];
-            const jaCandidatado = candidaturas.some(c => String(c.vagaId) === String(vagaAtual.id) && c.status !== 'Cancelada');
-            const osAtiva = oss.some(o => String(o.titulo) === String(vagaAtual.titulo) && o.status === 'Em andamento');
-            return jaCandidatado || osAtiva;
-        } catch (erro) { return false; }
+            const lista = await api('/User/candidaturas/minhas');
+            return (Array.isArray(lista) ? lista : []).some(function (c) {
+                return String(c.vagaId) === String(vagaAtual.id);
+            });
+        } catch (erro) {
+            console.error('Erro ao verificar candidaturas existentes:', erro);
+            return false;
+        }
     }
 
     /* ------------------------- candidatar-se ------------------------------- */
@@ -229,48 +267,9 @@ document.addEventListener('DOMContentLoaded', function () {
         botao.innerHTML = '<span class="spinner"></span> Enviando candidatura...';
 
         try {
-            // Evita candidatura duplicada também no momento do envio.
-            const jaCandidatado = await verificarCandidaturaExistente();
-            if (jaCandidatado) {
-                mostrarMensagem('Você já se candidatou a esta vaga.', 'error');
-                botao.disabled = true;
-                botao.innerHTML = '<i class="bi bi-check-lg"></i> Você já se candidatou';
-                return;
-            }
-
-            const novaCandidatura = {
-                vagaId: vagaAtual.id,
-                empresaId: vagaAtual.empresaId,
-                empresaNome: vagaAtual.empresaNome || 'Confecção',
-                nomeEmpresa: vagaAtual.empresaNome || 'Confecção',
-                titulo: vagaAtual.titulo,
-                cidade: vagaAtual.cidade || '',
-                estado: vagaAtual.estado || '',
-                valor: vagaAtual.valor || '',
-                prazo: vagaAtual.prazo || '',
-                dataCandidatura: new Date().toISOString(),
-                freelancerId: sessaoAtual.id,
-                freelancerNome: sessaoAtual.nome,
-                status: 'Em análise',
-                tipo: 'Vaga',
-                link: '18-vaga-detalhe.html'
-            };
-
-            const res = await fetch(`${API_BASE}/candidaturas`, {
+            await api('/User/candidaturas', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(novaCandidatura)
-            });
-            if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
-
-            // Avisa a empresa dona da vaga sobre a nova candidatura.
-            criarNotificacao({
-                usuarioId: vagaAtual.empresaId,
-                usuarioTipo: 'empresas',
-                tipo: 'candidatura',
-                titulo: 'Nova candidatura recebida',
-                mensagem: `${sessaoAtual.nome} se candidatou à vaga "${vagaAtual.titulo}".`,
-                link: `/pages/17-candidatos-vaga.html?id=${encodeURIComponent(vagaAtual.id)}`
+                body: { vagaId: Number(vagaAtual.id), mensagem: 'Tenho interesse nesta vaga.' }
             });
 
             mostrarMensagem('Sua candidatura foi enviada com sucesso! A empresa entrará em contato se houver interesse.', 'success');
@@ -280,9 +279,18 @@ document.addEventListener('DOMContentLoaded', function () {
             botao.style.borderColor = 'var(--success)';
         } catch (erro) {
             console.error('Erro ao enviar candidatura:', erro);
-            mostrarMensagem('Não foi possível enviar sua candidatura. Tente novamente em instantes.', 'error');
-            botao.disabled = false;
-            botao.innerHTML = textoOriginal;
+            if (erro.status === 409) {
+                // Já candidatado, ou a vaga não está mais aberta: mensagem do back + botão travado.
+                mostrarMensagem(erro.message || 'Você já se candidatou a esta vaga.', 'error');
+                botao.disabled = true;
+                botao.innerHTML = '<i class="bi bi-check-lg"></i> Você já se candidatou';
+                botao.style.background = 'var(--success)';
+                botao.style.borderColor = 'var(--success)';
+            } else {
+                mostrarMensagem('Não foi possível enviar sua candidatura. Tente novamente em instantes.', 'error');
+                botao.disabled = false;
+                botao.innerHTML = textoOriginal;
+            }
         }
     }
 
