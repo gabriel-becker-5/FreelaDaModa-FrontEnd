@@ -1,19 +1,9 @@
-// Mural de Freelancers (para empresas))
-
-const API_URL = `${API_BASE}/freelancers`;
+// Mural de Freelancers para empresas.
+const PAGE_SIZE = 10;
 let todosFreelancers = [];
-
-// freelancerId -> nome do plano de impulsionamento ativo (ex.: "Pro", "Premium")
-let impulsoPorFreelancer = {};
-
-// Quanto maior, mais destaque no mural — é o que as empresas pagam pra ter
-// quando assinam Impulsionamento (ver pages/10-impulsionamento.html).
-// Premium é o topo da escala (21-assinatura), então vale mais que o Pro.
-const PRIORIDADE_IMPULSO = { 'Premium': 2, 'Pro': 1 };
-
-function prioridadeDoFreelancer(freela) {
-    return PRIORIDADE_IMPULSO[impulsoPorFreelancer[freela.id]] || 0;
-}
+let paginaAtual = 0, totalPaginas = 0, totalFreelancers = 0;
+let quantidadeFiltrada = 0, paginaErro = 1;
+let carregando = false, acessoPermitido = false;
 
 const listaFreelancersEl = document.getElementById('lista-freelancers');
 const inputBusca = document.getElementById('filtro-busca');
@@ -22,218 +12,299 @@ const selectEstado = document.getElementById('filtro-estado');
 const inputCidade = document.getElementById('filtro-cidade');
 const btnLimpar = document.getElementById('btn-limpar-filtros');
 
-document.addEventListener('DOMContentLoaded', () => {
-    configurarNav();
-    configurarFiltrosLocalidade();
-    carregarFreelancers();
-    configurarEventosFiltros();
-});
-
-/* -------------------------------------------------------------------------- */
-/* 1. NAVEGAÇÃO POR SESSÃO (padrão da 07)                                     */
-/* -------------------------------------------------------------------------- */
+const paginacaoEl = document.getElementById('paginacao-freelancers');
+const resumoPaginas = document.getElementById('resumoPaginas');
+const btnAnterior = document.getElementById('btnPaginaAnterior');
+const btnProxima = document.getElementById('btnPaginaProxima');
+const btnRetry = document.getElementById('btn-tentar-novamente');
+const mensagemStatus = document.getElementById('mensagemStatus');
 
 function configurarNav() {
-    const sessao = obterSessao();
+    const sessao = exigirLogin();
+    if (!sessao) return false;
+    renderizarSidebar(document.querySelector('.sidebar'), sessao.tipo, '27-mural-freelancers');
+    renderizarTopbar(document.getElementById('header-acoes'), sessao);
+    renderizarBannerValidacao(document.querySelector('.main'), sessao);
+    configurarMenuMobile();
+    acessoPermitido = sessao.tipo === 'empresas';
+    if (!acessoPermitido) {
+        mostrarMensagem('O mural está disponível para empresas. Entre com uma conta de empresa.', 'error');
+        atualizarControles();
+    }
+    return acessoPermitido;
+}
 
-    if (sessao) {
-        // Empresa e freelancer podem navegar no mural; cada um com o próprio
-        // menu (o item "Buscar Freelancers" só existe no menu da empresa).
-        renderizarSidebar(document.querySelector('.sidebar'), sessao.tipo, '27-mural-freelancers');
-        renderizarTopbar(document.getElementById('header-acoes'), sessao);
-        renderizarBannerValidacao(document.querySelector('.main'), sessao);
-        configurarMenuMobile();
-    } else {
-        // Página pública: sem menu lateral, apenas o botão Entrar no topo.
-        document.querySelector('.sidebar').setAttribute('hidden', '');
-        document.querySelector('.sidebar-toggle-btn').setAttribute('hidden', '');
-        document.querySelector('.sidebar-overlay').setAttribute('hidden', '');
-        renderizarHeaderPublico(document.getElementById('header-acoes'));
+function resolverFoto(valor) {
+    if (typeof valor !== 'string' || !valor.trim()) return '';
+    try {
+        const url = new URL(valor, new URL(API_BASE).origin);
+        return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : '';
+    } catch (erro) {
+        return '';
     }
 }
 
-/* -------------------------------------------------------------------------- */
-/* 2. FILTROS DE LOCALIDADE (estado IBGE + cidade com autocomplete)           */
-/* -------------------------------------------------------------------------- */
-
-function configurarFiltrosLocalidade() {
-    if (selectEstado) carregarUFs(selectEstado);
-    if (selectEstado && inputCidade) montarAutocompleteCidade(inputCidade, selectEstado);
+function mapFreelancer(item) {
+    if (!item || !Number.isSafeInteger(item.userId) || item.userId <= 0) {
+        throw new Error('Resposta inválida ao carregar freelancers.');
+    }
+    return {
+        id: item.userId,
+        nome: String(item.legalResponsibleFullName || ''),
+        especialidades: Array.isArray(item.specialtyNames)
+            ? item.specialtyNames.filter(function (esp) { return typeof esp === 'string'; })
+            : [],
+        cidadeResidencial: String(item.city || ''),
+        estadoResidencial: String(item.state || ''),
+        foto: resolverFoto(item.profileImageUrl)
+    };
 }
 
-/* -------------------------------------------------------------------------- */
-/* 3. CARREGAR FREELANCERS DA API (GET)                                       */
-/* -------------------------------------------------------------------------- */
+function atualizarControles() {
+    document.querySelector('.filter-bar').hidden = !acessoPermitido || (!carregando && paginaAtual === 0);
+    [inputBusca, selectEspecialidade, selectEstado, inputCidade, btnLimpar].forEach(function (el) {
+        if (el) el.disabled = carregando || !acessoPermitido || paginaAtual === 0;
+    });
+    listaFreelancersEl.setAttribute('aria-busy', String(carregando));
+    paginacaoEl.hidden = !acessoPermitido || paginaAtual === 0;
+    btnAnterior.disabled = carregando || paginaAtual <= 1;
+    btnProxima.disabled = carregando || paginaAtual === 0 || paginaAtual >= Math.min(totalPaginas, 1000);
+    btnRetry.disabled = carregando;
+    resumoPaginas.textContent = carregando
+        ? 'Carregando página ' + paginaErro + '...'
+        : totalFreelancers === 0
+            ? 'Nenhum freelancer cadastrado'
+            : 'Página ' + paginaAtual + ' de ' + totalPaginas +
+              ' — ' + quantidadeFiltrada + ' de ' + todosFreelancers.length +
+              ' nesta página; ' + totalFreelancers + ' cadastrados';
+}
 
-async function carregarFreelancers() {
+async function carregarFreelancers(pagina = 1) {
+    if (carregando || !acessoPermitido || !Number.isSafeInteger(pagina) || pagina < 1 || pagina > 1000) return;
+    paginaErro = pagina;
+    carregando = true;
+    mensagemStatus.hidden = true;
+    btnRetry.hidden = true;
     listaFreelancersEl.innerHTML = '<div class="empty-state"><i class="bi bi-hourglass-split"></i><p>Carregando freelancers...</p></div>';
+    atualizarControles();
 
     try {
-        const [response, respostaImpulsionamentos] = await Promise.all([
-            fetch(API_URL),
-            fetch(`${API_BASE}/impulsionamentos`)
-        ]);
-        if (!response.ok) throw new Error('Erro ao buscar freelancers.');
+        const resultado = await api('/Freelancer/listarFreelancers?page=' + pagina + '&pageSize=' + PAGE_SIZE);
+        const valido = resultado && Array.isArray(resultado.items) &&
+            ['page', 'pageSize', 'totalCount', 'totalPages'].every(function (campo) {
+                return Number.isSafeInteger(resultado[campo]);
+            }) &&
+            resultado.page === pagina && resultado.page >= 1 &&
+            resultado.pageSize === PAGE_SIZE && resultado.totalCount >= 0 &&
+            resultado.totalPages === Math.ceil(resultado.totalCount / resultado.pageSize) &&
+            resultado.items.length <= PAGE_SIZE && resultado.items.length <= resultado.totalCount;
+        if (!valido) throw new Error('Resposta inválida ao carregar freelancers.');
 
-        todosFreelancers = await response.json();
-
-        impulsoPorFreelancer = {};
-        if (respostaImpulsionamentos.ok) {
-            const impulsionamentos = await respostaImpulsionamentos.json();
-            impulsionamentos
-                .filter(function (imp) { return imp.status === 'ativo'; })
-                .forEach(function (imp) { impulsoPorFreelancer[imp.freelancerId] = imp.plano; });
+        // O total pode diminuir entre duas consultas de página.
+        const ultimaPagina = Math.max(1, resultado.totalPages);
+        if (resultado.page > ultimaPagina) {
+            carregando = false;
+            return await carregarFreelancers(ultimaPagina);
         }
 
+        const freelancers = resultado.items.map(mapFreelancer);
+        todosFreelancers = freelancers;
+        paginaAtual = resultado.page;
+        totalPaginas = resultado.totalPages;
+        totalFreelancers = resultado.totalCount;
         popularFiltroEspecialidades(todosFreelancers);
-
-        // vindo da lupa da Home via ?busca=
-        const termoDaUrl = new URLSearchParams(window.location.search).get('busca');
-        if (termoDaUrl && inputBusca) inputBusca.value = termoDaUrl;
-
+        carregando = false;
         aplicarFiltros();
-    } catch (error) {
-        console.error(error);
-        listaFreelancersEl.innerHTML = `
-            <div class="empty-state">
-                <i class="bi bi-exclamation-triangle"></i>
-                <p>Não foi possível carregar os freelancers. Tente novamente em instantes.</p>
-            </div>
-        `;
+    } catch (erro) {
+        carregando = false;
+        if (erro.status === 401 || erro.status === 403) {
+            acessoPermitido = false;
+            todosFreelancers = [];
+            paginaAtual = 0;
+            listaFreelancersEl.innerHTML = '';
+            if (erro.status === 403) {
+                mostrarMensagem('Sua conta não tem permissão para consultar freelancers.', 'error');
+            }
+            return;
+        }
+
+        if (paginaAtual > 0) aplicarFiltros();
+        else listaFreelancersEl.innerHTML = '';
+        const retorno = paginaAtual > 0
+            ? ' A página ' + paginaAtual + ' continua exibida.'
+            : '';
+        mostrarMensagem('Não foi possível carregar a página ' + pagina + '. ' + erro.message + retorno, 'error');
+        btnRetry.hidden = false;
+    } finally {
+        carregando = false;
+        atualizarControles();
     }
 }
 
 function popularFiltroEspecialidades(freelancers) {
-    const select = selectEspecialidade;
-    if (!select) return;
-
+    if (!selectEspecialidade) return;
+    const selecionada = selectEspecialidade.value;
+    selectEspecialidade.innerHTML = '<option value="">Todas as especialidades</option>';
     const especialidades = [...new Set(
-        freelancers.flatMap(f => (f.especialidades && f.especialidades.length) ? f.especialidades : [f.especialidade]).filter(Boolean)
-    )].sort((a, b) => a.localeCompare(b, 'pt-BR'));
-
-    especialidades.forEach(esp => {
+        [selecionada, ...freelancers.flatMap(function (f) { return f.especialidades; })].filter(Boolean)
+    )].sort(function (a, b) { return a.localeCompare(b, 'pt-BR'); });
+    especialidades.forEach(function (esp) {
         const option = document.createElement('option');
         option.value = esp;
         option.textContent = esp;
-        select.appendChild(option);
+        selectEspecialidade.appendChild(option);
     });
+    selectEspecialidade.value = selecionada;
 }
 
-/* -------------------------------------------------------------------------- */
-/* 4. FILTROS E RENDERIZAÇÃO                                                  */
-/* -------------------------------------------------------------------------- */
+function configurarFiltrosLocalidade() {
+    carregarUFs(selectEstado).then(function () {
+        selectEstado.options[0].textContent = 'Todos os estados';
+    });
+    const wrapper = inputCidade.closest('.autocomplete-wrapper');
+    const dropdown = document.createElement('div');
+    dropdown.className = 'autocomplete-dropdown';
+    dropdown.style.display = 'none';
+    wrapper.appendChild(dropdown);
+    let municipios = [], requisicaoUf = 0, sugestoesAtivas = false;
+    function fechar() {
+        dropdown.style.display = 'none';
+        dropdown.innerHTML = '';
+    }
+    function mostrar() {
+        fechar();
+        const termo = removerAcentos(inputCidade.value.trim()).toLowerCase();
+        if (!sugestoesAtivas || !selectEstado.value || termo.length < 2) return;
+        if (municipios === null) {
+            const aviso = document.createElement('div');
+            aviso.className = 'autocomplete-item disabled';
+            aviso.textContent = 'Lista de cidades indisponível — digite manualmente';
+            dropdown.appendChild(aviso);
+        } else {
+            municipios.filter(function (cidade) {
+                return removerAcentos(cidade).toLowerCase().startsWith(termo);
+            }).slice(0, 10).forEach(function (cidade) {
+                const item = document.createElement('div');
+                item.className = 'autocomplete-item';
+                item.textContent = cidade;
+                item.addEventListener('click', function () {
+                    inputCidade.value = cidade;
+                    inputCidade.dispatchEvent(new Event('input', { bubbles: true }));
+                    sugestoesAtivas = false;
+                    fechar();
+                });
+                dropdown.appendChild(item);
+            });
+        }
+        if (dropdown.children.length) dropdown.style.display = 'block';
+    }
+    async function atualizarMunicipios() {
+        const minhaRequisicao = ++requisicaoUf;
+        const uf = selectEstado.value;
+        municipios = [];
+        sugestoesAtivas = false;
+        inputCidade.value = '';
+        fechar();
+        if (!uf) return;
+        const resposta = await obterMunicipios(uf);
+        if (minhaRequisicao !== requisicaoUf || selectEstado.value !== uf) return;
+        municipios = Array.isArray(resposta)
+            ? resposta.filter(function (cidade) { return typeof cidade === 'string'; })
+            : null;
+        mostrar();
+    }
+    ['input', 'focus'].forEach(function (evento) {
+        inputCidade.addEventListener(evento, function () {
+            sugestoesAtivas = true;
+            mostrar();
+        });
+    });
+    selectEstado.addEventListener('change', atualizarMunicipios);
+    document.addEventListener('click', function (evento) {
+        if (!wrapper.contains(evento.target)) {
+            sugestoesAtivas = false;
+            fechar();
+        }
+    });
+}
+document.addEventListener('DOMContentLoaded', function () {
+    if (!configurarNav()) return;
+    inputBusca.value = new URLSearchParams(window.location.search).get('busca') || '';
+    configurarFiltrosLocalidade();
+    configurarEventosFiltros();
+    btnAnterior.addEventListener('click', function () { carregarFreelancers(paginaAtual - 1); });
+    btnProxima.addEventListener('click', function () { carregarFreelancers(paginaAtual + 1); });
+    btnRetry.addEventListener('click', function () { carregarFreelancers(paginaErro); });
+    carregarFreelancers(1);
+});
 
 function aplicarFiltros() {
-    const termo = removerAcentos((inputBusca ? inputBusca.value : '').trim().toLowerCase());
-    const esp = selectEspecialidade ? selectEspecialidade.value : '';
-    const uf = selectEstado ? selectEstado.value : '';
-    const cidade = removerAcentos((inputCidade ? inputCidade.value : '').trim().toLowerCase());
-
-    const filtrados = todosFreelancers.filter(freela => {
-        const nomeNormalizado = removerAcentos(String(freela.nome || '').toLowerCase());
-        const especialidadesFreela = (freela.especialidades && freela.especialidades.length)
-            ? freela.especialidades
-            : [freela.especialidade];
-
-        const bateTermo =
-            !termo ||
-            nomeNormalizado.includes(termo) ||
-            removerAcentos(String(freela.especialidade || '').toLowerCase()).includes(termo) ||
-            especialidadesFreela.some(e => removerAcentos(String(e || '').toLowerCase()).includes(termo));
-
-        const bateEsp = !esp || especialidadesFreela.includes(esp);
-        const bateUf = !uf || String(freela.estadoResidencial || '').toUpperCase() === uf.toUpperCase();
-        const bateCidade = !cidade || removerAcentos(String(freela.cidadeResidencial || '').toLowerCase()).includes(cidade);
-
+    if (carregando || !acessoPermitido || paginaAtual === 0) return;
+    const termo = removerAcentos(inputBusca.value.trim().toLowerCase());
+    const esp = selectEspecialidade.value;
+    const uf = selectEstado.value;
+    const cidade = removerAcentos(inputCidade.value.trim().toLowerCase());
+    const filtrados = todosFreelancers.filter(function (freela) {
+        const bateTermo = !termo || removerAcentos(freela.nome.toLowerCase()).includes(termo) ||
+            freela.especialidades.some(function (e) {
+                return removerAcentos(e.toLowerCase()).includes(termo);
+            });
+        const bateEsp = !esp || freela.especialidades.includes(esp);
+        const bateUf = !uf || freela.estadoResidencial.toUpperCase() === uf.toUpperCase();
+        const bateCidade = !cidade || removerAcentos(freela.cidadeResidencial.toLowerCase()).includes(cidade);
         return bateTermo && bateEsp && bateUf && bateCidade;
     });
-
+    quantidadeFiltrada = filtrados.length;
     renderizarFreelancers(filtrados);
+    atualizarControles();
 }
 
 function configurarEventosFiltros() {
-    if (inputBusca) inputBusca.addEventListener('input', aplicarFiltros);
-    if (selectEspecialidade) selectEspecialidade.addEventListener('change', aplicarFiltros);
-    if (selectEstado) selectEstado.addEventListener('change', aplicarFiltros);
-    if (inputCidade) inputCidade.addEventListener('input', aplicarFiltros);
-
-    if (btnLimpar) {
-        btnLimpar.addEventListener('click', function () {
-            if (inputBusca) inputBusca.value = '';
-            if (selectEspecialidade) selectEspecialidade.value = '';
-            if (selectEstado) selectEstado.value = '';
-            if (inputCidade) inputCidade.value = '';
-            aplicarFiltros();
-        });
-    }
+    inputBusca.addEventListener('input', aplicarFiltros);
+    selectEspecialidade.addEventListener('change', aplicarFiltros);
+    selectEstado.addEventListener('change', aplicarFiltros);
+    inputCidade.addEventListener('input', aplicarFiltros);
+    btnLimpar.addEventListener('click', function () {
+        inputBusca.value = '';
+        selectEspecialidade.value = '';
+        inputCidade.value = '';
+        selectEstado.value = '';
+        selectEstado.dispatchEvent(new Event('change', { bubbles: true }));
+    });
 }
 
 function renderizarFreelancers(freelancers) {
     listaFreelancersEl.innerHTML = '';
-
-    if (freelancers.length === 0) {
-        listaFreelancersEl.innerHTML = `
-            <div class="empty-state">
-                <i class="bi bi-inbox"></i>
-                <h3>Nenhum freelancer encontrado</h3>
-                <p>Tente ajustar os filtros ou pesquisar por outro termo.</p>
-            </div>
-        `;
+    if (!freelancers.length) {
+        listaFreelancersEl.innerHTML =
+            '<div class="empty-state"><i class="bi bi-inbox"></i>' +
+            '<h3>Nenhum freelancer encontrado nesta página</h3>' +
+            '<p>Ajuste os filtros ou consulte outra página.</p></div>';
         return;
     }
-
-    // Quem impulsionou o perfil (Pro/Premium) aparece primeiro — é o que a
-    // empresa está pagando por em pages/10-impulsionamento.html. Ordenação
-    // estável: dentro do mesmo nível de destaque, mantém a ordem original.
-    const freelancersOrdenados = freelancers
-        .map(function (freela, indice) { return { freela: freela, indice: indice }; })
-        .sort(function (a, b) {
-            const diferenca = prioridadeDoFreelancer(b.freela) - prioridadeDoFreelancer(a.freela);
-            return diferenca !== 0 ? diferenca : a.indice - b.indice;
-        })
-        .map(function (item) { return item.freela; });
-
-    freelancersOrdenados.forEach(freela => {
+    freelancers.forEach(function (freela) {
         const card = document.createElement('article');
-        const plano = impulsoPorFreelancer[freela.id];
-        card.className = 'freelancer-card' + (plano ? ' freelancer-card-destaque' : '');
-
+        card.className = 'freelancer-card';
         const iniciais = calcularIniciais(freela.nome);
-        const cidadeEstado = [
-            freela.cidadeResidencial,
-            freela.estadoResidencial
-        ].filter(Boolean).join(' - ');
-        const especialidadeCard = freela.especialidade || (freela.especialidades && freela.especialidades[0]) || 'Freelancer';
-        // Avatar: foto quando existe (fallback para as iniciais caso o arquivo
-        // não carregue) — só caminhos /uploads/... são gravados no banco.
-        const foto = String(freela.foto || '').replace(/['\\]/g, '');
-
-        card.innerHTML = `
-            ${plano ? `<span class="badge badge-primary-bg freelancer-badge-destaque"><i class="bi bi-star-fill"></i> Destaque ${escapeHtml(plano)}</span>` : ''}
-            <div class="profile-avatar-lg"></div>
-            <h3>${escapeHtml(freela.nome)}</h3>
-            <span class="badge freelancer-especialidade">${escapeHtml(especialidadeCard)}</span>
-            ${cidadeEstado ? `<p class="freelancer-local"><i class="bi bi-geo-alt"></i> ${escapeHtml(cidadeEstado)}</p>` : ''}
-            <p class="freelancer-rating">
-                <i class="bi bi-star-fill"></i> ${Number(freela.mediaAvaliacoes || 0).toFixed(1)}
-                <span>(${freela.totalAvaliacoes || 0} avaliações)</span>
-            </p>
-            <a href="/pages/25-perfil-freelancer-publico.html?id=${encodeURIComponent(freela.id)}" class="btn btn-outline-primary w-full">Ver perfil</a>
-        `;
-
-        const avatarEl = card.querySelector('.profile-avatar-lg');
-        if (foto) {
+        const cidadeEstado = [freela.cidadeResidencial, freela.estadoResidencial].filter(Boolean).join(' - ');
+        const especialidade = freela.especialidades[0] || 'Freelancer';
+        card.innerHTML =
+            '<div class="profile-avatar-lg"></div>' +
+            '<h3>' + escapeHtml(freela.nome) + '</h3>' +
+            '<span class="badge freelancer-especialidade">' + escapeHtml(especialidade) + '</span>' +
+            (cidadeEstado ? '<p class="freelancer-local"><i class="bi bi-geo-alt"></i> ' + escapeHtml(cidadeEstado) + '</p>' : '') +
+            '<a href="/pages/25-perfil-freelancer-publico.html?id=' + encodeURIComponent(freela.id) +
+            '" class="btn btn-outline-primary w-full">Ver perfil</a>';
+        const avatar = card.querySelector('.profile-avatar-lg');
+        if (freela.foto) {
             const img = document.createElement('img');
-            img.src = foto;
-            img.alt = `Foto de ${freela.nome}`;
-            img.onerror = function () {
-                avatarEl.textContent = iniciais;
-            };
-            avatarEl.appendChild(img);
+            img.src = freela.foto;
+            img.alt = 'Foto de ' + freela.nome;
+            img.onerror = function () { avatar.textContent = iniciais; };
+            avatar.appendChild(img);
         } else {
-            avatarEl.textContent = iniciais;
+            avatar.textContent = iniciais;
         }
-
         listaFreelancersEl.appendChild(card);
     });
 }
