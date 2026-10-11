@@ -49,8 +49,8 @@
             <div class="profile-info">
               <h2 id="nome-freelancer"></h2>
               <div class="profile-rating">
-                <span id="estrelas-media"></span>
-                <span id="texto-avaliacoes"></span>
+                <span><i class="bi bi-star"></i><i class="bi bi-star"></i><i class="bi bi-star"></i><i class="bi bi-star"></i><i class="bi bi-star"></i></span>
+                <span>Sem avaliações.</span>
               </div>
               <div class="profile-location">
                 <i class="bi bi-geo-alt-fill"></i>
@@ -61,8 +61,8 @@
               </div>
             </div>
             <div class="profile-actions">
-              <button class="btn btn-primary btn-lg btn-convidar">
-                <i class="bi bi-send-fill"></i> Convidar para vaga
+              <button class="btn btn-primary btn-lg btn-convidar" disabled title="Disponível em breve">
+                <i class="bi bi-send-fill"></i> Convidar para vaga · Em breve
               </button>
             </div>
           </div>
@@ -86,7 +86,7 @@
 
               <section class="card">
                 <div class="section-title">Referências do trabalho</div>
-                <div class="referencias-grid" id="lista-referencias"></div>
+                <span class="field-message">Em breve.</span>
               </section>
             </div>
 
@@ -107,34 +107,22 @@
 
               <section class="card">
                 <div class="section-title">Avaliações Recentes</div>
-                <div id="lista-avaliacoes"></div>
+                <p class="text-muted">Sem avaliações.</p>
               </section>
             </div>
           </div>
 
           <div class="text-center mt-lg">
-            <button class="btn btn-primary btn-lg btn-convidar">
-              <i class="bi bi-send-fill"></i> Convidar para vaga
+            <button class="btn btn-primary btn-lg btn-convidar" disabled title="Disponível em breve">
+              <i class="bi bi-send-fill"></i> Convidar para vaga · Em breve
             </button>
           </div>
         </div>
       </main>
     </div>
 
-    <!-- Modal: Escolher a vaga para convidar o freelancer -->
-    <div id="modalConvidar" class="sidebar-overlay" style="display: none; align-items: center; justify-content: center; z-index: 1000;">
-      <div class="card animate-scale-in" style="max-width: 440px; width: 90%; background: var(--surface);">
-        <h3><i class="bi bi-send-fill"></i> Convidar para uma vaga</h3>
-        <p class="mt-sm text-muted">Escolha para qual vaga aberta da sua empresa você quer convidar <strong id="convidar-nome-freelancer">este freelancer</strong>.</p>
-        <div id="convidar-lista-vagas" class="stack-sm mt-sm" style="max-height: 300px; overflow-y: auto;"></div>
-        <div class="form-actions mt-lg">
-          <button id="btnCancelarConvite" class="btn btn-outline">Cancelar</button>
-          <button id="btnConfirmarConvite" class="btn btn-primary" disabled>Confirmar convite</button>
-        </div>
-      </div>
-    </div>
-
     <script src="/js/config.js"></script>
+    <script src="/js/api.js"></script>
     <script src="/js/ui.js"></script>
     <script src="/js/nav.js"></script>
     <script src="/js/25-perfil-freelancer-publico.js"></script>
