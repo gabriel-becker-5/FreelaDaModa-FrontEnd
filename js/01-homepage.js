@@ -37,12 +37,15 @@ document.querySelectorAll('.faq-item').forEach((item) => {
     const form = document.getElementById('searchForm');
     const input = document.getElementById('searchInput');
     const linkVerTodos = document.getElementById('searchVerTodos');
+    const aviso = document.getElementById('searchAviso');
 
     if (!seletor || !form || !input || !linkVerTodos) return;
 
     let modoAtual = 'freelancers'; // 'freelancers' (empresa buscando) ou 'vagas' (freelancer buscando)
     let cacheFreelancers = null;
     let cacheVagas = null;
+    let buscaAtual = 0;
+    let debounce;
 
     const PLACEHOLDERS = {
         freelancers: 'Busque por nome ou especialidade (ex: Modelagem, Bordado...)',
@@ -54,14 +57,15 @@ document.querySelectorAll('.faq-item').forEach((item) => {
     };
 
     function atualizarModo(modo) {
+        cancelarBusca();
         modoAtual = modo;
         opcoes.forEach(function (op) { op.classList.toggle('active', op.dataset.modo === modo); });
         input.placeholder = PLACEHOLDERS[modo];
         const destino = LINKS_VER_TODOS[modo];
         linkVerTodos.href = destino.href;
         linkVerTodos.innerHTML = `${destino.texto} <i class="bi bi-arrow-right"></i>`;
-        fecharDropdown();
         input.value = '';
+        mostrarAvisoModo();
     }
 
     opcoes.forEach(function (op) {
@@ -82,48 +86,103 @@ document.querySelectorAll('.faq-item').forEach((item) => {
         dropdown.innerHTML = '';
     }
 
-    async function buscarFreelancers() {
-        if (cacheFreelancers) return cacheFreelancers;
-        try {
-            const res = await fetch(`${API_BASE}/freelancers`);
-            cacheFreelancers = res.ok ? await res.json() : [];
-        } catch (erro) {
-            console.error('Erro ao carregar freelancers para busca:', erro);
-            cacheFreelancers = [];
+    function cancelarBusca() {
+        buscaAtual++;
+        clearTimeout(debounce);
+        fecharDropdown();
+    }
+
+    function mostrarAviso(texto) {
+        if (!aviso) return;
+        aviso.textContent = texto;
+        aviso.hidden = !texto;
+    }
+
+    function sessaoValida() {
+        const sessao = getSessao();
+        if (!sessao || typeof sessao.token !== 'string' || !sessao.token.trim() ||
+            !Number.isSafeInteger(sessao.id) || sessao.id <= 0 ||
+            !['empresas', 'freelancers'].includes(sessao.tipo)) return null;
+        return sessao;
+    }
+
+    function mostrarAvisoModo() {
+        if (modoAtual !== 'freelancers') {
+            mostrarAviso('');
+            return;
+        }
+        const sessao = sessaoValida();
+        if (!sessao) {
+            mostrarAviso('Entre como empresa para buscar freelancers. ');
+            if (aviso) {
+                const link = document.createElement('a');
+                link.href = `/pages/02-login.html?next=${encodeURIComponent(LINKS_VER_TODOS.freelancers.href)}`;
+                link.textContent = 'Entrar';
+                aviso.appendChild(link);
+            }
+            return;
+        }
+        mostrarAviso(sessao.tipo === 'empresas'
+            ? 'As sugestões consultam até 10 freelancers da primeira página. Use o mural para ampliar a busca.'
+            : 'A busca de freelancers é exclusiva para empresas.');
+    }
+
+    function buscarFreelancers() {
+        if (!cacheFreelancers) {
+            cacheFreelancers = api('/Freelancer/listarFreelancers?page=1&pageSize=10')
+                .then(function (dados) {
+                    if (!dados || !Array.isArray(dados.items)) {
+                        throw new Error('Não foi possível carregar os freelancers. Tente novamente.');
+                    }
+                    return dados.items;
+                })
+                .catch(function (erro) {
+                    cacheFreelancers = null;
+                    throw erro;
+                });
         }
         return cacheFreelancers;
     }
 
-    async function buscarVagas() {
-        if (cacheVagas) return cacheVagas;
-        try {
-            const res = await fetch(`${API_BASE}/vagas`);
-            cacheVagas = res.ok ? await res.json() : [];
-        } catch (erro) {
-            console.error('Erro ao carregar vagas para busca:', erro);
-            cacheVagas = [];
+    function buscarVagas() {
+        if (!cacheVagas) {
+            cacheVagas = api('/vagas?status=Aberta')
+                .then(function (dados) {
+                    if (!Array.isArray(dados)) {
+                        throw new Error('Não foi possível carregar as vagas. Tente novamente.');
+                    }
+                    return dados.filter(function (vaga) { return vaga.status === 'Aberta'; });
+                })
+                .catch(function (erro) {
+                    cacheVagas = null;
+                    throw erro;
+                });
         }
         return cacheVagas;
     }
 
-    function bateTermo(texto, termo) {
-        return (texto || '').toLowerCase().includes(termo);
+    function normalizar(texto) {
+        return String(texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/_/g, ' ').toLowerCase();
     }
 
-    async function montarSugestoes(termo) {
-        if (modoAtual === 'freelancers') {
+    function bateTermo(texto, termo) {
+        return normalizar(texto).includes(termo);
+    }
+
+    async function montarSugestoes(termo, modo) {
+        if (modo === 'freelancers') {
             const freelancers = await buscarFreelancers();
             return freelancers
                 .filter(function (f) {
-                    const espec = Array.isArray(f.especialidades) ? f.especialidades.join(' ') : '';
-                    return bateTermo(f.nome, termo) || bateTermo(espec, termo);
+                    const espec = Array.isArray(f.specialtyNames) ? f.specialtyNames.join(' ') : '';
+                    return bateTermo(f.legalResponsibleFullName, termo) || bateTermo(espec, termo);
                 })
                 .slice(0, 6)
                 .map(function (f) {
-                    const subtitulo = Array.isArray(f.especialidades) && f.especialidades.length
-                        ? f.especialidades.join(', ')
+                    const subtitulo = Array.isArray(f.specialtyNames) && f.specialtyNames.length
+                        ? f.specialtyNames.join(', ').replace(/_/g, ' ')
                         : 'Freelancer';
-                    return { titulo: f.nome, subtitulo: subtitulo, valor: f.nome };
+                    return { titulo: f.legalResponsibleFullName, subtitulo: subtitulo, valor: f.legalResponsibleFullName };
                 });
         }
         const vagas = await buscarVagas();
@@ -133,167 +192,97 @@ document.querySelectorAll('.faq-item').forEach((item) => {
             })
             .slice(0, 6)
             .map(function (v) {
-                return { titulo: v.titulo, subtitulo: v.especialidade || v.empresaNome || 'Vaga', valor: v.titulo };
+                return { titulo: v.titulo || '—', subtitulo: String(v.especialidade || 'Vaga').replace(/_/g, ' '), valor: v.titulo || '' };
             });
     }
 
-    let buscaAtual = 0;
-
     input.addEventListener('input', function () {
-        const termo = input.value.trim().toLowerCase();
-        if (!termo) { fecharDropdown(); return; }
+        cancelarBusca();
+        mostrarAvisoModo();
+        const termo = normalizar(input.value.trim());
+        const modo = modoAtual;
+        const minhaBusca = buscaAtual;
+        if (!termo) return;
 
-        const minhaBusca = ++buscaAtual;
-
-        setTimeout(async function () {
-            if (minhaBusca !== buscaAtual) return;
-
-            const sugestoes = await montarSugestoes(termo);
-            if (minhaBusca !== buscaAtual) return;
-
-            dropdown.innerHTML = '';
-
-            if (sugestoes.length === 0) {
-                fecharDropdown();
+        if (modo === 'freelancers') {
+            const sessao = sessaoValida();
+            if (!sessao || sessao.tipo !== 'empresas') {
                 return;
             }
+        }
 
-            sugestoes.forEach(function (s) {
-                const item = document.createElement('div');
-                item.className = 'autocomplete-item';
-                item.innerHTML = `<strong>${escapeHtml(s.titulo)}</strong> <span class="text-muted" style="font-size:12px;">— ${escapeHtml(s.subtitulo)}</span>`;
-                item.addEventListener('click', function () {
-                    input.value = s.valor;
+        debounce = setTimeout(async function () {
+            if (minhaBusca !== buscaAtual) return;
+            try {
+                const sugestoes = await montarSugestoes(termo, modo);
+                if (minhaBusca !== buscaAtual || modo !== modoAtual) return;
+
+                dropdown.innerHTML = '';
+                if (!sugestoes.length) {
                     fecharDropdown();
-                });
-                dropdown.appendChild(item);
-            });
+                    mostrarAviso(modo === 'freelancers'
+                        ? 'Nenhum freelancer encontrado na primeira página. Consulte o mural para buscar em outras páginas.'
+                        : 'Nenhuma vaga encontrada para esta busca.');
+                    return;
+                }
 
-            dropdown.style.display = 'block';
+                sugestoes.forEach(function (s) {
+                    const item = document.createElement('div');
+                    item.className = 'autocomplete-item';
+                    item.innerHTML = `<strong>${escapeHtml(s.titulo)}</strong> <span class="text-muted" style="font-size:12px;">— ${escapeHtml(s.subtitulo)}</span>`;
+                    item.addEventListener('click', function () {
+                        input.value = s.valor || '';
+                        cancelarBusca();
+                        mostrarAvisoModo();
+                    });
+                    dropdown.appendChild(item);
+                });
+
+                dropdown.style.display = 'block';
+            } catch (erro) {
+                if (minhaBusca !== buscaAtual || modo !== modoAtual || erro.status === 401) return;
+                fecharDropdown();
+                mostrarAviso(erro.status === 403
+                    ? 'Sua conta não tem permissão para consultar freelancers.'
+                    : erro.message || 'Não foi possível carregar a busca. Tente novamente.');
+            }
         }, 250);
     });
 
     document.addEventListener('click', function (e) {
-        if (!wrapper.contains(e.target)) fecharDropdown();
+        if (!wrapper.contains(e.target)) cancelarBusca();
     });
 
     // ── Submeter busca ──
-    function temSessao() {
-        try {
-            return !!sessionStorage.getItem('usuarioLogado');
-        } catch (erro) {
-            return false;
-        }
-    }
-
-    form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        const termo = input.value.trim();
+    function navegarParaBusca(termo = '') {
+        cancelarBusca();
         const destino = LINKS_VER_TODOS[modoAtual].href;
         const alvo = termo
             ? `${destino}?busca=${encodeURIComponent(termo)}`
             : destino;
 
-        if (!temSessao()) {
+        const sessao = sessaoValida();
+        if (!sessao) {
             window.location.href = `/pages/02-login.html?next=${encodeURIComponent(alvo)}`;
             return;
         }
 
+        if (modoAtual === 'freelancers' && sessao.tipo !== 'empresas') {
+            mostrarAviso('A busca de freelancers é exclusiva para empresas.');
+            return;
+        }
+
         window.location.href = alvo;
+    }
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        navegarParaBusca(input.value.trim());
     });
-})();
+    linkVerTodos.addEventListener('click', function (e) {
+        e.preventDefault();
+        navegarParaBusca();
+    });
 
-/* -------------------------------------------------------------------------- */
-/* PLANOS E PREÇOS — catálogo vem da API (entidade `planos`, fonte de verdade) */
-/* -------------------------------------------------------------------------- */
-(function initPlanosHomepage() {
-    function escapeHtml(str) {
-        return String(str ?? '').replace(/[&<>"']/g, function (ch) {
-            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
-        });
-    }
-
-    const grade = document.getElementById('pricing-grid');
-    if (!grade) return;
-
-    // Ação (CTA) de cada plano varia pelo nome; os valores vêm do back.
-    function montarAcao(nome) {
-        if (nome === 'Empresarial') {
-            return { href: 'https://wa.me/5547996654584', alvo: '_blank', classe: 'btn btn-outline-purple w-full', rotulo: 'Falar com vendas' };
-        }
-        if (nome === 'Básico') {
-            return { href: '/pages/05-cadastro-freelancer.html', alvo: '_self', classe: 'btn btn-outline-purple w-full', rotulo: 'Começar grátis' };
-        }
-        return { href: '/pages/21-assinatura.html', alvo: '_self', classe: 'btn btn-purple w-full', rotulo: `Assinar ${nome}` };
-    }
-
-    fetch(`${API_BASE}/planos?tipo=assinatura`)
-        .then(function (res) {
-            if (!res.ok) throw new Error('Erro HTTP: ' + res.status);
-            return res.json();
-        })
-        .then(function (planos) {
-            grade.innerHTML = '';
-            planos.forEach(function (plano) {
-                const card = document.createElement('div');
-                card.className = plano.destaque ? 'pricing-card featured' : 'pricing-card';
-
-                if (plano.destaque) {
-                    const badge = document.createElement('div');
-                    badge.className = 'badge-featured';
-                    badge.textContent = 'Mais Popular';
-                    card.appendChild(badge);
-                }
-
-                const nome = document.createElement('div');
-                nome.className = 'pricing-name';
-                nome.textContent = plano.nome;
-                card.appendChild(nome);
-
-                const preco = document.createElement('div');
-                preco.className = 'pricing-price';
-                const amount = document.createElement('span');
-                amount.className = 'amount';
-                amount.textContent = plano.valor || 'Sob consulta';
-                preco.appendChild(amount);
-                if (plano.valor) {
-                    const periodo = document.createElement('span');
-                    periodo.className = 'period';
-                    periodo.textContent = '/mês';
-                    preco.appendChild(periodo);
-                }
-                card.appendChild(preco);
-
-                const descricao = document.createElement('p');
-                descricao.className = 'pricing-desc';
-                descricao.textContent = plano.descricao || '';
-                card.appendChild(descricao);
-
-                const lista = document.createElement('ul');
-                lista.className = 'pricing-features';
-                (plano.beneficios || []).forEach(function (beneficio) {
-                    const item = document.createElement('li');
-                    item.innerHTML = `<i class="bi bi-check-circle-fill"></i> ${escapeHtml(beneficio)}`;
-                    lista.appendChild(item);
-                });
-                card.appendChild(lista);
-
-                const acao = montarAcao(plano.nome);
-                const link = document.createElement('a');
-                link.href = acao.href;
-                link.className = acao.classe;
-                link.textContent = acao.rotulo;
-                if (acao.alvo === '_blank') {
-                    link.target = '_blank';
-                    link.rel = 'noopener noreferrer';
-                }
-                card.appendChild(link);
-
-                grade.appendChild(card);
-            });
-        })
-        .catch(function (erro) {
-            console.error('Erro ao carregar planos:', erro);
-            grade.innerHTML = '<p class="text-muted">Não foi possível carregar os planos.</p>';
-        });
+    atualizarModo(modoAtual);
 })();
