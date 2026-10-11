@@ -1,13 +1,9 @@
 // Minhas Candidaturas (Freelancer)
-const API_URL = `${API_BASE}/candidaturas`;
-const API_URL_CONVITES = `${API_BASE}/convites`;
 
 const sessao = exigirTipo('freelancers');
 if (!sessao) {
     throw new Error('Sessão inválida');
 }
-const freelancerId = sessao.id;
-let token;
 
 renderizarSidebar(document.querySelector('.sidebar'), 'freelancers', '20-minhas-candidaturas');
 renderizarTopbar(document.querySelector('#header-acoes'), sessao);
@@ -23,7 +19,6 @@ const filtroEstado = document.querySelector('#filterEstado');
 const filtroCidade = document.querySelector('#filterCidade');
 const btnLimparFiltros = document.querySelector('#btnLimparFiltros');
 const bodyLista = document.querySelector('tbody');
-const mensagemErro = document.querySelector('#msg-error');
 const mensagemVazio = document.querySelector('#msg-empty');
 const cardFiltros = document.querySelector('#cardFiltros');
 const cardTabela = document.querySelector('#cardTabela');
@@ -31,19 +26,16 @@ const btnPaginaAnterior = document.querySelector('#btnPaginaAnterior');
 const btnPaginaProxima = document.querySelector('#btnPaginaProxima');
 const resumoPaginas = document.querySelector('#resumoPaginas');
 
-const cardConvites = document.querySelector('#cardConvites');
-const listaConvites = document.querySelector('#listaConvites');
-const modalAceitarConvite = document.querySelector('#modalAceitarConvite');
-const conviteTituloModal = document.querySelector('#convite-titulo-modal');
-const btnCancelarAceiteConvite = document.querySelector('#btnCancelarAceiteConvite');
-const btnConfirmarAceiteConvite = document.querySelector('#btnConfirmarAceiteConvite');
-
 const PAGE_SIZE = 10;
 
 let todasCandidaturas = [];
 let itensFiltrados = [];
 let paginaAtual = 1;
-let conviteSelecionado = null;
+
+// Cache em memória por candidatura -> vaga/empresa, para não repetir
+// chamadas quando a mesma vaga/empresa aparece em mais de uma candidatura.
+const cacheVagas = {}; // vagaId (string) -> vaga mapeada (mapVaga) | null se falhou
+const cacheNomesEmpresa = {}; // empresaId (string) -> nome | 'Empresa'
 
 /* ------------------------- menu mobile ------------------------------------ */
 
@@ -75,26 +67,92 @@ sidebarOverlay.addEventListener('click', fecharMenu);
 if (filtroEstado) carregarUFs(filtroEstado);
 if (filtroEstado && filtroCidade) montarAutocompleteCidade(filtroCidade, filtroEstado);
 
+/* ------------------------- enriquecer com dados da vaga -------------------- */
+
+// GET /User/candidaturas/minhas só devolve id/vagaId/tituloVaga/status/data/
+// mensagem — empresa, cidade, estado, valor e prazo vêm da vaga (GET /vagas/{id})
+// e do perfil público da empresa (GET /Company/exibirPerfilPublicoEmpresa).
+async function buscarVaga(vagaId) {
+    if (cacheVagas[vagaId] !== undefined) return cacheVagas[vagaId];
+    try {
+        const vagaBack = await api(`/vagas/${encodeURIComponent(vagaId)}`, { semRedirect: true });
+        cacheVagas[vagaId] = mapVaga(vagaBack);
+    } catch (erro) {
+        // Vaga excluída (404) ou outra falha: a candidatura continua aparecendo
+        // com o que já se tem (tituloVaga/status/data), e "—" nas colunas que
+        // dependem da vaga.
+        console.error(`Erro ao buscar a vaga ${vagaId}:`, erro);
+        cacheVagas[vagaId] = null;
+    }
+    return cacheVagas[vagaId];
+}
+
+async function buscarNomeEmpresa(empresaId) {
+    if (cacheNomesEmpresa[empresaId] !== undefined) return cacheNomesEmpresa[empresaId];
+    try {
+        const perfil = await api(`/Company/exibirPerfilPublicoEmpresa?userId=${encodeURIComponent(empresaId)}`, { semRedirect: true });
+        cacheNomesEmpresa[empresaId] = (perfil && perfil.companyName) || 'Empresa';
+    } catch (erro) {
+        console.error(`Erro ao buscar nome da empresa ${empresaId}:`, erro);
+        cacheNomesEmpresa[empresaId] = 'Empresa';
+    }
+    return cacheNomesEmpresa[empresaId];
+}
+
+// Busca as vagas e os nomes das empresas (uma chamada por id distinto, em
+// paralelo, com Promise.allSettled) e devolve as candidaturas já com os
+// campos que a tabela usa. Uma vaga/empresa que falhar nunca derruba as
+// demais nem a lista inteira — só aquela linha fica com "—".
+async function enriquecerCandidaturas(candidaturasBack) {
+    const vagaIdsUnicos = Array.from(new Set(candidaturasBack.map(function (c) { return String(c.vagaId); }).filter(Boolean)));
+    await Promise.allSettled(vagaIdsUnicos.map(buscarVaga));
+
+    const empresaIdsUnicos = Array.from(new Set(
+        vagaIdsUnicos
+            .map(function (id) { return cacheVagas[id] && cacheVagas[id].empresaId; })
+            .filter(Boolean)
+            .map(String)
+    ));
+    await Promise.allSettled(empresaIdsUnicos.map(buscarNomeEmpresa));
+
+    return candidaturasBack.map(function (c) {
+        const vaga = cacheVagas[String(c.vagaId)] || null;
+        const empresaId = vaga ? vaga.empresaId : null;
+
+        return {
+            id: c.id,
+            vagaId: c.vagaId,
+            titulo: (vaga && vaga.titulo) || c.tituloVaga || 'Vaga',
+            status: mapStatusCandidatura(c.status),
+            empresaId: empresaId || null,
+            empresaNome: empresaId ? (cacheNomesEmpresa[String(empresaId)] || 'Empresa') : '',
+            cidade: vaga ? (vaga.cidade || '') : '',
+            estado: vaga ? (vaga.estado || '') : '',
+            valor: vaga && vaga.valor != null ? Number(vaga.valor) : null,
+            prazo: vaga ? (vaga.prazoConclusao || null) : null,
+            dataCandidatura: c.dataCandidatura
+        };
+    });
+}
+
 /* ------------------------- carregar dados --------------------------------- */
 
 async function carregarDadosFreelancer() {
-    mensagemErro.hidden = true;
     mensagemVazio.hidden = true;
     loadingBar.removeAttribute('hidden');
     erroBar.setAttribute('hidden', '');
     conteudoPerfil.setAttribute('hidden', '');
 
     try {
-        const resposta = await fetch(`${API_URL}?freelancerId=${encodeURIComponent(freelancerId)}`);
-        if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
+        const candidaturasBack = await api('/User/candidaturas/minhas');
+        const lista = Array.isArray(candidaturasBack) ? candidaturasBack : [];
 
-        todasCandidaturas = await resposta.json();
+        todasCandidaturas = await enriquecerCandidaturas(lista);
 
         loadingBar.setAttribute('hidden', '');
         conteudoPerfil.removeAttribute('hidden');
 
-        // Sem nenhuma candidatura: exibe somente a mensagem em vermelho,
-        // sem lista nem opção de pesquisa.
+        // Sem nenhuma candidatura: exibe somente a mensagem, sem filtros nem tabela.
         if (todasCandidaturas.length === 0) {
             cardFiltros.hidden = true;
             cardTabela.hidden = true;
@@ -109,7 +167,8 @@ async function carregarDadosFreelancer() {
     } catch (erro) {
         console.error('Erro ao carregar candidaturas:', erro);
         loadingBar.setAttribute('hidden', '');
-        mensagemErro.hidden = false;
+        erroBar.textContent = erro.message || 'Não foi possível carregar as candidaturas. Tente novamente mais tarde.';
+        erroBar.removeAttribute('hidden');
     }
 }
 
@@ -119,7 +178,8 @@ function ordenarCandidaturas(lista) {
     const ordenacao = filtroOrdenar ? filtroOrdenar.value : 'recentes';
 
     if (ordenacao === 'valor') {
-        lista.sort(function (a, b) { return moedaParaNumero(b.valor) - moedaParaNumero(a.valor); });
+        // valor já é número (orcamento da vaga) — compara direto.
+        lista.sort(function (a, b) { return (b.valor || 0) - (a.valor || 0); });
         return;
     }
 
@@ -134,11 +194,12 @@ function ordenarCandidaturas(lista) {
         return;
     }
 
-    // "Mais recentes": por data de candidatura.
+    // "Mais recentes": por data da candidatura desc, desempate por id desc.
     lista.sort(function (a, b) {
         const da = a.dataCandidatura ? new Date(a.dataCandidatura).getTime() : 0;
         const db_ = b.dataCandidatura ? new Date(b.dataCandidatura).getTime() : 0;
-        return db_ - da;
+        if (db_ !== da) return db_ - da;
+        return (Number(b.id) || 0) - (Number(a.id) || 0);
     });
 }
 
@@ -190,7 +251,7 @@ function renderizarPagina() {
 
 function obterClasseBadgeStatus(status) {
     if (status === 'Em análise') return 'badge-warning';
-    if (status === 'Cancelada' || status === 'Rejeitado') return 'badge-danger';
+    if (status === 'Rejeitado') return 'badge-danger';
     if (status === 'Selecionado') return 'badge-success';
     return 'badge';
 }
@@ -202,28 +263,27 @@ function preencherLinha(candidatura) {
     tdTitulo.textContent = candidatura.titulo;
 
     const tdEmpresa = document.createElement('td');
-    const nomeEmpresaCandidatura = candidatura.nomeEmpresa || candidatura.empresaNome || '';
     if (candidatura.empresaId) {
         const linkEmpresa = document.createElement('a');
         linkEmpresa.href = `/pages/26-perfil-empresa-publico.html?id=${encodeURIComponent(candidatura.empresaId)}`;
         linkEmpresa.className = 'text-primary';
-        linkEmpresa.textContent = nomeEmpresaCandidatura;
+        linkEmpresa.textContent = candidatura.empresaNome || 'Empresa';
         tdEmpresa.appendChild(linkEmpresa);
     } else {
-        tdEmpresa.textContent = nomeEmpresaCandidatura;
+        tdEmpresa.textContent = '—';
     }
 
     const tdLocal = document.createElement('td');
     tdLocal.textContent = [candidatura.cidade, candidatura.estado].filter(Boolean).join(' - ') || '—';
 
     const tdValor = document.createElement('td');
-    tdValor.textContent = candidatura.valor || '—';
+    tdValor.textContent = candidatura.valor != null ? formatarMoeda(candidatura.valor) : '—';
 
     const tdPrazo = document.createElement('td');
-    tdPrazo.textContent = formatarData(candidatura.prazo) || '—';
+    tdPrazo.textContent = candidatura.prazo ? formatarData(candidatura.prazo) : '—';
 
     const tdDataCandidatura = document.createElement('td');
-    tdDataCandidatura.textContent = formatarData(candidatura.dataCandidatura) || '—';
+    tdDataCandidatura.textContent = candidatura.dataCandidatura ? formatarData(candidatura.dataCandidatura) : '—';
 
     const tdStatus = document.createElement('td');
     const badgeStatus = document.createElement('span');
@@ -231,6 +291,8 @@ function preencherLinha(candidatura) {
     badgeStatus.textContent = candidatura.status;
     tdStatus.appendChild(badgeStatus);
 
+    // O back não tem endpoint para cancelar candidatura — só o botão
+    // "Detalhar" permanece nesta coluna.
     const tdAcoes = document.createElement('td');
     const divAcoes = document.createElement('div');
     divAcoes.className = 'table-actions';
@@ -238,48 +300,8 @@ function preencherLinha(candidatura) {
     const botaoDetalhar = document.createElement('a');
     botaoDetalhar.className = 'btn btn-primary';
     botaoDetalhar.textContent = 'Detalhar';
-    botaoDetalhar.href = `/pages/18-vaga-detalhe.html?id=${encodeURIComponent(candidatura.vagaId || candidatura.id)}`;
+    botaoDetalhar.href = `/pages/18-vaga-detalhe.html?id=${encodeURIComponent(candidatura.vagaId)}`;
     divAcoes.appendChild(botaoDetalhar);
-
-    if (candidatura.status === 'Em análise') {
-        const botaoCancelar = document.createElement('button');
-        botaoCancelar.className = 'btn btn-outline';
-        botaoCancelar.style.color = '#d93025';
-        botaoCancelar.style.borderColor = '#ffc1bc';
-        botaoCancelar.innerHTML = '<i class="bi bi-x-circle"></i> Encerrar';
-        botaoCancelar.type = 'button';
-        botaoCancelar.textContent = 'Cancelar';
-        botaoCancelar.addEventListener('click', async function () {
-            const confirmou = await modalConfirmar({
-                titulo: 'Confirmar cancelamento',
-                mensagem: 'Você tem certeza que deseja cancelar a sua candidatura? Essa ação não poderá ser desfeita.',
-                textoConfirmar: 'Confirmar cancelamento',
-                textoCancelar: 'Cancelar',
-                perigoso: true
-            });
-            if (!confirmou) return;
-
-            try {
-                const resposta = await fetch(`${API_URL}/${candidatura.id}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ status: 'Cancelada' })
-                });
-
-                if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
-
-                mostrarMensagem('Candidatura cancelada.', 'success');
-                carregarDadosFreelancer();
-            } catch (erro) {
-                console.error('Erro ao cancelar candidatura:', erro);
-                mensagemErro.hidden = false;
-            }
-        });
-        divAcoes.appendChild(botaoCancelar);
-    }
 
     tdAcoes.appendChild(divAcoes);
     tableRow.appendChild(tdTitulo);
@@ -305,7 +327,6 @@ function preencherLinha(candidatura) {
 
 /* ------------------------- eventos de filtro ------------------------------ */
 
-// Filtros aplicados em tempo real, no mesmo padrão do mural de vagas (07).
 filtroTituloVaga.addEventListener('input', aplicarFiltros);
 filtroStatusVaga.addEventListener('change', aplicarFiltros);
 if (filtroOrdenar) filtroOrdenar.addEventListener('change', aplicarFiltros);
@@ -336,303 +357,6 @@ btnPaginaProxima.addEventListener('click', function () {
     }
 });
 
-/* ------------------------- convites ---------------------------------------- */
-
-async function carregarConvites() {
-    if (!cardConvites || !listaConvites) return;
-
-    try {
-        const resposta = await fetch(`${API_URL_CONVITES}?freelancerId=${encodeURIComponent(freelancerId)}&status=Pendente`);
-        if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
-
-        const convites = await resposta.json();
-        listaConvites.innerHTML = '';
-
-        if (convites.length === 0) {
-            cardConvites.hidden = true;
-            return;
-        }
-
-        cardConvites.hidden = false;
-
-        convites.forEach(function (convite) {
-            const item = document.createElement('div');
-            item.className = 'company-job-item';
-
-            const detalhes = document.createElement('div');
-            detalhes.className = 'job-details';
-            const nomeEmpresa = document.createElement('h3');
-            if (convite.empresaId) {
-                const linkEmpresa = document.createElement('a');
-                linkEmpresa.href = `/pages/26-perfil-empresa-publico.html?id=${encodeURIComponent(convite.empresaId)}`;
-                linkEmpresa.textContent = convite.empresaNome || 'Empresa';
-                nomeEmpresa.appendChild(linkEmpresa);
-            } else {
-                nomeEmpresa.textContent = convite.empresaNome || 'Empresa';
-            }
-            const textoVaga = document.createElement('span');
-            textoVaga.textContent = `Convidou você para a vaga: ${convite.vagaTitulo}`;
-            detalhes.appendChild(nomeEmpresa);
-            detalhes.appendChild(textoVaga);
-
-            const acoes = document.createElement('div');
-            acoes.className = 'job-actions';
-
-            const btnRecusar = document.createElement('button');
-            btnRecusar.className = 'btn btn-outline-purple';
-            btnRecusar.style.cssText = 'padding: 6px 12px; font-size: 0.82rem;';
-            btnRecusar.textContent = 'Recusar';
-            btnRecusar.addEventListener('click', function () {
-                recusarConvite(convite.id);
-            });
-
-            const btnAceitar = document.createElement('button');
-            btnAceitar.className = 'btn btn-purple-bright';
-            btnAceitar.style.cssText = 'padding: 6px 12px; font-size: 0.82rem;';
-            btnAceitar.textContent = 'Aceitar';
-            btnAceitar.addEventListener('click', function () {
-                conviteSelecionado = convite;
-                if (conviteTituloModal) conviteTituloModal.textContent = convite.vagaTitulo;
-                if (modalAceitarConvite) modalAceitarConvite.style.display = 'flex';
-            });
-
-            acoes.appendChild(btnRecusar);
-            acoes.appendChild(btnAceitar);
-
-            item.appendChild(detalhes);
-            item.appendChild(acoes);
-            listaConvites.appendChild(item);
-        });
-    } catch (erro) {
-        console.error('Erro ao carregar convites:', erro);
-    }
-}
-
-async function recusarConvite(conviteId) {
-    try {
-        const resposta = await fetch(`${API_URL_CONVITES}/${conviteId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: 'Recusado' })
-        });
-        if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
-        mostrarMensagem('Convite recusado.', 'success');
-        carregarConvites();
-    } catch (erro) {
-        console.error('Erro ao recusar convite:', erro);
-        mensagemErro.hidden = false;
-    }
-}
-
-if (btnCancelarAceiteConvite) {
-    btnCancelarAceiteConvite.addEventListener('click', function () {
-        conviteSelecionado = null;
-        if (modalAceitarConvite) modalAceitarConvite.style.display = 'none';
-    });
-}
-
-// Aceitar um convite equivale a um match: gera/atualiza a candidatura como
-// "Selecionado", rejeita as demais candidaturas em análise daquela vaga,
-// encerra a vaga, garante a conversa de chat e cria a Ordem de Serviço.
-if (btnConfirmarAceiteConvite) {
-    btnConfirmarAceiteConvite.addEventListener('click', async function () {
-        if (!conviteSelecionado) return;
-
-        const convite = conviteSelecionado;
-        if (modalAceitarConvite) modalAceitarConvite.style.display = 'none';
-
-        btnConfirmarAceiteConvite.disabled = true;
-        const textoOriginal = btnConfirmarAceiteConvite.innerHTML;
-        btnConfirmarAceiteConvite.innerHTML = '<span class="spinner"></span> Processando...';
-
-        try {
-            // Revalida o estado atual antes de executar o match: o convite deve
-            // continuar "Pendente" e a vaga "Aberta" (evita duplicar OS e gravar
-            // OS sem cidade/estado quando a vaga não é encontrada).
-            const respConviteAtual = await fetch(`${API_URL_CONVITES}/${convite.id}`);
-            if (!respConviteAtual.ok) throw new Error('Convite não encontrado.');
-            const conviteAtual = await respConviteAtual.json();
-            if (conviteAtual.status !== 'Pendente') {
-                mensagemErro.textContent = 'Este convite não está mais pendente. Recarregue a página.';
-                mensagemErro.hidden = false;
-                btnConfirmarAceiteConvite.disabled = false;
-                btnConfirmarAceiteConvite.innerHTML = textoOriginal;
-                return;
-            }
-
-            const respVaga = await fetch(`${API_BASE}/vagas/${convite.vagaId}`);
-            if (!respVaga.ok) throw new Error('Vaga não encontrada.');
-            const vaga = await respVaga.json();
-            if (vaga.status !== 'Aberta') {
-                mensagemErro.textContent = 'Esta vaga não está mais aberta para receber candidaturas.';
-                mensagemErro.hidden = false;
-                btnConfirmarAceiteConvite.disabled = false;
-                btnConfirmarAceiteConvite.innerHTML = textoOriginal;
-                return;
-            }
-
-            const respOSExistentes = await fetch(`${API_BASE}/ordensServico`);
-            const osExistentes = respOSExistentes.ok ? await respOSExistentes.json() : [];
-            const jaTemOS = osExistentes.some(function (o) {
-                return String(o.freelancerId) === String(freelancerId) && o.titulo === convite.vagaTitulo;
-            });
-            if (jaTemOS) {
-                mensagemErro.textContent = 'Uma ordem de serviço para esta vaga já foi criada. Recarregue a página.';
-                mensagemErro.hidden = false;
-                btnConfirmarAceiteConvite.disabled = false;
-                btnConfirmarAceiteConvite.innerHTML = textoOriginal;
-                return;
-            }
-
-            const respCandidaturas = await fetch(`${API_BASE}/candidaturas?empresaId=${convite.empresaId}`);
-            const candidaturasDaEmpresa = respCandidaturas.ok ? await respCandidaturas.json() : [];
-            const candidaturasDaVaga = candidaturasDaEmpresa.filter(function (c) { return String(c.vagaId) === String(convite.vagaId); });
-            const candidaturaExistente = candidaturasDaVaga.find(function (c) { return String(c.freelancerId) === String(freelancerId); });
-
-            if (candidaturaExistente) {
-                await fetch(`${API_BASE}/candidaturas/${candidaturaExistente.id}`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ status: 'Selecionado' })
-                });
-            } else {
-                await fetch(`${API_BASE}/candidaturas`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        vagaId: convite.vagaId,
-                        empresaId: convite.empresaId,
-                        empresaNome: convite.empresaNome,
-                        nomeEmpresa: convite.empresaNome,
-                        titulo: convite.vagaTitulo,
-                        cidade: vaga.cidade || '',
-                        estado: vaga.estado || '',
-                        valor: vaga.valor || '',
-                        prazo: vaga.prazo || '',
-                        dataCandidatura: new Date().toISOString(),
-                        freelancerId: freelancerId,
-                        freelancerNome: convite.freelancerNome,
-                        status: 'Selecionado',
-                        tipo: 'Vaga',
-                        link: '18-vaga-detalhe.html'
-                    })
-                });
-            }
-
-            // Rejeita as demais candidaturas dessa vaga que ainda estavam em análise.
-            await Promise.all(candidaturasDaVaga
-                .filter(function (c) { return c.status === 'Em análise' && String(c.freelancerId) !== String(freelancerId); })
-                .map(function (c) {
-                    return fetch(`${API_BASE}/candidaturas/${c.id}`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ status: 'Rejeitado' })
-                    });
-                }));
-
-            // Encerra a vaga — foi preenchida.
-            await fetch(`${API_BASE}/vagas/${convite.vagaId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: 'Encerrada' })
-            });
-
-            // Garante a conversa de chat entre freelancer e empresa.
-            const respConversas = await fetch(`${API_BASE}/conversas`);
-            const todasConversas = respConversas.ok ? await respConversas.json() : [];
-            const alvoConversa = [String(freelancerId), String(convite.empresaId)].sort();
-            const jaExisteConversa = todasConversas.some(function (c) {
-                const par = [String(c.participanteAId), String(c.participanteBId)].sort();
-                return par[0] === alvoConversa[0] && par[1] === alvoConversa[1];
-            });
-
-            if (!jaExisteConversa) {
-                await fetch(`${API_BASE}/conversas`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        participanteAId: freelancerId,
-                        participanteANome: convite.freelancerNome,
-                        participanteATipo: 'freelancers',
-                        participanteBId: convite.empresaId,
-                        participanteBNome: convite.empresaNome,
-                        participanteBTipo: 'empresas',
-                        ultimaMensagem: '',
-                        ultimaAtualizacao: new Date().toISOString()
-                    })
-                });
-            }
-
-            // Marca o convite como aceito.
-            await fetch(`${API_URL_CONVITES}/${convite.id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: 'Aceito' })
-            });
-
-            // Avisa a empresa que o freelancer aceitou o convite.
-            criarNotificacao({
-                usuarioId: convite.empresaId,
-                usuarioTipo: 'empresas',
-                tipo: 'convite',
-                titulo: 'Convite aceito',
-                mensagem: `${convite.freelancerNome} aceitou seu convite para a vaga "${convite.vagaTitulo}".`,
-                link: '/pages/16-ordens-servico.html'
-            });
-
-            // Gera a Ordem de Serviço (com cidade/estado da vaga).
-            const novaOS = {
-                titulo: convite.vagaTitulo,
-                categoria: vaga.especialidade || 'A definir',
-                modalidade: vaga.modalidade || 'Presencial',
-                empresaId: convite.empresaId,
-                empresaNome: convite.empresaNome,
-                freelancerId: freelancerId,
-                freelancerNome: convite.freelancerNome,
-                cidade: vaga.cidade || '',
-                estado: vaga.estado || '',
-                valor: vaga.valor || '',
-                descricao: `Ordem de serviço gerada a partir do convite aceito para a vaga "${convite.vagaTitulo}".`,
-                habilidades: [],
-                status: 'Em andamento',
-                dataPublicacao: new Date().toISOString(),
-                prazo: vaga.prazo || '',
-                previsaoConclusao: '',
-                avaliacaoFreelancer: 'Pendente',
-                avaliacaoConfeccao: 'Pendente',
-                observacoes: '',
-                referenciaBriefing: '',
-                referenciaEntrega: '',
-                historico: [
-                    { data: hojeLocalISO(), evento: 'OS criada a partir da aceitação do convite.' }
-                ]
-            };
-
-            const respOS = await fetch(`${API_BASE}/ordensServico`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(novaOS)
-            });
-            const osCriada = respOS.ok ? await respOS.json() : null;
-
-            conviteSelecionado = null;
-            carregarConvites();
-            carregarDadosFreelancer();
-
-            if (osCriada) {
-                window.location.href = `/pages/19-ordem-servico-detalhe.html?id=${osCriada.id}`;
-            }
-        } catch (erro) {
-            console.error('Erro ao aceitar convite:', erro);
-            mensagemErro.hidden = false;
-        } finally {
-            btnConfirmarAceiteConvite.disabled = false;
-            btnConfirmarAceiteConvite.innerHTML = textoOriginal;
-        }
-    });
-}
-
 /* ------------------------- iniciar ----------------------------------------- */
 
 carregarDadosFreelancer();
-carregarConvites();
