@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="/css/global.css" />
 </head>
-<body>
+<body class="dashboard-freelancer">
 
     <div class="app">
     <button class="sidebar-toggle-btn" type="button" aria-label="Abrir menu" aria-expanded="false">
@@ -25,6 +25,11 @@
             <h2>Meu Painel</h2>
             <div class="header-actions" id="header-acoes"></div>
         </div>
+
+        <div id="mensagemStatus" class="alert mb-md" role="alert" hidden></div>
+        <button class="btn btn-outline mb-md" id="btn-tentar-novamente" type="button" hidden>
+            <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Tentar novamente
+        </button>
 
         <!-- CABEÇALHO DO PAINEL -->
         <section class="dash-header">
@@ -88,7 +93,7 @@
                     </div>
 
                     <div class="services-list" id="lista-servicos">
-                        <!-- Carregado via ordensServico da API -->
+                        <p class="text-muted">Carregando...</p>
                     </div>
                 </div>
 
@@ -100,7 +105,7 @@
                     </div>
 
                     <div id="vagas-recomendadas">
-                        <!-- Carregado via vagas da API -->
+                        <p class="text-muted">Carregando...</p>
                     </div>
                 </div>
 
@@ -125,6 +130,7 @@
     </div>
 
     <script src="/js/config.js"></script>
+    <script src="/js/api.js"></script>
     <script src="/js/ui.js"></script>
     <script src="/js/nav.js"></script>
     <script src="/js/03-dashboard-freelancer.js"></script>
