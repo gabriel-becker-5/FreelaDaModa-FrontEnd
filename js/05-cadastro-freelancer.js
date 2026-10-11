@@ -1,4 +1,3 @@
-const API_URL = `${API_BASE}/freelancers`;
 const form = document.querySelector('#form-cadastro');
 const alertBar = document.querySelector('#alert-cadastro');
 const inputNome = document.querySelector('#nome');
@@ -24,6 +23,9 @@ const inputMaquinas = document.querySelector('#multi-select-maquinas');
 const exibeSenha = document.querySelector('#exibeSenha');
 const exibeConfirmaSenha = document.querySelector('#exibeConfirmaSenha');
 const msgSenhasDiferentes = document.querySelector('#msg-senhas-diferentes');
+const botao = document.querySelector('#btn-cadastrar');
+
+let listasCarregadas = false;
 
 // Mensagens injetadas via ui.js que controlam o toast com as mensagens de campos com validação incorreta. Se não existir, o toast não será exibido.
 function mostrarMensagem(texto, tipo) {
@@ -88,9 +90,9 @@ function validarCPF(cpf) {
            calcularDigito(digitos.slice(0, 10)) === Number(digitos[10]);
 }
 
-// Validação da senha e se os requisitos foram atendidos
+// Validação da senha e se os requisitos foram atendidos (mesma regra do back: 10 a 50 caracteres, maiúscula, minúscula, número e símbolo)
 const REQUISITOS_SENHA = [
-    { chave: 'tamanho', testar: (s) => s.length >= 10 },
+    { chave: 'tamanho', testar: (s) => s.length >= 10 && s.length <= 50 },
     { chave: 'maiuscula', testar: (s) => /[A-Z]/.test(s) },
     { chave: 'minuscula', testar: (s) => /[a-z]/.test(s) },
     { chave: 'numero', testar: (s) => /[0-9]/.test(s) },
@@ -159,18 +161,42 @@ function alternarSenha(input, icone) {
 exibeSenha.addEventListener('click', () => alternarSenha(inputSenha, exibeSenha));
 exibeConfirmaSenha.addEventListener('click', () => alternarSenha(inputConfirmaSenha, exibeConfirmaSenha));
 
-// Controla os badges de especialidades e máquinas
-document.querySelectorAll('.badge.badge-selectable').forEach(function (item) {
-    item.addEventListener('click', function () {
-        item.classList.toggle('selected');
+// Controla os badges de especialidades e máquinas (preenchidos dinamicamente a partir do back)
+function criarBadgeSelecionavel(item) {
+    const badge = document.createElement('span');
+    badge.className = 'badge badge-selectable';
+    badge.dataset.id = item.id;
+    badge.textContent = item.label;
+    badge.addEventListener('click', function () {
+        badge.classList.toggle('selected');
     });
-});
+    return badge;
+}
+
+function preencherMultiSelect(campoMultiSelect, lista) {
+    campoMultiSelect.innerHTML = '';
+    lista.forEach(function (item) {
+        campoMultiSelect.appendChild(criarBadgeSelecionavel(item));
+    });
+}
+
+function preencherSelect(select, lista) {
+    select.querySelectorAll('option[value]:not([value=""])').forEach(function (opcao) {
+        opcao.remove();
+    });
+    lista.forEach(function (item) {
+        const opcao = document.createElement('option');
+        opcao.value = item.id;
+        opcao.textContent = item.label;
+        select.appendChild(opcao);
+    });
+}
 
 function obterSelecionados(campoMultiSelect) {
     const listaSelecionados = [];
     for (let index = 0; index < campoMultiSelect.childElementCount; index++) {
         const item = campoMultiSelect.children[index];
-        if (item.classList.contains('selected')) listaSelecionados.push(item.textContent);
+        if (item.classList.contains('selected')) listaSelecionados.push(Number(item.dataset.id));
     }
     return listaSelecionados;
 }
@@ -178,6 +204,32 @@ function obterSelecionados(campoMultiSelect) {
 function desmarcarSelecionados(campoMultiSelect) {
     for (let index = 0; index < campoMultiSelect.childElementCount; index++) {
         campoMultiSelect.children[index].classList.remove('selected');
+    }
+}
+
+// Busca as opções dos selects/multi-selects no back-end (endpoint anônimo)
+async function carregarListasDoFormulario() {
+    botao.disabled = true;
+
+    try {
+        const [especialidades, maquinas, experiencias, disponibilidades] = await Promise.all([
+            api('/FreelancerFields/listar/camposDoFreelancer?fieldName=Specialty', { semRedirect: true }),
+            api('/FreelancerFields/listar/camposDoFreelancer?fieldName=OwnMachine', { semRedirect: true }),
+            api('/FreelancerFields/listar/camposDoFreelancer?fieldName=ExperienceYears', { semRedirect: true }),
+            api('/FreelancerFields/listar/camposDoFreelancer?fieldName=AvailableTime', { semRedirect: true })
+        ]);
+
+        preencherMultiSelect(inputEspecialidades, especialidades || []);
+        preencherMultiSelect(inputMaquinas, maquinas || []);
+        preencherSelect(selectExperiencia, experiencias || []);
+        preencherSelect(selectDisponibilidade, disponibilidades || []);
+
+        listasCarregadas = true;
+        botao.disabled = false;
+    } catch (erro) {
+        console.error('Erro ao carregar opções do formulário:', erro);
+        listasCarregadas = false;
+        mostrarMensagem('Não foi possível carregar as opções do formulário. Atualize a página e tente novamente.', 'error');
     }
 }
 
@@ -228,6 +280,10 @@ function validarFormulario() {
     if (!inputEmail.value.trim()) erros.push('Informe o e-mail.');
     else if (!emailValido.test(inputEmail.value.trim())) erros.push('Informe um e-mail válido.');
     if (!inputTelefone.value.trim()) erros.push('Informe o telefone/WhatsApp.');
+    else {
+        const digitosTelefone = inputTelefone.value.replace(/\D/g, '');
+        if (digitosTelefone.length !== 10 && digitosTelefone.length !== 11) erros.push('O telefone deve ter 10 ou 11 dígitos.');
+    }
     if (!inputDescricao.value.trim()) erros.push('A descrição do perfil é obrigatória.');
 
     if (!inputCepResidencial.value.trim()) erros.push('Informe o CEP.');
@@ -239,6 +295,7 @@ function validarFormulario() {
     if (!inputCidadeResidencial.value.trim()) erros.push('Cidade não preenchida — informe um CEP válido.');
     if (!inputEstadoResidencial.value.trim()) erros.push('Estado não preenchido — informe um CEP válido.');
 
+    if (!listasCarregadas) erros.push('As opções do formulário ainda não foram carregadas. Atualize a página.');
     if (!selectExperiencia.value) erros.push('Selecione o tempo de experiência.');
     if (!selectDisponibilidade.value) erros.push('Selecione a disponibilidade de tempo.');
     if (obterSelecionados(inputEspecialidades).length < 1) erros.push('Selecione pelo menos uma Especialidade.');
@@ -277,56 +334,54 @@ function limparFormulario() {
     travarEndereco(true);
 }
 
-// Fetch para cadastrar o freelancer no back-end
+// Monta o corpo da requisição no formato esperado pelo back (CreateFreelancerDto)
+function montarCorpoCadastro() {
+    const corpo = {
+        legalResponsibleFullName: inputNome.value.trim(),
+        legalResponsibleDocument: inputCpf.value.replace(/\D/g, ''),
+        email: inputEmail.value.trim(),
+        password: inputSenha.value,
+        contactNumber: inputTelefone.value.replace(/\D/g, ''),
+        postalCode: inputCepResidencial.value.trim(),
+        address: inputEnderecoResidencial.value.trim(),
+        addressNumber: Number(inputNumeroResidencial.value),
+        neighborhood: inputBairroResidencial.value.trim(),
+        city: inputCidadeResidencial.value.trim(),
+        state: inputEstadoResidencial.value.trim(),
+        publicProfileDescription: inputDescricao.value.trim(),
+        birthDate: inputDataNascimento.value,
+        experienceYearsId: Number(selectExperiencia.value),
+        specialtyIds: obterSelecionados(inputEspecialidades),
+        ownMachineIds: obterSelecionados(inputMaquinas),
+        availableTimeId: Number(selectDisponibilidade.value)
+    };
+
+    const complemento = inputComplementoResidencial.value.trim();
+    if (complemento) corpo.additionalAddressInfo = complemento;
+
+    return corpo;
+}
+
+// Cadastro do freelancer no back-end real (endpoint anônimo)
 form.addEventListener('submit', async function (evento) {
     evento.preventDefault();
     limparMensagem();
 
     if (!validarFormulario()) return;
 
-    const novoFreelancer = {
-        id: '',
-        nome: inputNome.value.trim(),
-        cpf: inputCpf.value,
-        dataNascimento: inputDataNascimento.value,
-        email: inputEmail.value.trim(),
-        telefone: inputTelefone.value,
-        descricao: inputDescricao.value.trim(),
-        senha: inputSenha.value,
-        cepResidencial: inputCepResidencial.value,
-        enderecoResidencial: inputEnderecoResidencial.value,
-        numeroResidencial: inputNumeroResidencial.value,
-        bairroResidencial: inputBairroResidencial.value,
-        complementoResidencial: inputComplementoResidencial.value,
-        cidadeResidencial: inputCidadeResidencial.value,
-        estadoResidencial: inputEstadoResidencial.value,
-        tempoExperiencia: selectExperiencia.value,
-        disponibilidadeHorario: selectDisponibilidade.value,
-        especialidades: obterSelecionados(inputEspecialidades),
-        maquinas: obterSelecionados(inputMaquinas),
-        foto: '',
-        referencias: [],
-        validado: false,
-        mediaAvaliacoes: 0,
-        totalAvaliacoes: 0
-    };
-
-    const botao = document.querySelector('#btn-cadastrar');
     botao.disabled = true;
 
     try {
-        const resposta = await fetch(API_URL, {
+        await api('/User/cadastrar/freelancer', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(novoFreelancer)
+            body: montarCorpoCadastro(),
+            semRedirect: true
         });
 
-        if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
-
-        mostrarMensagem('Cadastro realizado com sucesso! Você será redirecionado em instantes...', 'success');
+        mostrarMensagem('Cadastro realizado com sucesso! Você será redirecionado para o login em instantes...', 'success');
 
         setTimeout(function () {
-            window.location.assign('/pages/01-homepage.html');
+            window.location.assign('/pages/02-login.html');
         }, 3000);
 
         try {
@@ -336,7 +391,11 @@ form.addEventListener('submit', async function (evento) {
         }
     } catch (erro) {
         console.error('Erro ao cadastrar freelancer:', erro);
-        mostrarMensagem('Não foi possível concluir o cadastro. Tente novamente.', 'error');
+        if (erro.status === 400 || erro.status === 409) {
+            mostrarMensagem(erro.message || 'Não foi possível concluir o cadastro. Verifique os dados informados.', 'error');
+        } else {
+            mostrarMensagem('Não foi possível concluir o cadastro. Tente novamente.', 'error');
+        }
     } finally {
         botao.disabled = false;
     }
@@ -344,3 +403,5 @@ form.addEventListener('submit', async function (evento) {
 
 // Data máxima = hoje para o campo de data de nascimento
 inputDataNascimento.max = hojeLocalISO();
+
+carregarListasDoFormulario();
