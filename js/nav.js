@@ -66,7 +66,7 @@ function exigirTipo(tipo) {
     const sessao = exigirLogin();
     if (!sessao) return null;
     if (sessao.tipo !== tipo) {
-        window.location.href = DASHBOARDS[tipo] || '/pages/01-homepage.html';
+        window.location.href = DASHBOARDS[sessao.tipo] || '/pages/01-homepage.html';
         return null;
     }
     return sessao;
@@ -127,131 +127,13 @@ function renderizarSidebar(el, tipo, paginaAtiva) {
     el.innerHTML = html;
 }
 
-// Função com HTML puro que cria o sino de notificações no topo da página, com dropdown e contagem de notificações não lidas
-function montarSinoNotificacoes(wrapperEl, sessao) {
-    wrapperEl.innerHTML = `
-        <button class="btn btn-outline" id="btn-notificacoes" aria-label="Notificações" aria-haspopup="true" aria-expanded="false">
-            <i class="bi bi-bell"></i>
-            <span class="notif-badge" id="notif-badge" hidden>0</span>
-        </button>
-        <div class="notif-dropdown" id="notif-dropdown" hidden>
-            <div class="notif-dropdown-header">
-                <strong>Notificações</strong>
-                <button type="button" id="btn-marcar-todas-lidas" class="btn btn-ghost" style="font-size: 12px; padding: 2px 6px;">Marcar todas como lidas</button>
-            </div>
-            <div id="notif-lista"></div>
-        </div>`;
-
-    const botao = wrapperEl.querySelector('#btn-notificacoes');
-    const dropdown = wrapperEl.querySelector('#notif-dropdown');
-    const lista = wrapperEl.querySelector('#notif-lista');
-    const badge = wrapperEl.querySelector('#notif-badge');
-    const botaoLidas = wrapperEl.querySelector('#btn-marcar-todas-lidas');
-
-    let notificacoes = [];
-
-    async function carregar() {
-        try {
-            // O json-server beta não filtra de forma confiável por múltiplos
-            // parâmetros (?usuarioId=...&usuarioTipo=...), então buscamos todas
-            // e filtramos/ordenamos no cliente (mesmo padrão do chat/candidaturas).
-            const res = await fetch(`${API_BASE}/notificacoes`);
-            if (!res.ok) throw new Error('Falha ao carregar notificações');
-            const todas = await res.json();
-            notificacoes = todas
-                .filter(function (n) {
-                    return String(n.usuarioId) === String(sessao.id) && n.usuarioTipo === sessao.tipo;
-                })
-                .sort(function (a, b) {
-                    return new Date(b.criadoEm || 0) - new Date(a.criadoEm || 0);
-                })
-                .slice(0, 10);
-        } catch (erro) {
-            console.error('Erro ao carregar notificações:', erro);
-            notificacoes = [];
-        }
-        renderizar();
-    }
-
-    function renderizar() {
-        const naoLidas = notificacoes.filter(function (n) { return !n.lida; }).length;
-        badge.textContent = naoLidas;
-        badge.hidden = naoLidas === 0;
-
-        lista.innerHTML = '';
-        if (!notificacoes.length) {
-            const vazio = document.createElement('div');
-            vazio.className = 'notif-item';
-            vazio.textContent = 'Nenhuma notificação por enquanto.';
-            lista.appendChild(vazio);
-            return;
-        }
-        notificacoes.forEach(function (notificacao) {
-            const item = document.createElement('div');
-            item.className = 'notif-item' + (notificacao.lida ? '' : ' notif-nao-lida');
-
-            const titulo = document.createElement('strong');
-            titulo.textContent = notificacao.titulo;
-            const mensagem = document.createElement('span');
-            mensagem.textContent = notificacao.mensagem;
-
-            item.appendChild(titulo);
-            item.appendChild(mensagem);
-            item.addEventListener('click', function () {
-                marcarLida(notificacao);
-                if (notificacao.link && String(notificacao.link).startsWith('/pages/')) {
-                    window.location.href = notificacao.link;
-                }
-            });
-            lista.appendChild(item);
-        });
-    }
-
-    async function marcarLida(notificacao) {
-        if (notificacao.lida) return;
-        try {
-            const res = await fetch(`${API_BASE}/notificacoes/${notificacao.id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ lida: true })
-            });
-            if (!res.ok) throw new Error('Falha ao marcar notificação');
-            notificacao.lida = true;
-            renderizar();
-        } catch (erro) {
-            console.error('Erro ao marcar notificação como lida:', erro);
-        }
-    }
-
-    botao.addEventListener('click', function () {
-        const abrir = dropdown.hidden;
-        dropdown.hidden = !abrir;
-        botao.setAttribute('aria-expanded', String(abrir));
-    });
-
-    botaoLidas.addEventListener('click', function () {
-        notificacoes.filter(function (n) { return !n.lida; }).forEach(marcarLida);
-    });
-
-    document.addEventListener('click', function (evento) {
-        if (!wrapperEl.contains(evento.target)) {
-            dropdown.hidden = true;
-            botao.setAttribute('aria-expanded', 'false');
-        }
-    });
-
-    carregar();
-}
-
-// Função para renderizar a topbar com saudação ao usuário, o sino de notificações e o botão de logout
+// Topbar compartilhada; notificações ficam fora do MVP.
 function renderizarTopbar(el, sessao) {
     const primeiroNome = (sessao.nome || '').split(' ')[0];
     el.innerHTML = `
         <span class="user-greeting">Olá, <strong>${escapeHtml(primeiroNome)}</strong></span>
-        <div class="notif-bell-wrapper"></div>
         <button class="btn btn-outline" id="btn-logout"><i class="bi bi-box-arrow-right"></i> Sair</button>`;
 
-    montarSinoNotificacoes(el.querySelector('.notif-bell-wrapper'), sessao);
     el.querySelector('#btn-logout').addEventListener('click', sairSessao);
 }
 
