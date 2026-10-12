@@ -51,11 +51,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const painelSuporte = paineis[5];
     const painelAvisos = paineis[6];
 
-    function iniciaisDoNome(nome) {
-        const partes = (nome || '').trim().split(' ');
-        return partes.length > 1 ? (partes[0][0] + partes[1][0]).toUpperCase() : (nome || '??').substring(0, 2).toUpperCase();
-    }
-
     function escapeHtml(str) {
         return String(str ?? '').replace(/[&<>"']/g, function (ch) {
             return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
