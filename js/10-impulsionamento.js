@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
+    if (aplicarGuardPaginasNegadas()) return;
+
     const sessao = exigirTipo('freelancers');
     if (!sessao) return;
     const freelancerId = sessao.id;

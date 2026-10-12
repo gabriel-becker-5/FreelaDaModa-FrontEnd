@@ -160,17 +160,6 @@ function initLoginForm() {
             btnEntrar.innerHTML = 'Entrar na plataforma <i class="bi bi-arrow-right"></i>';
         }
     });
-
-    // Esqueci a senha (feedback simples)
-    document.getElementById('link-esqueci-senha').addEventListener('click', (e) => {
-        e.preventDefault();
-        const email = document.getElementById('email').value.trim();
-        if (!email) {
-            mostrarMensagem('Digite o seu e-mail no campo acima para redefinir sua senha.', 'error');
-        } else {
-            mostrarMensagem(`Instruções de redefinição de senha enviadas para: ${email}`, 'success');
-        }
-    });
 }
 
 /* -------------------------------------------------------------------------- */

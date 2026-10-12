@@ -260,12 +260,6 @@ function preencherLinha(os) {
     linkDetalhar.href = `/pages/19-ordem-servico-detalhe.html?id=${encodeURIComponent(os.id)}`;
     divAcoes.appendChild(linkDetalhar);
 
-    const linkEditar = document.createElement('a');
-    linkEditar.className = 'btn';
-    linkEditar.textContent = 'Editar';
-    linkEditar.href = `/pages/14-editar-os.html?id=${encodeURIComponent(os.id)}`;
-    divAcoes.appendChild(linkEditar);
-
     // Concluir e Cancelar só existem enquanto a OS está Em andamento
     // (Concluída e Cancelada são estados finais no back).
     if (os.status === STATUS_EM_ANDAMENTO) {

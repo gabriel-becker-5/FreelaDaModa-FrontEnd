@@ -9,9 +9,7 @@ const MENUS = {
         { pagina: '20-minhas-candidaturas', href: '/pages/20-minhas-candidaturas.html', rotulo: 'Minhas Candidaturas', icone: 'bi-clipboard-check' },
         { pagina: '29-minhas-os', href: '/pages/29-minhas-os.html', rotulo: 'Minhas OSs', icone: 'bi-clipboard-data' },
         { pagina: '08-perfil-freelancer', href: '/pages/08-perfil-freelancer.html', rotulo: 'Perfil', icone: 'bi-person' },
-        { pagina: '11-chat', href: '/pages/11-chat.html', rotulo: 'Chat', icone: 'bi-chat-dots' },
-        { pagina: '10-impulsionamento', href: '/pages/10-impulsionamento.html', rotulo: 'Impulsionamento', icone: 'bi-rocket-takeoff' },
-        { pagina: '24-suporte', href: '/pages/24-suporte.html', rotulo: 'Suporte', icone: 'bi-headset' }
+        { pagina: '11-chat', href: '/pages/11-chat.html', rotulo: 'Chat', icone: 'bi-chat-dots' }
     ],
     empresas: [
         { pagina: '04-dashboard-empresa', href: '/pages/04-dashboard-empresa.html', rotulo: 'Dashboard', icone: 'bi-grid-1x2' },
@@ -20,9 +18,7 @@ const MENUS = {
         { pagina: '12-publicar-vaga', href: '/pages/12-publicar-vaga.html', rotulo: 'Publicar Vaga', icone: 'bi-plus-circle' },
         { pagina: '27-mural-freelancers', href: '/pages/27-mural-freelancers.html', rotulo: 'Buscar Freelancers', icone: 'bi-search' },
         { pagina: '11-chat', href: '/pages/11-chat.html', rotulo: 'Chat', icone: 'bi-chat-dots' },
-        { pagina: '09-perfil-empresa', href: '/pages/09-perfil-empresa.html', rotulo: 'Perfil', icone: 'bi-person' },
-        { pagina: '21-assinatura', href: '/pages/21-assinatura.html', rotulo: 'Assinatura', icone: 'bi-credit-card' },
-        { pagina: '24-suporte', href: '/pages/24-suporte.html', rotulo: 'Suporte', icone: 'bi-headset' }
+        { pagina: '09-perfil-empresa', href: '/pages/09-perfil-empresa.html', rotulo: 'Perfil', icone: 'bi-person' }
     ]
 };
 
@@ -70,6 +66,37 @@ function exigirTipo(tipo) {
         return null;
     }
     return sessao;
+}
+
+// Páginas fora do escopo do MVP: fontes preservadas no repositório, mas a
+// experiência é negada — as telas chamam aplicarGuardPaginasNegadas() como
+// primeira instrução de inicialização, antes de qualquer fetch ou layout.
+const PAGINAS_NEGADAS = [
+    '10-impulsionamento.html',
+    '14-editar-os.html',
+    '21-assinatura.html',
+    '22-admin.html',
+    '24-suporte.html'
+];
+
+function destinoPaginaNegada() {
+    const sessao = obterSessao();
+    if (sessao && sessao.tipo === 'freelancers') return DASHBOARDS.freelancers;
+    if (sessao && sessao.tipo === 'empresas') return DASHBOARDS.empresas;
+    return '/pages/01-homepage.html';
+}
+
+function paginaNegadaAtual() {
+    const caminho = window.location.pathname.toLowerCase();
+    return PAGINAS_NEGADAS.some(function (nome) {
+        return caminho.endsWith('/pages/' + nome);
+    });
+}
+
+function aplicarGuardPaginasNegadas() {
+    if (!paginaNegadaAtual()) return false;
+    window.location.replace(destinoPaginaNegada());
+    return true;
 }
 
 // Menu mobile (hambúrguer) único — substitui os blocos locais duplicados.

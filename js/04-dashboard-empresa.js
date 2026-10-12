@@ -178,17 +178,9 @@ function renderizarOsAtivas(osAtivas) {
         botaoAbrir.style.fontSize = '0.82rem';
         botaoAbrir.innerHTML = '<i class="bi-folder2-open"></i> Detalhar';
 
-        const botaoEditar = document.createElement('a');
-        botaoEditar.href = `/pages/14-editar-os.html?id=${encodeURIComponent(os.id)}`;
-        botaoEditar.className = 'btn btn-outline';
-        botaoEditar.style.padding = '6px 12px';
-        botaoEditar.style.fontSize = '0.82rem';
-        botaoEditar.innerHTML = '<i class="bi bi-pencil"></i> Editar';
-
         const acoes = document.createElement('div');
         acoes.className = 'job-actions';
         acoes.appendChild(botaoAbrir);
-        acoes.appendChild(botaoEditar);
 
         item.appendChild(info);
         item.appendChild(acoes);

@@ -190,13 +190,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const ehFreelancer = sessao.tipo === 'freelancers';
         const emAndamento = os.status === STATUS_EM_ANDAMENTO;
 
-        const linkEditar = document.getElementById('os-link-editar');
         const linkAvaliar = document.getElementById('os-link-avaliar');
-
-        if (linkEditar) {
-            linkEditar.hidden = !ehEmpresa;
-            linkEditar.href = `/pages/14-editar-os.html?id=${os.id}`;
-        }
 
         // Concluir: só empresa. Cancelar: empresa ou freelancer.
         // Os dois somem quando a OS não está Em andamento (Concluída e Cancelada são finais).
