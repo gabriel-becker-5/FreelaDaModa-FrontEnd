@@ -115,7 +115,7 @@ function renderizarSidebar(el, tipo, paginaAtiva) {
             <img src="/assets/logo-icone-branco-2048.png" alt="Logo Freela" class="brand-logo" />
             <span class="brand-text">FREELA<span class="brand-sub">DA MODA</span></span>
         </a>
-        <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Alternar tema claro e escuro">
+        <button class="theme-toggle" type="button" aria-label="Alternar tema claro e escuro">
             <i class="${iconeTema}" aria-hidden="true"></i>
         </button>`;
 
@@ -150,19 +150,4 @@ function renderizarHeaderPublico(el) {
 
 function renderizarBannerValidacao(el, sessao) {
     return; // verificação fora do MVP: não mostra o banner
-    const primeiroNome = (sessao.nome || '').split(' ')[0];
-
-    const banner = document.createElement('div');
-    banner.className = 'banner-validacao';
-    banner.setAttribute('role', 'alert');
-
-    const icone = document.createElement('i');
-    icone.className = 'bi bi-hourglass-split';
-    banner.appendChild(icone);
-
-    const texto = document.createElement('span');
-    texto.innerHTML = `Olá, <strong>${escapeHtml(primeiroNome)}</strong>! Sua conta ainda não foi validada. Envie seus documentos pelo <a href="/pages/24-suporte.html">Suporte</a> para liberar todas as funcionalidades.`;
-    banner.appendChild(texto);
-
-    el.prepend(banner);
 }

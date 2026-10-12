@@ -1,7 +1,7 @@
 function getSessao() {
     try {
         return JSON.parse(sessionStorage.getItem('usuarioLogado'));
-    } catch (e) {
+    } catch {
         return null;
     }
 }
@@ -51,7 +51,7 @@ async function api(caminho, opcoes = {}) {
     let resposta;
     try {
         resposta = await fetch(`${API_BASE}${caminho}`, { method, headers, body: corpoEnvio });
-    } catch (e) {
+    } catch {
         const erro = new Error('Não foi possível conectar ao servidor.');
         erro.status = 0;
         throw erro;
@@ -61,7 +61,7 @@ async function api(caminho, opcoes = {}) {
     const texto = await resposta.text();
     let json = null;
     if (texto) {
-        try { json = JSON.parse(texto); } catch (e) { json = null; }
+        try { json = JSON.parse(texto); } catch { json = null; }
     }
 
     if (!resposta.ok) {

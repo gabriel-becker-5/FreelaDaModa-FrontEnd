@@ -39,7 +39,7 @@ function resolverFoto(valor) {
     try {
         const url = new URL(valor, new URL(API_BASE).origin);
         return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : '';
-    } catch (erro) {
+    } catch {
         return '';
     }
 }

@@ -441,39 +441,7 @@ function calcularIniciais(nome) {
         : partes[0].substring(0, 2).toUpperCase();
 }
 
-/* ------------------------- máscaras (inputs) ------------------------------ */
-
-function aplicarMascaraTelefone(input) {
-    input.addEventListener('input', function () {
-        const numeros = input.value.replace(/\D/g, '').slice(0, 11);
-        if (numeros.length <= 10) {
-            input.value = numeros.replace(/(\d{2})(\d{0,4})(\d{0,4})/, function (_, ddd, inicio, fim) {
-                if (!inicio) return `(${ddd}`;
-                if (!fim) return `(${ddd}) ${inicio}`;
-                return `(${ddd}) ${inicio}-${fim}`;
-            });
-            return;
-        }
-        input.value = numeros.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
-    });
-}
-
-function aplicarMascaraCEP(input) {
-    input.addEventListener('input', function () {
-        const numeros = input.value.replace(/\D/g, '').slice(0, 8);
-        input.value = numeros.length > 5 ? `${numeros.slice(0, 5)}-${numeros.slice(5)}` : numeros;
-    });
-}
-
-function aplicarMascaraCPF(input) {
-    input.addEventListener('input', function () {
-        const numeros = input.value.replace(/\D/g, '').slice(0, 11);
-        if (numeros.length <= 3) input.value = numeros;
-        else if (numeros.length <= 6) input.value = `${numeros.slice(0, 3)}.${numeros.slice(3)}`;
-        else if (numeros.length <= 9) input.value = `${numeros.slice(0, 3)}.${numeros.slice(3, 6)}.${numeros.slice(6)}`;
-        else input.value = `${numeros.slice(0, 3)}.${numeros.slice(3, 6)}.${numeros.slice(6, 9)}-${numeros.slice(9)}`;
-    });
-}
+/* ------------------------- validação ------------------------------------- */
 
 // Validação de CPF (11 dígitos + dígitos verificadores).
 function validarCPF(cpf) {

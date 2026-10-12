@@ -12,11 +12,11 @@
   try {
     var salvo = localStorage.getItem('fdlm-theme');
     if (salvo) root.setAttribute('data-theme', salvo);
-  } catch (e) {}
+  } catch {}
 
   new MutationObserver(function () {
     var atual = root.getAttribute('data-theme');
-    try { localStorage.setItem('fdlm-theme', atual); } catch (e) {}
+    try { localStorage.setItem('fdlm-theme', atual); } catch {}
     sincronizarIcone(atual);
   }).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
 

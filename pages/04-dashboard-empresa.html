@@ -36,7 +36,6 @@
             <div class="dash-user-info">
                 <h1 id="welcome-empresa">Painel da Confecção</h1>
                 <p>Gerencie suas ordens de serviço, publique vagas e contrate profissionais.</p>
-                <span class="user-tag" id="badge-verificada" hidden><i class="bi bi-building-check"></i> Empresa Verificada</span>
             </div>
             <div>
                 <a href="/pages/12-publicar-vaga.html" class="btn btn-purple-bright">
@@ -84,14 +83,14 @@
         <div class="dash-layout">
             
             <!-- Coluna Principal -->
-            <div class="main-column">
+            <div>
                 <div class="section-box">
                     <div class="box-title">
                         <h2><i class="bi bi-gear-wide-connected"></i> Ordens de Serviço em Andamento</h2>
                         <a href="/pages/16-ordens-servico.html" style="font-size: 0.88rem; color: var(--color-primary); text-decoration: none; font-weight: 600;">Ver todas <i class="bi bi-arrow-right"></i></a>                        
                     </div>
 
-                    <div class="services-list" id="lista-os-ativas">
+                    <div id="lista-os-ativas">
                         <!-- Renderizado via dashboard-empresa.js -->
                     </div>
                 </div>
@@ -103,7 +102,7 @@
                         <a href="/pages/15-minhas-vagas.html" style="font-size: 0.88rem; color: var(--color-primary); text-decoration: none; font-weight: 600;">Ver todas <i class="bi bi-arrow-right"></i></a>                        
                     </div>
 
-                    <div class="company-jobs-list" id="lista-minhas-vagas">
+                    <div id="lista-minhas-vagas">
                         <!-- Renderizado via dashboard-empresa.js -->
                     </div>
                 </div>
@@ -115,14 +114,14 @@
                         <span style="font-size: 0.85rem; color: var(--text-secondary);">Tempo real</span>
                     </div>
 
-                    <div class="candidates-list" id="lista-candidaturas-recentes">
+                    <div id="lista-candidaturas-recentes">
                         <!-- Renderizado via dashboard-empresa.js -->
                     </div>
                 </div>
             </div>
 
             <!-- Coluna Lateral -->
-            <div class="sidebar-column">
+            <div>
                 <div class="section-box">
                     <div class="box-title">
                         <h2><i class="bi bi-chat-dots"></i> Mensagens Recentes</h2>
