@@ -1,5 +1,7 @@
 // Editar Ordem de Serviço (empresa)
 document.addEventListener('DOMContentLoaded', function () {
+    if (aplicarGuardPaginasNegadas()) return;
+
     const sessao = exigirTipo('empresas');
     if (!sessao) return;
 

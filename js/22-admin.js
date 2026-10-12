@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
+    if (aplicarGuardPaginasNegadas()) return;
+
     // ── Gate de login (a autorização real fica no back) ──
     const sessaoAdmin = exigirLogin();
     if (!sessaoAdmin) return;

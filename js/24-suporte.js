@@ -3,6 +3,8 @@
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
+    if (aplicarGuardPaginasNegadas()) return;
+
     /* ------------------------- nav por sessão ------------------------------ */
 
     const sessao = obterSessao();
