@@ -307,17 +307,11 @@ fotoRemover.addEventListener('click', async function () {
     }
 });
 
-// Fotos de referência: o back não tem endpoint para isso (seção escondida no HTML,
-// com texto "Em breve"). O selo abaixo passou a depender só da foto de perfil.
+// Fotos de referência e solicitação de verificação: sem endpoint no back.
 function atualizarStatusSelo() {
     if (!seloStatus) return;
-    if (fotoUrl) {
-        seloStatus.className = 'alert alert-success';
-        seloStatus.innerHTML = '<i class="bi bi-patch-check-fill"></i> Perfil completo! Em breve, o selo de verificado poderá ser solicitado por aqui.';
-    } else {
-        seloStatus.className = 'alert alert-warning';
-        seloStatus.innerHTML = '<i class="bi bi-hourglass-split"></i> Adicione sua foto de perfil para completar seu perfil.';
-    }
+    seloStatus.className = 'alert alert-warning';
+    seloStatus.innerHTML = '<i class="bi bi-hourglass-split"></i> Solicitação de verificação indisponível no MVP.';
 }
 
 /* ------------------------- CEP (ViaCEP com fallback manual) --------------- */

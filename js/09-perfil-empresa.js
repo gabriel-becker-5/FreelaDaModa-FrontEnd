@@ -253,38 +253,13 @@ logoRemover.addEventListener('click', async function () {
 
 /* ------------------------- selo de verificação (empresa) ------------------ */
 
-// Fotos de referência: o back não tem endpoint para isso (seção escondida no HTML,
-// com texto "Em breve"). CPF, CNPJ e data de nascimento também saíram da checagem:
-// o back não devolve esses dados nesta tela, então eles ficam em branco por padrão
-// e não são indicativo real de perfil incompleto.
+// Fotos de referência e solicitação de verificação: sem endpoint no back.
+// Não encaminhar a empresa ao Suporte (fora do MVP).
 function atualizarStatusSelo() {
     if (!seloStatus) return;
-
-    const pendentes = [];
-    if (!inputRazaoSocial.value.trim()) pendentes.push('razão social');
-    if (!inputNomeFantasia.value.trim()) pendentes.push('nome fantasia');
-    if (!inputRamoAtuacao.value.trim()) pendentes.push('ramo de atuação');
-    if (!inputEmail.value.trim()) pendentes.push('e-mail');
-    if (!inputTelefone.value.trim()) pendentes.push('telefone');
-    if (!inputDescricao.value.trim()) pendentes.push('descrição do perfil');
-    if (!inputCepComercial.value.trim()) pendentes.push('CEP');
-    if (!inputEnderecoComercial.value.trim()) pendentes.push('endereço');
-    if (!inputNumeroComercial.value) pendentes.push('número');
-    if (!inputBairroComercial.value.trim()) pendentes.push('bairro');
-    if (!inputCidadeComercial.value.trim()) pendentes.push('cidade');
-    if (!inputEstadoComercial.value.trim()) pendentes.push('estado');
-
-    if (!pendentes.length) {
-        seloStatus.className = 'alert alert-success';
-        seloStatus.innerHTML = '<i class="bi bi-patch-check-fill"></i> Perfil completo! Envie seus documentos pelo Suporte para solicitar o selo de verificado.';
-    } else {
-        seloStatus.className = 'alert alert-warning';
-        seloStatus.innerHTML = `<i class="bi bi-hourglass-split"></i> Para solicitar o selo de verificado, complete o perfil: ${pendentes.join(', ')}.`;
-    }
+    seloStatus.className = 'alert alert-warning';
+    seloStatus.innerHTML = '<i class="bi bi-hourglass-split"></i> Solicitação de verificação indisponível no MVP.';
 }
-
-// Avisa a alteração de qualquer campo do formulário para atualizar o selo
-form.addEventListener('input', atualizarStatusSelo);
 
 /* ------------------------- CEP (ViaCEP com fallback manual) ---------------- */
 

@@ -94,38 +94,6 @@ document.addEventListener('DOMContentLoaded', function () {
         return valor;
     }
 
-    // Renderiza o anexo de uma OS. Anexos são gravados por CAMINHO (/uploads/...);
-    // exibe apenas a imagem (sem o nome do arquivo), com ícone quando indisponível.
-    function renderizarAnexo(elementoId, valor) {
-        const el = document.getElementById(elementoId);
-        if (!el) return;
-
-        el.innerHTML = '';
-
-        if (!valor) {
-            el.textContent = 'Nenhum arquivo anexado.';
-            return;
-        }
-
-        if (typeof valor === 'string' && (valor.startsWith('/uploads/') || valor.startsWith('blob:'))) {
-            const img = document.createElement('img');
-            img.src = valor;
-            img.alt = 'Imagem de referência';
-            img.className = 'anexo-os-imagem';
-            img.onerror = function () {
-                const icone = document.createElement('i');
-                icone.className = 'bi bi-file-earmark-image';
-                icone.style.cssText = 'font-size: 24px; display: block; margin: 0 auto;';
-                img.replaceWith(icone);
-            };
-            el.appendChild(img);
-            return;
-        }
-
-        // Formato não suportado: exibe como texto simples (sem injetar HTML).
-        el.textContent = typeof valor === 'object' && valor.nome ? valor.nome : String(valor);
-    }
-
     let osAtual = null;
     let acaoEmAndamento = false;
 
@@ -169,19 +137,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('os-freelancer-display').textContent = os.freelancerNome || '—';
         }
         document.getElementById('os-prazo-display').textContent = formatarData(os.prazo);
-        document.getElementById('os-previsao-display').textContent = formatarData(os.previsaoConclusao);
-        document.getElementById('os-avaliacao-freela-display').textContent = os.avaliacaoFreelancer || 'Pendente';
-        document.getElementById('os-avaliacao-conf-display').textContent = os.avaliacaoConfeccao || 'Pendente';
         document.getElementById('os-observacoes-display').textContent = os.observacoes || '—';
-        renderizarAnexo('os-briefing-display', os.referenciaBriefing);
-        renderizarAnexo('os-entrega-display', os.referenciaEntrega);
-
-        const timeline = document.getElementById('os-timeline');
-        timeline.innerHTML = (Array.isArray(os.historico) && os.historico.length)
-            ? os.historico.map(function (item) {
-                return `<div class="timeline-item">${formatarData(item.data)} - ${escapeHtml(item.evento)}</div>`;
-            }).join('')
-            : '<div class="timeline-item">Nenhum evento registrado.</div>';
 
         // Ações conforme o papel de quem está logado.
         // A autorização de verdade é do back (detalhe, concluir e cancelar só valem para
