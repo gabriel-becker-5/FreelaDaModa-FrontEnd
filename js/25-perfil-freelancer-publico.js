@@ -13,7 +13,7 @@ const avatarFreelancer = document.querySelector('#avatar-freelancer');
 const nomeFreelancer = document.querySelector('#nome-freelancer');
 const localizacaoFreelancer = document.querySelector('#localizacao-freelancer');
 const seloVerificado = document.querySelector('#selo-verificado');
-const seloContainer = document.querySelector('#selo-container');
+const seloIndisponivel = document.querySelector('#selo-indisponivel');
 const descricaoFreelancer = document.querySelector('#descricao-freelancer');
 const listaEspecialidades = document.querySelector('#lista-especialidades');
 const listaMaquinas = document.querySelector('#lista-maquinas');
@@ -60,10 +60,11 @@ function preencherPerfil(dados) {
         avatarFreelancer.textContent = calcularIniciais(dados.legalResponsibleFullName);
     }
 
-    // Selo verificado: direto do isVerified do back (sem container vazio quando não há selo).
+    // Selo verificado: direto do isVerified do back (nunca inferido de foto/referências).
+    // Sem selo, mostra o aviso de solicitação indisponível no MVP.
     const verificado = dados.isVerified === true;
     if (seloVerificado) seloVerificado.hidden = !verificado;
-    if (seloContainer) seloContainer.hidden = !verificado;
+    if (seloIndisponivel) seloIndisponivel.hidden = verificado;
 
     nomeFreelancer.textContent = dados.legalResponsibleFullName || '';
     // Só cidade/UF, sem sobrar " - " quando um dos dois faltar.

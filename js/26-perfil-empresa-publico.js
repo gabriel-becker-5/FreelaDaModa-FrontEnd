@@ -13,7 +13,7 @@ const avatarEmpresa = document.querySelector('#avatar-empresa');
 const nomeEmpresa = document.querySelector('#nome-empresa');
 const localizacaoEmpresa = document.querySelector('#localizacao-empresa');
 const seloVerificado = document.querySelector('#selo-verificado');
-const seloContainer = document.querySelector('#selo-container');
+const seloIndisponivel = document.querySelector('#selo-indisponivel');
 const descricaoEmpresa = document.querySelector('#descricao-empresa');
 const ramoEmpresa = document.querySelector('#ramo-empresa');
 const listaVagasAtivas = document.querySelector('#lista-vagas-ativas');
@@ -113,10 +113,11 @@ function preencherPerfil(dados) {
         avatarEmpresa.textContent = calcularIniciais(dados.companyName);
     }
 
-    // Selo verificado: direto do isVerified do back (sem container vazio quando não há selo).
+    // Selo verificado: direto do isVerified do back (nunca inferido de logo/perfil).
+    // Sem selo, mostra o aviso de solicitação indisponível no MVP.
     const verificado = dados.isVerified === true;
     if (seloVerificado) seloVerificado.hidden = !verificado;
-    if (seloContainer) seloContainer.hidden = !verificado;
+    if (seloIndisponivel) seloIndisponivel.hidden = verificado;
 
     nomeEmpresa.textContent = dados.companyName || '';
     // Só cidade/UF, sem sobrar " - " quando um dos dois faltar.
